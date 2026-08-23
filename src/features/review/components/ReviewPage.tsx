@@ -36,7 +36,7 @@ import {
   import { GradeControls } from '#/features/review/components/GradeControls'
   import { SessionComplete } from '#/features/review/components/SessionComplete'
 
-  import { submitGradeAction } from '#/features/review/actions'
+  import { submitReview } from '#/features/review/application/submitReview'
 
 
   import {
@@ -194,7 +194,7 @@ import {
 
         const card = queue[idx]
 
-        await submitGradeAction({
+        await submitReview({
           card,
           grade,
           sessionId: sessionIdRef.current,
@@ -567,3 +567,4 @@ import {
       </div>
     )
   }
+

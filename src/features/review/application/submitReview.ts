@@ -1,6 +1,7 @@
 import type { Card } from '#/shared/types/domain'
 import type { AggregatedFeatures } from '#/shared/lib/signals'
-import type { Grade } from '#/shared/lib/sm2'
+
+import { GradeSchema } from '#/features/review/schemas'
 
 import { DEFAULT_ALPHA, updateEwma } from '#/shared/lib/baseline'
 import { sm2 } from '#/shared/lib/sm2'
@@ -10,7 +11,7 @@ import { sessionRepository } from '#/shared/repositories/sessionRepository'
 
 type SubmitReviewParams = {
   card: Card
-  grade: Grade
+  grade: number
   sessionId: string
   startedAt: number
   live: AggregatedFeatures | null
@@ -23,6 +24,7 @@ type SubmitReviewResult = {
 export async function submitReview(
   params: SubmitReviewParams,
 ): Promise<SubmitReviewResult> {
+  const grade = GradeSchema.parse(params.grade)
   const now = new Date()
 
   const result = sm2(
@@ -31,7 +33,7 @@ export async function submitReview(
       repetitions: params.card.repetitions,
       easeFactor: params.card.easeFactor,
     },
-    params.grade,
+    grade,
     now,
   )
 
@@ -51,7 +53,7 @@ export async function submitReview(
     cardId: params.card.id,
     sessionId: params.sessionId,
     timestamp: now.toISOString(),
-    grade: params.grade,
+    grade,
     durationMs: Math.max(
       0,
       Date.now() - params.startedAt,
@@ -106,3 +108,4 @@ async function updateBaseline(
     })
   }
 }
+
