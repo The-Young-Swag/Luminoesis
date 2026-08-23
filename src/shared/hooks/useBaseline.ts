@@ -1,34 +1,55 @@
 import { useEffect, useState } from 'react'
+
 import {
-  
   createEmptyBaseline,
-  hasBaseline
+  hasBaseline,
 } from '#/shared/lib/baseline'
-import type {BaselineMap} from '#/shared/lib/baseline';
+import type { BaselineMap } from '#/shared/lib/baseline'
+
 import { baselineRepository } from '#/shared/repositories/baselineRepository'
 
 export function useBaseline() {
-  const [baseline, setBaseline] = useState<BaselineMap>(createEmptyBaseline())
+  const [baseline, setBaseline] = useState<BaselineMap>(
+    createEmptyBaseline(),
+  )
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
     let alive = true
-    baselineRepository.getAll().then((map) => {
-      if (!alive) return
+
+    async function loadBaseline() {
+      const features = await baselineRepository.findAll()
+
+      if (!alive) {
+        return
+      }
+
+      const map = Object.fromEntries(
+        features.map((feature) => [
+          feature.name,
+          feature,
+        ]),
+      ) as BaselineMap
+
       setBaseline(map)
       setReady(true)
-    })
-    const interval = setInterval(() => {
-      void baselineRepository.getAll().then((map) => {
-        if (!alive) return
-        setBaseline(map)
-      })
+    }
+
+    void loadBaseline()
+
+    const interval = window.setInterval(() => {
+      void loadBaseline()
     }, 5000)
+
     return () => {
       alive = false
-      clearInterval(interval)
+      window.clearInterval(interval)
     }
   }, [])
 
-  return { baseline, ready, hasBaseline: hasBaseline(baseline) }
+  return {
+    baseline,
+    ready,
+    hasBaseline: hasBaseline(baseline),
+  }
 }
