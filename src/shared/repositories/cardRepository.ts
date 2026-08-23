@@ -14,6 +14,10 @@ export const cardRepository = {
     await db.cards.add(card)
   },
 
+  async createMany(cards: Card[]): Promise<void> {
+    await db.cards.bulkAdd(cards)
+  },
+
   async update(
     id: string,
     patch: Partial<Card>,
