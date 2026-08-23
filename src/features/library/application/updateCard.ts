@@ -1,10 +1,26 @@
-import type { Card } from '#/shared/types/domain'
+import { z } from 'zod'
 
 import { cardRepository } from '#/shared/repositories/cardRepository'
 
+const UpdateCardSchema = z.object({
+  front: z.string().trim().min(1),
+  back: z.string().trim().min(1),
+  topic: z.string().trim().default('General'),
+  targetDate: z.string().optional(),
+})
+
+export type UpdateCardInput = z.input<typeof UpdateCardSchema>
+
 export async function updateCard(
   id: string,
-  patch: Partial<Card>,
+  input: UpdateCardInput,
 ): Promise<void> {
-  await cardRepository.update(id, patch)
+  const data = UpdateCardSchema.parse(input)
+
+  await cardRepository.update(id, {
+    front: data.front,
+    back: data.back,
+    topic: data.topic || 'General',
+    targetDate: data.targetDate || undefined,
+  })
 }

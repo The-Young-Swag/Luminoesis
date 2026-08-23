@@ -1,7 +1,4 @@
-import {
-  useEffect,
-  useState,
-} from 'react'
+import { useEffect, useState } from 'react'
 import { liveQuery } from 'dexie'
 
 import type { Card } from '#/shared/types/domain'
@@ -10,19 +7,13 @@ import { seedIfEmpty } from '#/shared/lib/db/seed'
 import { cardRepository } from '#/shared/repositories/cardRepository'
 
 export function useLibraryData() {
-  const [cards, setCards] =
-    useState<Card[]>([])
-
-  const [ready, setReady] =
-    useState(false)
+  const [cards, setCards] = useState<Card[]>([])
+  const [ready, setReady] = useState(false)
 
   useEffect(() => {
     let cancelled = false
-    let unsubscribe:
-      | (() => void)
-      | undefined
 
-    async function initialize() {
+    const initialize = async () => {
       try {
         await seedIfEmpty()
 
@@ -30,38 +21,33 @@ export function useLibraryData() {
           return
         }
 
-        const observable = liveQuery(
-          () => cardRepository.findAll(),
-        )
+        const subscription = liveQuery(() =>
+          cardRepository.findAll(),
+        ).subscribe({
+          next: (nextCards) => {
+            if (cancelled) {
+              return
+            }
 
-        const subscription =
-          observable.subscribe({
-            next: (nextCards) => {
-              if (cancelled) {
-                return
-              }
+            setCards(nextCards)
+            setReady(true)
+          },
 
-              setCards(nextCards)
-              setReady(true)
-            },
+          error: (error) => {
+            if (cancelled) {
+              return
+            }
 
-            error: (error) => {
-              if (cancelled) {
-                return
-              }
+            console.error(
+              'Failed to observe library data:',
+              error,
+            )
 
-              console.error(
-                'Failed to observe library data:',
-                error,
-              )
+            setReady(true)
+          },
+        })
 
-              setReady(true)
-            },
-          })
-
-        unsubscribe = () => {
-          subscription.unsubscribe()
-        }
+        return () => subscription.unsubscribe()
       } catch (error) {
         if (cancelled) {
           return
@@ -76,16 +62,22 @@ export function useLibraryData() {
       }
     }
 
-    void initialize()
+    let cleanup: (() => void) | undefined
+
+    void initialize().then((unsubscribe) => {
+      if (cancelled) {
+        unsubscribe?.()
+        return
+      }
+
+      cleanup = unsubscribe
+    })
 
     return () => {
       cancelled = true
-      unsubscribe?.()
+      cleanup?.()
     }
   }, [])
 
-  return {
-    cards,
-    ready,
-  }
+  return { cards, ready }
 }

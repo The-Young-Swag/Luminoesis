@@ -37,10 +37,10 @@ export function CardDialog({
     startTransition(async () => {
       if (card) {
         await updateCard(card.id, {
-          front: front.trim(),
-          back: back.trim(),
-          topic: topic.trim() || 'General',
-          targetDate: targetDate || undefined,
+          front,
+          back,
+          topic,
+          targetDate,
         })
       } else {
         await createCard({
