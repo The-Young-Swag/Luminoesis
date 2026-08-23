@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { Card } from '#/shared/types/domain'
 import { parseAny  } from '#/shared/lib/import'
 import type {RawCard} from '#/shared/lib/import';
-import { cardRepository } from '#/shared/repositories/cardRepository'
+import { importCards } from '../application/importCards'
+
 import {
   Upload,
   FileText,
@@ -158,22 +158,12 @@ export function ImportWizard({
     setEditable((p) => [...p, { front: '', back: '', topic: 'General' }])
 
   const doImport = async () => {
-    const today = new Date().toISOString().slice(0, 10)
-    const now = new Date().toISOString()
-    const toAdd: Card[] = editable
-      .filter((c) => c.front.trim() && c.back.trim())
-      .map((c) => ({
-        id: crypto.randomUUID().slice(0, 8),
-        front: c.front.trim(),
-        back: c.back.trim(),
-        topic: c.topic.trim() || 'General',
-        createdAt: now,
-        interval: 0,
-        repetitions: 0,
-        easeFactor: 2.5,
-        dueDate: today,
-      }))
-    if (toAdd.length) await cardRepository.createMany(toAdd)
+    const cards = await importCards(editable)
+  
+    if (cards.length === 0) {
+      return
+    }
+  
     onImported()
     onClose()
   }
