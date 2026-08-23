@@ -108,15 +108,9 @@ export function ImportWizard({
   const parsed = useMemo(() => parseAny(debounced), [debounced])
   const [editable, setEditable] = useState<RawCard[]>([])
 
-  // Sync preview when parsed changes (but keep user edits if they edited)
-  const prevTextRef = useRef('')
   useEffect(() => {
-    // If user is typing and we haven't edited manually, mirror parsed
-    if (debounced !== prevTextRef.current) {
-      prevTextRef.current = debounced
-      setEditable(parsed.cards)
-    }
-  }, [parsed.cards, debounced])
+    setEditable(parsed.cards)
+  }, [parsed.cards])
 
   const warnings = parsed.warnings.map(humanWarning)
   const canImport =
