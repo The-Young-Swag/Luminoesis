@@ -1,7 +1,12 @@
+import { seedIfEmpty } from '#/shared/lib/db/seed'
 import { cardRepository } from '#/shared/repositories/cardRepository'
 import { settingsRepository } from '#/shared/repositories/settingsRepository'
 
+const MAX_CALIBRATION_SESSIONS = 5
+
 export async function loadReview() {
+  await seedIfEmpty()
+
   const [
     cards,
     adaptiveOptIn,
@@ -17,7 +22,7 @@ export async function loadReview() {
     adaptiveOptIn: adaptiveOptIn ?? false,
     calibrationSessions: Math.min(
       calibrationSessions,
-      5,
+      MAX_CALIBRATION_SESSIONS,
     ),
   }
 }

@@ -5,15 +5,12 @@ import {
     useState,
   } from 'react'
 
-  import { cardRepository } from '#/shared/repositories/cardRepository'
-
   import { Keyboard, Pause } from 'lucide-react'
 
   import type { Card } from '#/shared/types/domain'
   import type { Grade } from '#/shared/lib/sm2'
   import type { AggregatedFeatures } from '#/shared/lib/signals'
 
-  import { seedIfEmpty } from '#/shared/lib/db/seed'
   import { daysOverdue } from '#/shared/lib/sm2'
   import {
     adaptQueue,
@@ -102,23 +99,20 @@ import {
       ? `${Math.min(idx + 1, queue.length)} / ${queue.length}`
       : '0 / 0'
 
-    useEffect(() => {
-      async function load() {
-        await seedIfEmpty()
-        const {
-          cards: loadedCards,
-          adaptiveOptIn,
-          calibrationSessions,
-        } = await loadReview()
-
-        setCards(loadedCards)
-        setOptIn(adaptiveOptIn)
-        setCalibrationN(calibrationSessions)
-        setQueue(buildQueue(loadedCards))
-      }
-
+      useEffect(() => {
+        async function load() {
+          const {
+            cards: loadedCards,
+            adaptiveOptIn,
+            calibrationSessions,
+          } = await loadReview()
+          setCards(loadedCards)
+          setOptIn(adaptiveOptIn)
+          setCalibrationN(calibrationSessions)
+          setQueue(buildQueue(loadedCards))
+        }
       void load()
-    }, [])
+      }, [])
 
     useEffect(() => {
       if (
@@ -226,10 +220,9 @@ import {
           setShowBack(false)
         }
 
-        const refreshedCards =
-          await cardRepository.findAll()
+        const refreshedReview = await loadReview()
 
-        setCards(refreshedCards)
+        setCards(refreshedReview.cards)
       },
       [
         queue,
