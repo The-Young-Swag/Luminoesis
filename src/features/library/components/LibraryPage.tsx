@@ -14,9 +14,7 @@ import {
   exportToMarkdown,
 } from '#/shared/lib/import'
 
-import {
-  deleteCardAction,
-} from '../actions'
+import { deleteCard } from '../application/deleteCard'
 
 import { CardDialog } from './CardDialog'
 import { ImportWizard } from './ImportWizard'
@@ -60,7 +58,7 @@ export function LibraryPage() {
   }
 
   const handleDelete = async (id: string) => {
-    await deleteCardAction(id)
+    await deleteCard(id)
   }
 
   const handleSaved = () => {

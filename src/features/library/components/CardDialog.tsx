@@ -1,6 +1,9 @@
 import { useEffect, useState, useTransition } from 'react'
+
 import type { Card } from '#/shared/types/domain'
-import { cardRepository } from '#/shared/repositories/cardRepository'
+
+import { createCard } from '../application/createCard'
+import { updateCard } from '../application/updateCard'
 
 type CardDialogProps = {
   card?: Card
@@ -8,15 +11,17 @@ type CardDialogProps = {
   onSaved: () => void
 }
 
-// Pure: UI = f(card). Local form state is owned here, synced when card identity changes.
-export function CardDialog({ card, onClose, onSaved }: CardDialogProps) {
+export function CardDialog({
+  card,
+  onClose,
+  onSaved,
+}: CardDialogProps) {
   const [front, setFront] = useState(card?.front ?? '')
   const [back, setBack] = useState(card?.back ?? '')
   const [topic, setTopic] = useState(card?.topic ?? 'General')
   const [targetDate, setTargetDate] = useState(card?.targetDate ?? '')
   const [isPending, startTransition] = useTransition()
 
-  // Keep derived state in sync when editing a different card (avoid stale duplication)
   useEffect(() => {
     setFront(card?.front ?? '')
     setBack(card?.back ?? '')
@@ -25,31 +30,27 @@ export function CardDialog({ card, onClose, onSaved }: CardDialogProps) {
   }, [card?.id, card?.front, card?.back, card?.topic, card?.targetDate])
 
   const save = () => {
-    if (!front.trim() || !back.trim()) return
+    if (!front.trim() || !back.trim()) {
+      return
+    }
+
     startTransition(async () => {
-      const now = new Date().toISOString()
-      const today = now.slice(0, 10)
       if (card) {
-        await cardRepository.update(card.id, {
+        await updateCard(card.id, {
           front: front.trim(),
           back: back.trim(),
           topic: topic.trim() || 'General',
           targetDate: targetDate || undefined,
         })
       } else {
-        await cardRepository.create({
-          id: crypto.randomUUID().slice(0, 8),
-          front: front.trim(),
-          back: back.trim(),
-          topic: topic.trim() || 'General',
-          targetDate: targetDate || undefined,
-          createdAt: now,
-          interval: 0,
-          repetitions: 0,
-          easeFactor: 2.5,
-          dueDate: today,
+        await createCard({
+          front,
+          back,
+          topic,
+          targetDate,
         })
       }
+
       onSaved()
       onClose()
     })
@@ -57,68 +58,78 @@ export function CardDialog({ card, onClose, onSaved }: CardDialogProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4"
       role="dialog"
       aria-modal="true"
       aria-label={card ? 'Edit card' : 'New card'}
       onClick={onClose}
     >
       <div
-        className="card-flat w-full max-w-140 p-6 max-h-[90vh] overflow-auto"
-        onClick={(e) => e.stopPropagation()}
+        className="card-flat max-h-[90vh] w-full max-w-140 overflow-auto p-6"
+        onClick={(event) => event.stopPropagation()}
       >
-        <h3 className="font-semibold text-[17px]">
+        <h3 className="text-[17px] font-semibold">
           {card ? 'Edit card' : 'Create a new card'}
         </h3>
-        <p className="text-sm text-(--ink-soft) mt-1">
+
+        <p className="mt-1 text-sm text-(--ink-soft)">
           {card
             ? 'Make changes and save. It will update right away.'
             : 'One idea per card works best. You can add many more after.'}
         </p>
-        <div className="grid gap-4 mt-5">
+
+        <div className="mt-5 grid gap-4">
           <label className="text-sm">
-            <span className="font-medium">Front — what you’ll see first</span>
-            <span className="text-(--ink-faint) font-normal">
+            <span className="font-medium">
+              Front — what you’ll see first
+            </span>
+            <span className="font-normal text-(--ink-faint)">
               {' '}
               (question, prompt, word)
             </span>
+
             <textarea
               value={front}
-              onChange={(e) => setFront(e.target.value)}
+              onChange={(event) => setFront(event.target.value)}
               rows={3}
               autoFocus
               className="mt-1.5 w-full rounded-xl border border-(--line) bg-(--surface) p-3 text-[15px] outline-none focus:border-(--blue) focus:ring-2 focus:ring-(--blue)/20"
               placeholder="e.g. What is the primary neurotransmitter at the neuromuscular junction?"
             />
           </label>
+
           <label className="text-sm">
             <span className="font-medium">Back — the answer</span>
-            <span className="text-(--ink-faint) font-normal">
+            <span className="font-normal text-(--ink-faint)">
               {' '}
               (keep it concise)
             </span>
+
             <textarea
               value={back}
-              onChange={(e) => setBack(e.target.value)}
+              onChange={(event) => setBack(event.target.value)}
               rows={3}
               className="mt-1.5 w-full rounded-xl border border-(--line) bg-(--surface) p-3 text-[15px] outline-none focus:border-(--blue) focus:ring-2 focus:ring-(--blue)/20"
               placeholder="e.g. Acetylcholine — released at the neuromuscular junction"
             />
           </label>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <label className="text-sm">
               <span className="font-medium">Topic</span>
-              <span className="text-(--ink-faint) font-normal">
+              <span className="font-normal text-(--ink-faint)">
                 {' '}
                 (groups your cards)
               </span>
+
               <input
                 value={topic}
-                onChange={(e) => setTopic(e.target.value)}
+                onChange={(event) => setTopic(event.target.value)}
                 list="topic-suggestions"
                 className="mt-1.5 w-full rounded-full border border-(--line) bg-(--surface) px-3.5 py-2.5 text-sm outline-none focus:border-(--blue)"
                 placeholder="General"
               />
+
               <datalist id="topic-suggestions">
                 <option value="General" />
                 <option value="Anatomy" />
@@ -126,31 +137,40 @@ export function CardDialog({ card, onClose, onSaved }: CardDialogProps) {
                 <option value="Pharmacology" />
               </datalist>
             </label>
+
             <label className="text-sm">
               <span className="font-medium">Target date</span>
-              <span className="text-(--ink-faint) font-normal">
+              <span className="font-normal text-(--ink-faint)">
                 {' '}
                 (optional)
               </span>
+
               <input
                 type="date"
                 value={targetDate}
-                onChange={(e) => setTargetDate(e.target.value)}
+                onChange={(event) => setTargetDate(event.target.value)}
                 className="mt-1.5 w-full rounded-full border border-(--line) bg-(--surface) px-3.5 py-2.5 text-sm outline-none"
               />
             </label>
           </div>
+
           <p className="text-xs text-(--ink-faint)">
             Tip: Good cards are short and test one idea. You can always edit
             later.
           </p>
         </div>
-        <div className="flex justify-end gap-2 mt-6">
-          <button className="btn-ghost" onClick={onClose} disabled={isPending}>
+
+        <div className="mt-6 flex justify-end gap-2">
+          <button
+            className="btn-ghost"
+            onClick={onClose}
+            disabled={isPending}
+          >
             Cancel
           </button>
+
           <button
-            className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+            className="btn-primary disabled:cursor-not-allowed disabled:opacity-50"
             onClick={save}
             disabled={!front.trim() || !back.trim() || isPending}
           >
