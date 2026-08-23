@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react'
 import {
   Download,
-  Filter,
   Plus,
   Search,
   Upload,
@@ -25,7 +24,6 @@ export function LibraryPage() {
   const { cards, ready } = useLibraryData()
 
   const [search, setSearch] = useState('')
-  const [showFilters, setShowFilters] = useState(false)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isImportOpen, setIsImportOpen] = useState(false)
   const [editingCard, setEditingCard] =
@@ -144,17 +142,6 @@ export function LibraryPage() {
 
         <button
           type="button"
-          onClick={() =>
-            setShowFilters((current) => !current)
-          }
-          className="inline-flex items-center justify-center gap-2 rounded-lg border border-(--line) bg-(--surface) px-4 py-2.5 text-sm text-(--ink-soft) hover:text-(--ink)"
-        >
-          <Filter size={16} />
-          Filters
-        </button>
-
-        <button
-          type="button"
           onClick={() => setIsImportOpen(true)}
           className="inline-flex items-center justify-center gap-2 rounded-lg border border-(--line) bg-(--surface) px-4 py-2.5 text-sm text-(--ink-soft) hover:text-(--ink)"
         >
@@ -190,15 +177,6 @@ export function LibraryPage() {
           </button>
         </div>
       </div>
-
-      {showFilters && (
-        <div className="mb-4 rounded-lg border border-(--line) bg-(--surface) p-4">
-          <p className="text-sm text-(--ink-soft)">
-            Filtering options will be added here as library
-            requirements evolve.
-          </p>
-        </div>
-      )}
 
       <div className="rounded-xl border border-(--line) bg-(--surface)">
         <LibraryTable
