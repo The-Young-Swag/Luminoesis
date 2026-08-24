@@ -16,8 +16,8 @@ export function QuestionView({
   onHideBack,
 }: QuestionViewProps) {
   return (
-    <div className="min-h-[160px] flex flex-col">
-      <div className="text-xs tracking-wide uppercase font-semibold text-[var(--ink-faint)]">
+    <div className="min-h-40 flex flex-col">
+      <div className="text-xs tracking-wide uppercase font-semibold text-(--ink-faint)">
         Front
       </div>
       <div className="text-[18px] leading-relaxed font-medium mt-2">
@@ -33,13 +33,13 @@ export function QuestionView({
             <Eye size={16} /> Show answer
           </button>
         ) : (
-          <div className="rounded-xl border border-[var(--line)] bg-[var(--surface-muted)] p-4">
-            <div className="text-xs tracking-wide uppercase font-semibold text-[var(--ink-faint)]">
+          <div className="rounded-xl border border-(--line) bg-(--surface-muted) p-4">
+            <div className="text-xs tracking-wide uppercase font-semibold text-(--ink-faint)">
               Back
             </div>
             <div className="text-[16px] leading-relaxed mt-1">{back}</div>
             <button
-              className="mt-3 text-xs inline-flex items-center gap-1 text-[var(--ink-faint)]"
+              className="mt-3 text-xs inline-flex items-center gap-1 text-(--ink-faint)"
               onClick={onHideBack}
             >
               <EyeOff size={12} /> Hide

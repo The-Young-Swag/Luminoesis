@@ -58,7 +58,7 @@ export default function Header() {
   const { theme, toggleTheme } = useTheme()
 
   return (
-    <header className="sticky top-0 z-40 border-b border-(--line) bg-(--nav-bg)">
+    <header className="glass-nav glass-specular sticky top-0 z-40 border-b border-(--line)">
       <nav className="page-wrap flex h-16 items-center gap-6">
         <Brand />
 
@@ -152,7 +152,7 @@ function ThemeButton({
       type="button"
       aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
       onClick={onToggle}
-      className="ml-auto flex h-9 w-9 items-center justify-center rounded-full border border-(--line) bg-(--surface) text-(--ink-soft) hover:text-(--ink)"
+      className="glass-pill ml-auto flex h-9 w-9 items-center justify-center text-(--ink-soft) hover:text-(--ink)"
     >
       {isDark ? <Sun size={16} /> : <Moon size={16} />}
     </button>

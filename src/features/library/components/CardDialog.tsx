@@ -1,4 +1,5 @@
 import { useEffect, useState, useTransition } from 'react'
+import { Pencil, Plus } from 'lucide-react'
 
 import type { Card } from '#/shared/types/domain'
 
@@ -58,25 +59,33 @@ export function CardDialog({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4"
+      className="glass-scrim fixed inset-0 z-50 flex items-center justify-center p-4"
       role="dialog"
       aria-modal="true"
       aria-label={card ? 'Edit card' : 'New card'}
       onClick={onClose}
     >
       <div
-        className="card-flat max-h-[90vh] w-full max-w-140 overflow-auto p-6"
+        className="glass-surface glass-specular rise max-h-[90vh] w-full max-w-140 overflow-auto rounded-[20px] p-6"
         onClick={(event) => event.stopPropagation()}
       >
-        <h3 className="text-[17px] font-semibold">
-          {card ? 'Edit card' : 'Create a new card'}
-        </h3>
+        <div className="flex items-start gap-3">
+          <span className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-full bg-(--ink) text-white">
+            {card ? <Pencil size={15} aria-hidden="true" /> : <Plus size={16} aria-hidden="true" />}
+          </span>
 
-        <p className="mt-1 text-sm text-(--ink-soft)">
-          {card
-            ? 'Make changes and save. It will update right away.'
-            : 'One idea per card works best. You can add many more after.'}
-        </p>
+          <div>
+            <h3 className="text-[17px] font-semibold">
+              {card ? 'Edit card' : 'Create a new card'}
+            </h3>
+
+            <p className="mt-1 text-sm text-(--ink-soft)">
+              {card
+                ? 'Make changes and save. It will update right away.'
+                : 'One idea per card works best. You can add many more after.'}
+            </p>
+          </div>
+        </div>
 
         <div className="mt-5 grid gap-4">
           <label className="text-sm">
@@ -126,7 +135,7 @@ export function CardDialog({
                 value={topic}
                 onChange={(event) => setTopic(event.target.value)}
                 list="topic-suggestions"
-                className="mt-1.5 w-full rounded-full border border-(--line) bg-(--surface) px-3.5 py-2.5 text-sm outline-none focus:border-(--blue)"
+                className="mt-1.5 w-full rounded-full border border-(--line) bg-(--surface) px-3.5 py-2.5 text-sm outline-none focus:border-(--blue) focus:ring-2 focus:ring-(--blue)/20"
                 placeholder="General"
               />
 
@@ -149,7 +158,7 @@ export function CardDialog({
                 type="date"
                 value={targetDate}
                 onChange={(event) => setTargetDate(event.target.value)}
-                className="mt-1.5 w-full rounded-full border border-(--line) bg-(--surface) px-3.5 py-2.5 text-sm outline-none"
+                className="mt-1.5 w-full rounded-full border border-(--line) bg-(--surface) px-3.5 py-2.5 text-sm outline-none focus:border-(--blue) focus:ring-2 focus:ring-(--blue)/20"
               />
             </label>
           </div>

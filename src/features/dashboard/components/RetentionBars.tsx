@@ -9,15 +9,15 @@ type RetentionBarsProps = {
 
 export function RetentionBars({ data }: RetentionBarsProps) {
   if (data.length === 0)
-    return <p className="text-sm text-[var(--ink-soft)]">No reviews yet.</p>
+    return <p className="text-sm text-(--ink-soft)">No reviews yet.</p>
   return (
     <div className="space-y-2">
       {data.map((r) => (
         <div key={r.topic} className="flex items-center gap-3 group">
           <span className="w-28 truncate text-xs font-medium">{r.topic}</span>
-          <div className="flex-1 h-2.5 rounded-full bg-[var(--surface-muted)] overflow-hidden">
+          <div className="flex-1 h-2.5 rounded-full bg-(--surface-muted) overflow-hidden">
             <div
-              className="h-full rounded-full bg-[var(--blue)]"
+              className="h-full rounded-full bg-(--blue)"
               style={{ width: `${r.rate}%` }}
             />
           </div>
@@ -26,7 +26,7 @@ export function RetentionBars({ data }: RetentionBarsProps) {
           <Link
             to="/review"
             search={{ topic: r.topic }}
-            className="inline-flex items-center gap-1 text-xs font-medium text-[var(--veridian)] opacity-70 group-hover:opacity-100 hover:text-[var(--veridian-strong)] shrink-0 no-underline"
+            className="inline-flex items-center gap-1 text-xs font-medium text-(--veridian) opacity-70 group-hover:opacity-100 hover:text-(--veridian-strong) shrink-0 no-underline"
             aria-label={`Review ${r.topic}`}
           >
             Review <ArrowUpRight size={12} />

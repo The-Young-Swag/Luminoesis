@@ -1,5 +1,7 @@
+import type { Grade } from '#/shared/lib/sm2'
+
 type GradeControlsProps = {
-  onGrade: (grade: 0 | 1 | 2 | 3) => void
+  onGrade: (grade: Grade) => void
 }
 
 export function GradeControls({ onGrade }: GradeControlsProps) {
@@ -47,11 +49,11 @@ function GradeBtn({
   return (
     <button
       onClick={onClick}
-      className="rounded-xl border border-[var(--line)] bg-[var(--surface)] p-3 text-left hover:bg-[var(--surface-muted)]"
+      className="rounded-xl border border-(--line) bg-(--surface) p-3 text-left hover:bg-(--surface-muted)"
       style={{ borderTopColor: color, borderTopWidth: 3 }}
     >
       <div className="text-sm font-semibold">{label}</div>
-      <div className="text-xs text-[var(--ink-faint)]">{hint}</div>
+      <div className="text-xs text-(--ink-faint)">{hint}</div>
     </button>
   )
 }

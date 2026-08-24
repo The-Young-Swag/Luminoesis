@@ -141,7 +141,7 @@ function MobileHeader({
   onOpenNavigation,
 }: MobileHeaderProps) {
   return (
-    <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-(--line) bg-(--surface) px-4 lg:hidden">
+    <header className="glass-nav glass-specular sticky top-0 z-40 flex h-14 items-center justify-between border-b border-(--line) px-4 lg:hidden">
       <Link
         to="/"
         className="flex items-center gap-2.5 no-underline"
@@ -182,7 +182,7 @@ function MobileBottomNavigation({
   return (
     <nav
       aria-label="Mobile navigation"
-      className="safe-area-pb fixed inset-x-0 bottom-0 z-40 flex items-center justify-around border-t border-(--line) bg-(--surface) px-2 py-2 lg:hidden"
+      className="safe-area-pb glass-nav fixed inset-x-0 bottom-0 z-40 flex items-center justify-around border-t border-(--line) px-2 py-2 lg:hidden"
     >
       {MOBILE_PRIMARY_ITEMS.map((item) => (
         <MobileTab key={item.to} item={item} />
@@ -215,10 +215,10 @@ function MobileMoreSheet({
         type="button"
         aria-label="Close more navigation"
         onClick={onClose}
-        className="flex-1 bg-black/30"
+        className="glass-scrim flex-1"
       />
 
-      <div className="space-y-2 rounded-t-2xl border-t border-(--line) bg-(--surface) p-4">
+      <div className="glass-panel glass-specular space-y-2 rounded-t-2xl border-t border-(--line) p-4">
         {items.map((item) => (
           <MoreNavLink
             key={item.to}
@@ -282,10 +282,10 @@ function MobileDrawer({
         type="button"
         aria-label="Close navigation"
         onClick={onClose}
-        className="flex-1 bg-black/40 backdrop-blur-[2px]"
+        className="glass-scrim flex-1"
       />
 
-      <aside className="flex w-75 max-w-[84vw] flex-col border-l border-sidebar-border bg-sidebar shadow-2xl">
+      <aside className="glass-nav glass-specular flex w-75 max-w-[84vw] flex-col border-l border-sidebar-border shadow-2xl">
         <div className="flex h-14 shrink-0 items-center justify-between border-b border-sidebar-border px-4">
           <span className="mono-label text-(--ink-faint)">
             NAVIGATION
@@ -295,7 +295,7 @@ function MobileDrawer({
             type="button"
             aria-label="Close navigation"
             onClick={onClose}
-            className="grid h-8 w-8 place-items-center rounded-full border border-(--line)"
+            className="glass-pill grid h-8 w-8 place-items-center"
           >
             <X size={16} aria-hidden="true" />
           </button>
@@ -345,7 +345,7 @@ function DesktopSidebar({
 
   return (
     <aside
-      className={`sidebar-shell group/sidebar fixed inset-y-0 left-0 z-30 hidden flex-col transition-all duration-200 lg:flex ${widthClass} ${reviewClass}`}
+      className={`sidebar-shell glass-specular group/sidebar fixed inset-y-0 left-0 z-30 hidden flex-col transition-all duration-200 lg:flex ${widthClass} ${reviewClass}`}
       onMouseEnter={collapsed ? onExpand : undefined}
       onMouseLeave={collapsed ? onCollapse : undefined}
     >
@@ -368,7 +368,7 @@ function DesktopSidebar({
           type="button"
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           onClick={onToggleCollapsed}
-          className="ml-auto hidden h-7 w-7 place-items-center rounded-full border border-sidebar-border text-(--ink-faint) hover:bg-sidebar-accent lg:grid"
+          className="glass-pill ml-auto hidden h-7 w-7 place-items-center text-(--ink-faint) lg:grid"
         >
           <span className="mono-label text-[10px]" aria-hidden="true">
             {collapsed ? '→' : '←'}
@@ -614,7 +614,7 @@ function ThemeToggle({
         type="button"
         aria-label={`Switch to ${label.toLowerCase()}`}
         onClick={onToggle}
-        className="grid h-8 w-8 place-items-center rounded-full border border-(--line)"
+        className="glass-pill grid h-8 w-8 place-items-center"
       >
         <Icon size={14} aria-hidden="true" />
       </button>
@@ -626,7 +626,7 @@ function ThemeToggle({
       type="button"
       aria-label={`Switch to ${label.toLowerCase()}`}
       onClick={onToggle}
-      className="flex w-full items-center justify-between rounded-full border border-(--line) bg-(--surface) px-3 py-2 text-sm font-medium hover:bg-(--surface-muted)"
+      className="glass-pill flex w-full items-center justify-between px-3 py-2 text-sm font-medium"
     >
       <span className="flex items-center gap-2">
         <Icon size={16} aria-hidden="true" />

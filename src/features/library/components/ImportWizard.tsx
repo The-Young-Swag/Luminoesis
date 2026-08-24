@@ -1,22 +1,21 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-condition */
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { parseAny  } from '#/shared/lib/import'
-import type {RawCard} from '#/shared/lib/import';
-import { importCards } from '../application/importCards'
-
+import { useEffect, useRef, useState } from 'react'
 import {
-  Upload,
-  FileText,
-  Sparkles,
-  X,
-  Plus,
-  Trash2,
   Check,
-  Info,
   ChevronDown,
+  FileText,
+  Info,
+  Plus,
+  Sparkles,
+  Upload,
+  X,
 } from 'lucide-react'
 
-// Templates — plain-language examples anyone can use
+import type { RawCard } from '#/shared/lib/import'
+import { parseAny } from '#/shared/lib/import'
+
+import { importCards } from '../application/importCards'
+import { ImportPreview } from './ImportPreview'
+
 const TEMPLATES: Record<
   string,
   { label: string; hint: string; content: string }
@@ -34,6 +33,7 @@ Study tips
 - Review a little each day
 - Test yourself without looking`,
   },
+
   vocab: {
     label: 'Vocab Q&A',
     hint: 'Questions and answers',
@@ -46,6 +46,7 @@ A: When one cell splits into two identical cells
 Q: Where is DNA found?
 A: In the nucleus of every cell`,
   },
+
   list: {
     label: 'Simple list',
     hint: 'One idea per line',
@@ -54,6 +55,7 @@ Largest planet :: Jupiter
 Water formula :: H2O
 Speed of light :: 299,792 km per second`,
   },
+
   sample: {
     label: 'Try a sample',
     hint: 'Medical review — full example',
@@ -69,174 +71,246 @@ Warfarin antidote :: Vitamin K`,
 
 const SUPPORTED = '.txt, .md, .json, .csv'
 
-function humanWarning(w: string): string {
-  if (w.includes('No content'))
+function humanWarning(warning: string): string {
+  if (warning.includes('No content')) {
     return 'Your paste area is empty — add some text or try a template above.'
-  if (w.includes('No cards detected'))
+  }
+
+  if (warning.includes('No cards detected')) {
     return 'We couldn’t find cards yet. Try one idea per line, or use “Question :: Answer”.'
-  if (w.includes('Duplicate skipped'))
-    return w.replace('Duplicate skipped', 'Skipped duplicate')
-  if (w.includes('Invalid JSON'))
+  }
+
+  if (warning.includes('Duplicate skipped')) {
+    return warning.replace('Duplicate skipped', 'Skipped duplicate')
+  }
+
+  if (warning.includes('Invalid JSON')) {
     return 'That JSON doesn’t look right — check it has front and back for each card.'
-  if (w.includes('JSON parse'))
+  }
+
+  if (warning.includes('JSON parse')) {
     return 'We couldn’t read that JSON — it might be missing a bracket or quote.'
-  if (w.includes('CSV')) return w
-  return w
+  }
+
+  return warning
+}
+
+type ImportWizardProps = {
+  onClose: () => void
+  onImported: () => void
 }
 
 export function ImportWizard({
   onClose,
   onImported,
-}: {
-  onClose: () => void
-  onImported: () => void
-}) {
+}: ImportWizardProps) {
   const [mode, setMode] = useState<'paste' | 'file'>('paste')
   const [text, setText] = useState('')
   const [fileName, setFileName] = useState<string | null>(null)
   const [dragOver, setDragOver] = useState(false)
   const [showTips, setShowTips] = useState(false)
+  const [debounced, setDebounced] = useState('')
+  const [editable, setEditable] = useState<RawCard[]>([])
+  const [warnings, setWarnings] = useState<string[]>([])
+
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  // Debounced text for preview to avoid thrash
-  const [debounced, setDebounced] = useState(text)
   useEffect(() => {
-    const id = setTimeout(() => setDebounced(text), 300)
-    return () => clearTimeout(id)
+    const timeoutId = setTimeout(() => {
+      setDebounced(text)
+    }, 300)
+
+    return () => clearTimeout(timeoutId)
   }, [text])
 
-  const parsed = useMemo(() => parseAny(debounced), [debounced])
-  const [editable, setEditable] = useState<RawCard[]>([])
-
   useEffect(() => {
-    setEditable(parsed.cards)
-  }, [parsed.cards])
+    const result = parseAny(debounced)
 
-  const warnings = parsed.warnings.map(humanWarning)
+    setEditable(result.cards)
+    setWarnings(result.warnings.map(humanWarning))
+  }, [debounced])
+
   const canImport =
     editable.length > 0 &&
-    editable.every((c) => c.front.trim() && c.back.trim())
+    editable.every(
+      (card) => card.front.trim() && card.back.trim(),
+    )
 
   const loadFile = async (file: File) => {
     const content = await file.text()
+
     setFileName(file.name)
     setText(content)
-    setMode('paste') // show preview in paste area so user can edit
+    setMode('paste')
   }
 
-  const onDrop = async (e: React.DragEvent) => {
-    e.preventDefault()
+  const handleDrop = async (
+    event: React.DragEvent<HTMLDivElement>,
+  ) => {
+    event.preventDefault()
     setDragOver(false)
-    const file = e.dataTransfer.files.item(0)
-    if (file) await loadFile(file)
+
+    const file = event.dataTransfer.files.item(0)
+
+    if (file) {
+      await loadFile(file)
+    }
   }
 
-  const onFilePick = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.item(0) ?? null
-    if (file) await loadFile(file)
+  const handleFilePick = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = event.target.files?.item(0) ?? null
+
+    if (file) {
+      await loadFile(file)
+    }
   }
 
   const useTemplate = (key: string) => {
-    const t = TEMPLATES[key]
-    if (t) setText(t.content)
+    setText(TEMPLATES[key].content)
   }
 
-  const updateCard = (idx: number, patch: Partial<RawCard>) => {
-    setEditable((prev) =>
-      prev.map((c, i) => (i === idx ? { ...c, ...patch } : c)),
+  const updateCard = (
+    index: number,
+    patch: Partial<RawCard>,
+  ) => {
+    setEditable((currentCards) =>
+      currentCards.map((card, currentIndex) =>
+        currentIndex === index
+          ? { ...card, ...patch }
+          : card,
+      ),
     )
   }
-  const removeCard = (idx: number) =>
-    setEditable((p) => p.filter((_, i) => i !== idx))
-  const addBlank = () =>
-    setEditable((p) => [...p, { front: '', back: '', topic: 'General' }])
 
-  const doImport = async () => {
+  const removeCard = (index: number) => {
+    setEditable((currentCards) =>
+      currentCards.filter((_, currentIndex) => currentIndex !== index),
+    )
+  }
+
+  const addBlank = () => {
+    setEditable((currentCards) => [
+      ...currentCards,
+      {
+        front: '',
+        back: '',
+        topic: 'General',
+      },
+    ])
+  }
+
+  const handleImport = async () => {
     const cards = await importCards(editable)
-  
+
     if (cards.length === 0) {
       return
     }
-  
+
     onImported()
     onClose()
   }
 
+  const clearAll = () => {
+    setText('')
+    setFileName(null)
+    setEditable([])
+    setWarnings([])
+  }
+
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/40 backdrop-blur-[2px]"
+      className="glass-scrim fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4"
       role="dialog"
       aria-modal="true"
       aria-label="Add cards to your library"
       onClick={onClose}
     >
       <div
-        className="card-flat w-full max-w-220 max-h-[92vh] flex flex-col overflow-hidden"
-        onClick={(e) => e.stopPropagation()}
+        className="glass-surface glass-specular rise flex max-h-[92vh] w-full max-w-220 flex-col overflow-hidden rounded-[20px]"
+        onClick={(event) => event.stopPropagation()}
       >
-        {/* Header — friendly, not technical */}
-        <div className="px-6 pt-6 pb-4 border-b border-(--line) shrink-0">
+        <div className="shrink-0 border-b border-(--line) px-6 pt-6 pb-4">
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1">
-              <h2 className="display text-[22px] leading-tight flex items-center gap-2">
-                <span className="h-8 w-8 rounded-full bg-(--ink) text-white grid place-items-center">
+              <h2 className="display flex items-center gap-2 text-[22px] leading-tight">
+                <span className="grid h-8 w-8 place-items-center rounded-full bg-(--ink) text-white">
                   <Sparkles size={16} />
-                </span>{' '}
+                </span>
+
                 Add to your library
               </h2>
-              <p className="text-sm text-(--ink-soft) mt-2 leading-relaxed max-w-[60ch]">
-                Paste whatever you have — notes, lists, questions — or upload a
-                file. We’ll turn it into study cards you can tweak before
+
+              <p className="mt-2 max-w-[60ch] text-sm leading-relaxed text-(--ink-soft)">
+                Paste whatever you have — notes, lists, questions — or upload
+                a file. We’ll turn it into study cards you can tweak before
                 saving. No special formatting needed.
               </p>
             </div>
+
             <button
+              type="button"
               aria-label="Close"
               onClick={onClose}
-              className="h-9 w-9 grid place-items-center rounded-full border border-(--line) hover:bg-(--surface-muted) shrink-0"
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-(--line) hover:bg-(--surface-muted)"
             >
               <X size={16} />
             </button>
           </div>
 
-          {/* Mode switch — large, inclusive */}
           <div className="mt-5 inline-flex rounded-full border border-(--line) bg-(--surface-muted) p-1">
             <button
+              type="button"
               onClick={() => setMode('paste')}
-              className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition ${mode === 'paste' ? 'bg-white border border-(--line) shadow-sm text-(--ink)' : 'text-(--ink-soft)'}`}
+              className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition ${
+                mode === 'paste'
+                  ? 'border border-(--line) bg-(--surface) text-(--ink) shadow-sm'
+                  : 'text-(--ink-soft)'
+              }`}
             >
-              <FileText size={16} /> Paste notes
+              <FileText size={16} />
+              Paste notes
             </button>
+
             <button
+              type="button"
               onClick={() => setMode('file')}
-              className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition ${mode === 'file' ? 'bg-white border border-(--line) shadow-sm text-(--ink)' : 'text-(--ink-soft)'}`}
+              className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition ${
+                mode === 'file'
+                  ? 'border border-(--line) bg-(--surface) text-(--ink) shadow-sm'
+                  : 'text-(--ink-soft)'
+              }`}
             >
-              <Upload size={16} /> Upload file
+              <Upload size={16} />
+              Upload file
             </button>
           </div>
         </div>
 
-        <div className="overflow-auto flex-1 min-h-0">
-          <div className="p-6 space-y-5">
+        <div className="min-h-0 flex-1 overflow-auto">
+          <div className="space-y-5 p-6">
             {mode === 'paste' ? (
               <>
-                {/* Templates — one-tap help for anyone */}
                 <div>
-                  <div className="text-xs font-semibold tracking-wide uppercase text-(--ink-faint)">
+                  <div className="text-xs font-semibold uppercase tracking-wide text-(--ink-faint)">
                     Start with an example — tap to try
                   </div>
-                  <div className="mt-2 grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    {Object.entries(TEMPLATES).map(([k, t]) => (
+
+                  <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                    {Object.entries(TEMPLATES).map(([key, template]) => (
                       <button
-                        key={k}
-                        onClick={() => useTemplate(k)}
-                        className="text-left rounded-xl border border-(--line) bg-white p-3 hover:border-(--blue) hover:bg-sky-50/50 transition group"
+                        key={key}
+                        type="button"
+                        onClick={() => useTemplate(key)}
+                        className="group rounded-xl border border-(--line) bg-(--surface) p-3 text-left transition hover:border-(--blue) hover:bg-(--blue)/8"
                       >
                         <div className="text-sm font-semibold group-hover:text-(--blue)">
-                          {t.label}
+                          {template.label}
                         </div>
-                        <div className="text-xs text-(--ink-faint) mt-0.5">
-                          {t.hint}
+
+                        <div className="mt-0.5 text-xs text-(--ink-faint)">
+                          {template.hint}
                         </div>
                       </button>
                     ))}
@@ -245,14 +319,16 @@ export function ImportWizard({
 
                 <label className="block">
                   <span className="text-sm font-medium">Your notes</span>
-                  <span className="text-xs text-(--ink-faint) ml-2">
+
+                  <span className="ml-2 text-xs text-(--ink-faint)">
                     Paste however they are — we’ll sort it
                   </span>
+
                   <textarea
                     value={text}
-                    onChange={(e) => setText(e.target.value)}
+                    onChange={(event) => setText(event.target.value)}
                     rows={9}
-                    className="mt-2 w-full rounded-xl border border-(--line) bg-(--surface-muted) p-4 text-[15px] leading-relaxed outline-none focus:border-(--blue) focus:bg-white placeholder:text-(--ink-faint)"
+                    className="mt-2 w-full rounded-xl border border-(--line) bg-(--surface-muted) p-4 text-[15px] leading-relaxed outline-none placeholder:text-(--ink-faint) focus:border-(--blue) focus:bg-(--surface) focus:ring-2 focus:ring-(--blue)/10"
                     placeholder={`Try:
 
 Photosynthesis :: How plants make food
@@ -264,54 +340,64 @@ A: How plants use sunlight
 
 Or just one fact per line — we’ll handle the rest.`}
                   />
-                  <span className="text-xs text-(--ink-faint) mt-1.5 block">
+
+                  <span className="mt-1.5 block text-xs text-(--ink-faint)">
                     Tip: One idea per line works great. You can also use
                     “Question :: Answer”.
                   </span>
                 </label>
 
                 <button
-                  onClick={() => setShowTips((v) => !v)}
+                  type="button"
+                  onClick={() => setShowTips((visible) => !visible)}
                   className="inline-flex items-center gap-1.5 text-xs font-medium text-(--ink-soft) hover:text-(--ink)"
                 >
-                  <Info size={14} /> How it works{' '}
+                  <Info size={14} />
+                  How it works
+
                   <ChevronDown
                     size={12}
-                    className={`transition ${showTips ? 'rotate-180' : ''}`}
+                    className={`transition ${
+                      showTips ? 'rotate-180' : ''
+                    }`}
                   />
                 </button>
+
                 {showTips && (
                   <div className="rounded-xl border border-(--line) bg-(--surface-muted) p-4 text-sm leading-relaxed text-(--ink-soft)">
-                    <ul className="list-disc pl-5 space-y-1">
+                    <ul className="list-disc space-y-1 pl-5">
                       <li>
                         <strong>Headings become topics</strong> — Start a line
                         with{' '}
-                        <code className="rounded bg-white px-1.5 py-0.5 border">
+                        <code className="rounded border border-(--line) bg-(--surface) px-1.5 py-0.5">
                           ## Biology
                         </code>{' '}
                         to group cards.
                       </li>
+
                       <li>
                         <strong>Bullets become cards</strong> — Each{' '}
-                        <code className="rounded bg-white px-1.5 py-0.5 border">
+                        <code className="rounded border border-(--line) bg-(--surface) px-1.5 py-0.5">
                           - Idea
                         </code>{' '}
                         is a card.
                       </li>
+
                       <li>
                         <strong>Separators split front/back</strong> —{' '}
-                        <code className="rounded bg-white px-1.5 py-0.5 border">
+                        <code className="rounded border border-(--line) bg-(--surface) px-1.5 py-0.5">
                           ::
                         </code>
                         ,{' '}
-                        <code className="rounded bg-white px-1.5 py-0.5 border">
+                        <code className="rounded border border-(--line) bg-(--surface) px-1.5 py-0.5">
                           -&gt;
                         </code>{' '}
                         or simply write a question.
                       </li>
+
                       <li>
-                        CSV and JSON files work too — just upload and we’ll read
-                        them.
+                        CSV and JSON files work too — just upload and we’ll
+                        read them.
                       </li>
                     </ul>
                   </div>
@@ -320,160 +406,113 @@ Or just one fact per line — we’ll handle the rest.`}
             ) : (
               <>
                 <div
-                  onDragOver={(e) => {
-                    e.preventDefault()
+                  onDragOver={(event) => {
+                    event.preventDefault()
                     setDragOver(true)
                   }}
                   onDragLeave={() => setDragOver(false)}
-                  onDrop={onDrop}
+                  onDrop={handleDrop}
                   onClick={() => fileInputRef.current?.click()}
-                  className={`rounded-2xl border-2 border-dashed p-8 text-center cursor-pointer transition ${dragOver ? 'border-(--blue) bg-sky-50' : 'border-(--line) hover:border-(--line-strong) bg-white'}`}
+                  className={`cursor-pointer rounded-2xl border-2 border-dashed p-8 text-center transition ${
+                    dragOver
+                      ? 'border-(--blue) bg-(--blue)/8'
+                      : 'border-(--line) bg-(--surface) hover:border-(--line-strong)'
+                  }`}
                 >
-                  <div className="mx-auto h-10 w-10 rounded-full bg-white border border-(--line) grid place-items-center">
+                  <div className="mx-auto grid h-10 w-10 place-items-center rounded-full border border-(--line) bg-(--surface)">
                     <Upload size={18} />
                   </div>
-                  <div className="font-medium mt-3">
+
+                  <div className="mt-3 font-medium">
                     Drop your file here or click to browse
                   </div>
-                  <div className="text-sm text-(--ink-faint) mt-1">
+
+                  <div className="mt-1 text-sm text-(--ink-faint)">
                     Supported: {SUPPORTED} · Your data stays on this device
                   </div>
+
                   {fileName && (
-                    <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-white border border-(--line) px-3 py-1.5 text-sm">
-                      <FileText size={14} /> {fileName}
+                    <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-(--line) bg-(--surface) px-3 py-1.5 text-sm">
+                      <FileText size={14} />
+                      {fileName}
                     </div>
                   )}
+
                   <input
                     ref={fileInputRef}
                     type="file"
                     accept=".txt,.md,.markdown,.json,.csv"
                     className="hidden"
-                    onChange={onFilePick}
+                    onChange={handleFilePick}
                   />
                 </div>
+
                 {text && (
-                  <div className="rounded-xl border border-(--line) bg-white p-3">
-                    <div className="text-xs font-semibold text-(--ink-faint) tracking-wide uppercase">
+                  <div className="rounded-xl border border-(--line) bg-(--surface) p-3">
+                    <div className="text-xs font-semibold uppercase tracking-wide text-(--ink-faint)">
                       File contents — you can still edit
                     </div>
+
                     <textarea
                       value={text}
-                      onChange={(e) => setText(e.target.value)}
+                      onChange={(event) => setText(event.target.value)}
                       rows={6}
-                      className="mt-2 w-full rounded-xl border border-(--line) bg-(--surface-muted) p-3 text-sm font-mono outline-none"
+                      className="mt-2 w-full rounded-xl border border-(--line) bg-(--surface-muted) p-3 font-mono text-sm outline-none"
                     />
                   </div>
                 )}
               </>
             )}
 
-            {/* Live preview — the real inclusivity: see before you save, edit anything */}
             <div className="border-t border-(--line) pt-5">
               <div className="flex items-center justify-between">
-                <h3 className="font-semibold flex items-center gap-2">
-                  Preview{' '}
-                  <span className="rounded-full bg-(--surface-muted) border border-(--line) px-2.5 py-0.5 text-xs font-medium">
-                    {editable.length} card{editable.length === 1 ? '' : 's'}{' '}
-                    found
+                <h3 className="flex items-center gap-2 font-semibold">
+                  Preview
+
+                  <span className="rounded-full border border-(--line) bg-(--surface-muted) px-2.5 py-0.5 text-xs font-medium">
+                    {editable.length} card
+                    {editable.length === 1 ? '' : 's'} found
                   </span>
+
                   {editable.length > 0 && (
-                    <span className="text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2 py-0.5 text-xs inline-flex items-center gap-1">
-                      <Check size={12} /> Ready to edit
+                    <span className="inline-flex items-center gap-1 rounded-full border border-(--emerald)/30 bg-(--emerald-muted) px-2 py-0.5 text-xs text-(--veridian-strong)">
+                      <Check size={12} />
+                      Ready to edit
                     </span>
                   )}
                 </h3>
+
                 {editable.length > 0 && (
                   <button
+                    type="button"
                     onClick={addBlank}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-(--line) bg-white px-3 py-1.5 text-xs font-medium hover:bg-(--surface-muted)"
+                    className="inline-flex items-center gap-1.5 rounded-full border border-(--line) bg-(--surface) px-3 py-1.5 text-xs font-medium hover:bg-(--surface-muted)"
                   >
-                    <Plus size={12} /> Add card
+                    <Plus size={12} />
+                    Add card
                   </button>
                 )}
               </div>
 
               {warnings.length > 0 && (
-                <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
-                  {warnings.map((w) => (
-                    <div key={w} className="flex gap-2">
-                      <span className="mt-1 h-1.5 w-1.5 rounded-full bg-amber-500 shrink-0" />
-                      <span>{w}</span>
+                <div className="mt-3 rounded-xl border border-(--warning)/30 bg-(--warning-muted) p-3 text-sm text-(--warning-strong)">
+                  {warnings.map((warning) => (
+                    <div key={warning} className="flex gap-2">
+                      <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-(--warning)" />
+                      <span>{warning}</span>
                     </div>
                   ))}
                 </div>
               )}
 
-              {editable.length === 0 ? (
-                <div className="mt-4 rounded-xl border border-dashed border-(--line) bg-(--surface-muted) p-8 text-center">
-                  <div className="text-sm font-medium">No cards yet</div>
-                  <div className="text-sm text-(--ink-soft) mt-1 max-w-[40ch] mx-auto">
-                    Paste some notes above or try an example. Each card has a
-                    front (question) and a back (answer) — you’ll be able to
-                    tweak every one.
-                  </div>
-                </div>
-              ) : (
-                <div className="mt-4 grid gap-3 max-h-90 overflow-auto pr-1">
-                  {editable.map((c, i) => (
-                    <div
-                      key={i}
-                      className="rounded-xl border border-(--line) bg-white p-3 sm:p-4"
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-semibold tracking-wide uppercase text-(--ink-faint)">
-                          Card {i + 1}
-                        </span>
-                        <button
-                          aria-label={`Remove card ${i + 1}`}
-                          onClick={() => removeCard(i)}
-                          className="h-7 w-7 grid place-items-center rounded-full border border-transparent hover:border-(--line) hover:bg-(--surface-muted) text-(--ink-faint)"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                      <div className="mt-2 grid gap-2.5">
-                        <label className="text-xs font-medium">
-                          <span className="text-(--ink-faint)">Front</span>
-                          <textarea
-                            value={c.front}
-                            onChange={(e) =>
-                              updateCard(i, { front: e.target.value })
-                            }
-                            rows={2}
-                            className="mt-1 w-full rounded-xl border border-(--line) bg-(--surface) p-2.5 text-sm outline-none focus:border-(--blue)"
-                            placeholder="Question or prompt"
-                          />
-                        </label>
-                        <label className="text-xs font-medium">
-                          <span className="text-(--ink-faint)">Back</span>
-                          <textarea
-                            value={c.back}
-                            onChange={(e) =>
-                              updateCard(i, { back: e.target.value })
-                            }
-                            rows={2}
-                            className="mt-1 w-full rounded-xl border border-(--line) bg-(--surface) p-2.5 text-sm outline-none focus:border-(--blue)"
-                            placeholder="Answer"
-                          />
-                        </label>
-                        <label className="text-xs font-medium max-w-60">
-                          <span className="text-(--ink-faint)">Topic</span>
-                          <input
-                            value={c.topic}
-                            onChange={(e) =>
-                              updateCard(i, { topic: e.target.value })
-                            }
-                            className="mt-1 w-full rounded-full border border-(--line) bg-(--surface) px-3 py-1.5 text-sm outline-none focus:border-(--blue)"
-                            placeholder="General"
-                          />
-                        </label>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+              <ImportPreview
+                cards={editable}
+                onUpdate={updateCard}
+                onRemove={removeCard}
+              />
+
               {editable.length > 20 && (
-                <p className="text-xs text-(--ink-faint) mt-2">
+                <p className="mt-2 text-xs text-(--ink-faint)">
                   Showing all {editable.length} cards — they’ll all be added.
                 </p>
               )}
@@ -481,29 +520,37 @@ Or just one fact per line — we’ll handle the rest.`}
           </div>
         </div>
 
-        {/* Footer — calm, predictable */}
-        <div className="shrink-0 border-t border-(--line) bg-(--surface-muted) px-6 py-4 flex flex-wrap items-center justify-between gap-3">
-          <button className="btn-ghost bg-white" onClick={onClose}>
+        <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-(--line) bg-(--surface-muted) px-6 py-4">
+          <button
+            type="button"
+            className="btn-ghost bg-(--surface)"
+            onClick={onClose}
+          >
             Cancel
           </button>
-          <div className="flex items-center gap-2 ml-auto">
+
+          <div className="ml-auto flex items-center gap-2">
             <button
-              className="btn-ghost bg-white"
-              onClick={() => {
-                setText('')
-                setFileName(null)
-              }}
+              type="button"
+              className="btn-ghost bg-(--surface)"
+              onClick={clearAll}
             >
               Clear all
             </button>
+
             <button
-              className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2"
-              onClick={doImport}
+              type="button"
+              className="btn-primary inline-flex items-center gap-2 disabled:cursor-not-allowed disabled:opacity-50"
+              onClick={handleImport}
               disabled={!canImport}
             >
-              <Check size={16} /> Add{' '}
+              <Check size={16} />
+
+              Add{' '}
               {editable.length
-                ? `${editable.length} card${editable.length === 1 ? '' : 's'}`
+                ? `${editable.length} card${
+                    editable.length === 1 ? '' : 's'
+                  }`
                 : 'cards'}{' '}
               to library
             </button>

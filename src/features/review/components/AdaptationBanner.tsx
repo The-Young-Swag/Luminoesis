@@ -14,15 +14,15 @@ export function AdaptationBanner({
   onSwitch,
 }: AdaptationBannerProps) {
   return (
-    <div className="card-flat p-4 mb-4 flex flex-col sm:flex-row sm:items-center gap-3 border-[var(--veridian)]/20 bg-[var(--veridian-muted)]">
-      <span className="h-8 w-8 rounded-full bg-[var(--veridian)] text-white grid place-items-center shrink-0">
+    <div className="card-flat p-4 mb-4 flex flex-col sm:flex-row sm:items-center gap-3 border-(--veridian)/20 bg-(--veridian-muted)">
+      <span className="h-8 w-8 rounded-full bg-(--veridian) text-white grid place-items-center shrink-0">
         <Sparkles size={16} />
       </span>
       <div className="flex-1 min-w-0">
-        <div className="font-medium text-[var(--ink)]">
+        <div className="font-medium text-(--ink)">
           Your rhythm is drifting — want easier material for a bit?
         </div>
-        <div className="text-sm text-[var(--ink-soft)] mt-1 leading-relaxed">
+        <div className="text-sm text-(--ink-soft) mt-1 leading-relaxed">
           {reason} You’re in control — keep this queue or switch to familiar
           material.
         </div>

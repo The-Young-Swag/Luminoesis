@@ -1,79 +1,142 @@
 import type { Card } from '#/shared/types/domain'
-import { Pencil, Trash2 } from 'lucide-react'
+import { Pencil, SearchX, Trash2 } from 'lucide-react'
 
 type LibraryTableProps = {
   cards: Card[]
-  onEdit: (c: Card) => void
+  onEdit: (card: Card) => void
   onDelete: (id: string) => void
 }
 
-// Pure: UI = f(cards). No state duplication, no side effects in render.
-export function LibraryTable({ cards, onEdit, onDelete }: LibraryTableProps) {
+export function LibraryTable({
+  cards,
+  onEdit,
+  onDelete,
+}: LibraryTableProps) {
   if (cards.length === 0) {
     return (
-      <div className="px-4 py-12 text-center text-sm text-(--ink-soft)">
-        No cards match. Try a broader search or add a new card.
+      <div className="px-5 py-16 text-center">
+        <div className="mx-auto grid h-11 w-11 place-items-center rounded-full border border-(--line) bg-(--surface-muted) text-(--ink-faint)">
+          <SearchX size={18} aria-hidden="true" />
+        </div>
+
+        <p className="mt-4 text-sm font-medium text-(--ink)">
+          No cards found
+        </p>
+        <p className="mx-auto mt-1.5 max-w-sm text-sm leading-6 text-(--ink-soft)">
+          Try a different search, or add a new card to grow your knowledge.
+        </p>
       </div>
     )
   }
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-sm">
-        <thead className="bg-(--surface-muted) text-xs tracking-wide uppercase text-(--ink-faint)">
+      <table className="w-full min-w-160 text-sm">
+        <caption className="sr-only">
+          Your knowledge cards
+        </caption>
+
+        <thead className="border-b border-(--line) bg-(--surface-muted) text-xs uppercase tracking-wide text-(--ink-faint)">
           <tr>
-            <th className="text-left px-4 py-3 font-semibold">Front</th>
-            <th className="text-left px-4 py-3 font-semibold hidden sm:table-cell">
-              Back
+            <th
+              scope="col"
+              className="px-4 py-3 text-left font-semibold sm:px-5"
+            >
+              Question
             </th>
-            <th className="text-left px-4 py-3 font-semibold">Topic</th>
-            <th className="text-left px-4 py-3 font-semibold hidden md:table-cell">
-              Due
+
+            <th
+              scope="col"
+              className="hidden px-4 py-3 text-left font-semibold sm:table-cell"
+            >
+              Answer
             </th>
-            <th className="text-left px-4 py-3 font-semibold hidden lg:table-cell">
-              SM-2
+
+            <th
+              scope="col"
+              className="px-4 py-3 text-left font-semibold"
+            >
+              Topic
             </th>
-            <th className="px-4 py-3" />
+
+            <th
+              scope="col"
+              className="hidden px-4 py-3 text-left font-semibold md:table-cell"
+            >
+              Next review
+            </th>
+
+            <th
+              scope="col"
+              className="w-24 px-4 py-3"
+            >
+              <span className="sr-only">Actions</span>
+            </th>
           </tr>
         </thead>
-        <tbody>
-          {cards.map((c) => (
+
+        <tbody className="divide-y divide-(--line)">
+          {cards.map((card) => (
             <tr
-              key={c.id}
-              className="border-t border-(--line) hover:bg-(--surface-muted)"
+              key={card.id}
+              className="group transition-colors duration-150 hover:bg-(--surface-muted)"
             >
-              <td className="px-4 py-3 max-w-[320px] truncate font-medium">
-                {c.front}
+              <td className="max-w-[320px] px-4 py-3.5 sm:px-5">
+                <div
+                  className="truncate font-medium text-(--ink)"
+                  title={card.front}
+                >
+                  {card.front}
+                </div>
               </td>
-              <td className="px-4 py-3 max-w-70 truncate hidden sm:table-cell text-(--ink-soft)">
-                {c.back}
+
+              <td className="hidden max-w-70 px-4 py-3.5 sm:table-cell">
+                <div
+                  className="truncate text-(--ink-soft)"
+                  title={card.back}
+                >
+                  {card.back}
+                </div>
               </td>
-              <td className="px-4 py-3">
-                <span className="inline-flex rounded-full bg-(--surface-muted) border border-(--line) px-2.5 py-1 text-xs font-medium">
-                  {c.topic}
+
+              <td className="px-4 py-3.5">
+                <span className="inline-flex max-w-40 truncate rounded-full border border-(--line) bg-(--surface-muted) px-2.5 py-1 text-xs font-medium text-(--ink-soft)">
+                  {card.topic}
                 </span>
               </td>
-              <td className="px-4 py-3 hidden md:table-cell text-(--ink-soft)">
-                {c.dueDate}
+
+              <td className="hidden px-4 py-3.5 text-(--ink-soft) md:table-cell">
+                <span className="font-mono whitespace-nowrap text-xs tabular-nums">
+                  {card.dueDate}
+                </span>
               </td>
-              <td className="px-4 py-3 hidden lg:table-cell text-xs text-(--ink-faint)">
-                {c.repetitions}·{c.interval}d·{c.easeFactor.toFixed(1)}
-              </td>
-              <td className="px-4 py-3">
+
+              <td className="px-4 py-3.5">
                 <div className="flex justify-end gap-1">
                   <button
-                    aria-label="Edit"
-                    onClick={() => onEdit(c)}
-                    className="h-8 w-8 inline-flex items-center justify-center rounded-full border border-(--line) hover:bg-white"
+                    type="button"
+                    aria-label={`Edit card: ${card.front}`}
+                    title="Edit card"
+                    onClick={() => onEdit(card)}
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-transparent text-(--ink-faint) transition-colors duration-150 hover:border-(--line) hover:bg-(--surface) hover:text-(--ink) focus:outline-none focus:ring-2 focus:ring-(--blue)/20"
                   >
-                    <Pencil size={14} />
+                    <Pencil
+                      size={14}
+                      aria-hidden="true"
+                    />
                   </button>
+
                   <button
-                    aria-label="Delete"
-                    onClick={() => onDelete(c.id)}
-                    className="h-8 w-8 inline-flex items-center justify-center rounded-full border border-(--line) hover:bg-white text-red-600"
+                    type="button"
+                    aria-label={`Delete card: ${card.front}`}
+                    title="Delete card"
+                    onClick={() => onDelete(card.id)}
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-transparent text-(--ink-faint) transition-colors duration-150 hover:border-(--destructive)/25 hover:bg-(--destructive)/10 hover:text-destructive focus:outline-none focus:ring-2 focus:ring-(--destructive)/20"
                   >
-                    <Trash2 size={14} />
+                    <Trash2
+                      size={14}
+                      aria-hidden="true"
+                    />
                   </button>
                 </div>
               </td>

@@ -1,3 +1,5 @@
+import { Lightbulb } from 'lucide-react'
+
 import { useInsights } from '#/features/insights/hooks/useInsights'
 
 export function InsightsPage() {
@@ -5,8 +7,23 @@ export function InsightsPage() {
 
   if (!data) {
     return (
-      <div className="page-wrap py-8">
-        <p className="text-sm text-(--ink-faint)">Loading insights…</p>
+      <div className="page-wrap py-8" aria-busy="true" aria-live="polite">
+        <span className="sr-only">Loading insights…</span>
+
+        <div className="skeleton h-3 w-32" />
+        <div className="skeleton mt-3 h-7 w-64" />
+        <div className="skeleton mt-2 h-4 w-80 max-w-full" />
+
+        <div className="mt-6 grid gap-4 lg:grid-cols-2">
+          <div className="card-flat p-5">
+            <div className="skeleton h-4 w-36" />
+            <div className="skeleton mt-4 h-24 w-full" />
+          </div>
+          <div className="card-flat p-5">
+            <div className="skeleton h-4 w-48" />
+            <div className="skeleton mt-4 h-24 w-full" />
+          </div>
+        </div>
       </div>
     )
   }
@@ -24,16 +41,22 @@ export function InsightsPage() {
       </p>
 
       {pattern && (
-        <div className="card-flat mt-6 border-amber-200 bg-amber-50 p-5">
-          <div className="text-xs font-bold uppercase tracking-wide text-amber-800">
-            Most actionable pattern
-          </div>
+        <div className="card-flat mt-6 flex items-start gap-3 border-(--warning)/30 bg-(--warning-muted) p-5">
+          <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-(--warning) text-white">
+            <Lightbulb size={16} aria-hidden="true" />
+          </span>
 
-          <div className="mt-1 text-[15px] font-semibold text-amber-950">
-            {pattern.text}
-          </div>
+          <div>
+            <div className="text-xs font-bold uppercase tracking-wide text-(--warning-strong)">
+              Most actionable pattern
+            </div>
 
-          <div className="mt-1 text-sm text-amber-800">{pattern.stat}</div>
+            <div className="mt-1 text-[15px] font-semibold text-(--ink)">
+              {pattern.text}
+            </div>
+
+            <div className="mt-1 text-sm text-(--ink-soft)">{pattern.stat}</div>
+          </div>
         </div>
       )}
 

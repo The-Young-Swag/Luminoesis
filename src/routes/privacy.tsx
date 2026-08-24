@@ -169,7 +169,7 @@ function Privacy() {
           </li>
 
           <li className="flex gap-2">
-            <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-[#0f172a]" />
+            <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-(--veridian)" />
 
             <span>
               <strong>Typing speed</strong> —
@@ -192,10 +192,10 @@ function Privacy() {
           <span
             className={`rounded-full border px-2.5 py-1 text-xs ${
               optIn
-                ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
+                ? 'border-(--emerald)/30 bg-(--emerald-muted) text-(--veridian-strong)'
                 : optIn === false
                   ? 'border-(--line) bg-(--surface-muted) text-(--ink-faint)'
-                  : 'border-amber-200 bg-amber-50 text-amber-800'
+                  : 'border-(--warning)/30 bg-(--warning-muted) text-(--warning-strong)'
             }`}
           >
             {optIn === true
@@ -330,7 +330,7 @@ function Privacy() {
           </button>
 
           <button
-            className="btn-ghost border-red-200 text-red-700 hover:bg-red-50"
+            className="btn-ghost border-(--destructive)/30 text-destructive hover:bg-(--destructive)/10"
             onClick={() => void handleDelete()}
           >
             Delete all data
