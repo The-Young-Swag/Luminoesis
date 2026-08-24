@@ -1,4 +1,4 @@
-# Circadia — Adaptive Study
+# Luminoesis — Adaptive Study
 
 **Offline-first. On-device. Timing-only.**  
 *The first study tool that knows when you’re actually able to learn — not by asking you, but by noticing how you type.*
@@ -34,7 +34,7 @@
 
 ## Vision
 
-Circadia is a spaced-repetition study application that pairs a standard **SM-2** scheduler with a real-time cognitive-load signal derived **passively from typing rhythm**. It changes *what* it shows — not just *when* — based on the learner’s inferred state in the moment.
+Luminoesis is a spaced-repetition study application that pairs a standard **SM-2** scheduler with a real-time cognitive-load signal derived **passively from typing rhythm**. It changes *what* it shows — not just *when* — based on the learner’s inferred state in the moment.
 
 - **Surface:** Import material, review it.
 - **Underneath:** Silently builds a private, on-device baseline of normal typing rhythm. When that rhythm drifts — longer pauses, more corrections, slower WPM — it adapts: easier material first, a break sized from personal recovery history, hard topics routed toward empirically sharpest hours.
@@ -47,9 +47,9 @@ Target: **students** first — the people who most need to study when they’re 
 
 ## Why Keyboard Timing
 
-Physiological fatigue sensing (EEG, HRV, eye-tracking) is accurate in a lab and unusable in a dorm room at 11 pm. Typing rhythm carries a real, measurable fatigue signal — inter-key latency, dwell time, correction rate, and rolling WPM drift — with classification accuracy reported around 91% in recent literature, light enough for real-time use, and specifically named as a fit for education. Circadia treats the keyboard you already have as the sensor.
+Physiological fatigue sensing (EEG, HRV, eye-tracking) is accurate in a lab and unusable in a dorm room at 11 pm. Typing rhythm carries a real, measurable fatigue signal — inter-key latency, dwell time, correction rate, and rolling WPM drift — with classification accuracy reported around 91% in recent literature, light enough for real-time use, and specifically named as a fit for education. Luminoesis treats the keyboard you already have as the sensor.
 
-The decisive design choice is **personal-only**. Circadia never scores against a population model; it recalibrates against the same person’s own history via an exponentially weighted baseline, getting quieter and more accurate the longer it is used.
+The decisive design choice is **personal-only**. Luminoesis never scores against a population model; it recalibrates against the same person’s own history via an exponentially weighted baseline, getting quieter and more accurate the longer it is used.
 
 ---
 
@@ -61,7 +61,7 @@ The decisive design choice is **personal-only**. Circadia never scores against a
 4. **Adaptation** — Queue reorders toward high-confidence cards, break suggestion is *median historical recovery* (not a fixed timer), and peak-window scheduling is offered — all disclosed.
 5. **Insight** — Local-only dashboard: retention by topic, session-length vs. performance (visual, not obsessive), and one plain-language actionable pattern.
 
-If adaptive is off, or input is non-keyboard (swipe, screen reader, assistive device), Circadia runs as a complete, high-quality SM-2 app — a first-class mode, not a degraded afterthought.
+If adaptive is off, or input is non-keyboard (swipe, screen reader, assistive device), Luminoesis runs as a complete, high-quality SM-2 app — a first-class mode, not a degraded afterthought.
 
 ---
 
@@ -115,7 +115,7 @@ If adaptive is off, or input is non-keyboard (swipe, screen reader, assistive de
 
 - **No AI API** anywhere. The adaptive engine is classical, on-device, and free by construction.
 - Time-to-interactive < ~1.5 s on mid-range device; capture never blocks input.
-- IndexedDB is the source of truth; SQLite file (`data/circadia-sync.db`) is only for optional cross-device backup.
+- IndexedDB is the source of truth; SQLite file (`data/Luminoesis-sync.db`) is only for optional cross-device backup.
 
 ---
 
@@ -232,7 +232,7 @@ npm run dev            # app
 npm run dev:sync       # sync → http://localhost:4901/health
 ```
 
-The sync service stores `data/circadia-sync.db` (SQLite) and exposes:
+The sync service stores `data/Luminoesis-sync.db` (SQLite) and exposes:
 
 - `GET /health`
 - `POST /sync/push` `{ deviceId, kind, payload }`
@@ -263,7 +263,7 @@ It is **fully optional** — disconnect it and the review loop is unimpaired.
 
 - IndexedDB via Dexie is the single source of truth; all core features work with zero network.
 - `vite-plugin-pwa` registers a Workbox service worker (`autoUpdate`), caches `js/css/html/ico/svg/woff2`, and runtime-caches Google Fonts.
-- Manifest: `name: Circadia — Adaptive Study`, `display: standalone`, theme `#0f172a`, background `#f8fafc`.
+- Manifest: `name: Luminoesis — Adaptive Study`, `display: standalone`, theme `#0f172a`, background `#f8fafc`.
 - Verify: `npm run build && npm run preview`, then toggle airplane mode — Library, Review, and Insights remain fully functional.
 
 ---
@@ -315,7 +315,7 @@ if (elevated && hasBaseline && optIn) {
 
 ### Graceful Degradation
 
-User opts out, or input method yields no reliable timing → Circadia is a complete SM-2 scheduler. This is a first-class path, tested and documented as an accessibility requirement.
+User opts out, or input method yields no reliable timing → Luminoesis is a complete SM-2 scheduler. This is a first-class path, tested and documented as an accessibility requirement.
 
 ---
 
@@ -335,7 +335,7 @@ Visit `/privacy`:
 ## Sync Backend (Optional)
 
 ```bash
-SYNC_PORT=4901 SYNC_DB=./data/circadia-sync.db npm run dev:sync
+SYNC_PORT=4901 SYNC_DB=./data/Luminoesis-sync.db npm run dev:sync
 ```
 
 - Express 5 + `node:sqlite` (`DatabaseSync`) — no native addon, no `better-sqlite3` build step.
@@ -403,7 +403,7 @@ type(scope): subject  # ≤50 chars, imperative, lower-case
 - One logical change per commit (if the message contains “and”, split it).
 - Commit after a green test/manual check, after a schema migration, before switching branches, after refactors, or every ~45–60 min at a breaking point.
 - Never commit `dist/`, `node_modules/`, or secrets; prefer `git add -p`.
-- The current `node_modules` is a symlink to `/tmp/opencode/circadia-copy/node_modules` for overlay performance — do not commit the link target.
+- The current `node_modules` is a symlink to `/tmp/opencode/Luminoesis-copy/node_modules` for overlay performance — do not commit the link target.
 
 See `AGENTS.md` in the original harness for the full commit spec.
 
@@ -417,5 +417,5 @@ MIT — do what helps people learn. If you fork for a different sensor or model,
 
 <p align="center">
   <sub>Built with TanStack Start, React, Express, and TanStack Charts — offline-first, zero-cost, open-source only.</sub><br/>
-  <sub>Circadia never says “you seem tired” based on someone else’s data. It learns <em>your</em> rhythm.</sub>
+  <sub>Luminoesis never says “you seem tired” based on someone else’s data. It learns <em>your</em> rhythm.</sub>
 </p>

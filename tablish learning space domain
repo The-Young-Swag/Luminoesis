@@ -1,0 +1,13 @@
+warning: in the working copy of 'README.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'drizzle.config.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'package-lock.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'package.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'vite.config.ts', LF will be replaced by CRLF the next time Git touches it
+ README.md                                   | 24 [32m+++++[m[31m-----[m
+ drizzle.config.ts                           |  2 [32m+[m[31m-[m
+ package-lock.json                           |  4 [32m+[m[31m-[m
+ package.json                                |  2 [32m+[m[31m-[m
+ src/features/ai/components/AiDisclosure.tsx | 19 [31m--------[m
+ src/features/ai/domain/aiGateway.ts         | 70 [31m-----------------------------[m
+ vite.config.ts                              |  4 [32m+[m[31m-[m
+ 7 files changed, 18 insertions(+), 107 deletions(-)
