@@ -9,7 +9,7 @@ function NotFound() {
     <div className="page-wrap py-16 text-center">
       <p className="kicker">404</p>
       <h1 className="display text-2xl mt-2">Page not found</h1>
-      <p className="text-sm text-[var(--ink-soft)] mt-2">
+      <p className="text-sm text-(--ink-soft) mt-2">
         That link doesn’t exist. Try the navigation above or head back to the
         dashboard.
       </p>
