@@ -2,7 +2,7 @@ import { DatabaseSync } from 'node:sqlite'
 import { mkdirSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 
-const DB_PATH = process.env.SYNC_DB ?? join(process.cwd(), 'data', 'circadia-sync.db')
+const DB_PATH = process.env.SYNC_DB ?? join(process.cwd(), 'data', 'Luminoesis-sync.db')
 
 mkdirSync(dirname(DB_PATH), { recursive: true })
 

@@ -15,7 +15,7 @@ export function CalibrationBanner({ calibrationN }: CalibrationBannerProps) {
           Calibration — {calibrationN}/5 sessions
         </div>
         <div className="text-(--ink-soft)">
-          Reviews run on standard SM-2 while Circadia learns your normal rhythm.
+          Reviews run on standard SM-2 while Luminoesis learns your normal rhythm.
           No adaptation yet.
         </div>
       </div>

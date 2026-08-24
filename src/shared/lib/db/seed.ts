@@ -3,7 +3,7 @@ import { db } from '#/shared/lib/db/dexie'
 /**
  * Initialize application defaults without fabricating learning data.
  *
- * Circadia must never create cards, review sessions, calibration history,
+ * Luminoesis must never create cards, review sessions, calibration history,
  * signals, baselines, or insights on behalf of a user.
  *
  * This function is safe to call repeatedly. Existing settings are preserved.

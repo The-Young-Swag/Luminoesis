@@ -81,7 +81,7 @@ function Privacy() {
     const data = await exportAllData()
 
     downloadJson(
-      'circadia-export.json',
+      'Luminoesis-export.json',
       data,
     )
   }
@@ -98,7 +98,7 @@ function Privacy() {
     )
 
     downloadJson(
-      'circadia-cards.json',
+      'Luminoesis-cards.json',
       data,
     )
   }
@@ -127,7 +127,7 @@ function Privacy() {
       </h1>
 
       <p className="mt-1 text-sm text-(--ink-soft)">
-        Circadia never records <em>what</em> you type —
+        Luminoesis never records <em>what</em> you type —
         only timing deltas — and that boundary is
         architectural: the listener resolves to a numeric
         delta and the actual <code>key</code> value is
@@ -224,7 +224,7 @@ function Privacy() {
 
         <p className="mt-2 text-xs text-(--ink-faint)">
           Fallback is first-class: with adaptive off, or
-          on non-keyboard input, Circadia runs as a complete
+          on non-keyboard input, Luminoesis runs as a complete
           high-quality SM-2 scheduler with zero adaptation.
         </p>
       </div>

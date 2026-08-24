@@ -149,7 +149,7 @@ function MobileHeader({
         <BrandMark />
 
         <span className="display text-lg tracking-tight text-(--ink)">
-          Circadia
+          Luminoesis
         </span>
       </Link>
 
@@ -355,7 +355,7 @@ function DesktopSidebar({
         {!collapsed && (
           <div className="min-w-0 leading-none">
             <div className="display truncate text-xl tracking-tight">
-              Circadia
+              Luminoesis
             </div>
 
             <div className="mono-label mt-1 truncate text-(--ink-faint)">
@@ -570,7 +570,7 @@ function SidebarFooter({
         />
 
         <div className="mono-label text-center opacity-60">
-          © 2026 Circadia • Veridian/Emerald/BRG
+          © 2026 Luminoesis • Veridian/Emerald/BRG
         </div>
       </div>
     </>

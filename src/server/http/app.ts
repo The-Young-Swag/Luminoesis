@@ -31,7 +31,7 @@ export function createApp() {
 
   app.get('/', (_req, res) => {
     res.type('html').send(`
-      <h1>Circadia Sync</h1>
+      <h1>Luminoesis Sync</h1>
       <p>Optional sync backend — core app works offline without it.</p>
       <ul>
         <li>GET /health</li>

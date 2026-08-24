@@ -124,7 +124,7 @@ export function DashboardPage() {
             </div>
 
             <h3 className="text-[15px] font-medium mt-1">
-              Allow Circadia to notice rhythm and suggest?
+              Allow Luminoesis to notice rhythm and suggest?
             </h3>
 
             <p className="text-sm text-(--ink-soft) mt-1 leading-relaxed">
@@ -359,7 +359,7 @@ export function DashboardPage() {
           <div className="mt-4 rounded-lg border border-(--line) bg-(--surface-muted) p-4">
             {peakLearningHour === null ? (
               <p className="text-sm text-(--ink-soft) leading-relaxed">
-                Circadia needs enough real timing observations in
+                Luminoesis needs enough real timing observations in
                 a time window before identifying a reliable
                 learning period.
               </p>
@@ -418,7 +418,7 @@ export function DashboardPage() {
         </p>
 
         <p className="text-sm text-(--ink-soft) mt-1 font-mono">
-          Circadia never records what you type — only
+          Luminoesis never records what you type — only
           timing deltas. Your baseline stays on this
           device. Suggestions are optional — you decide.
         </p>
@@ -492,7 +492,7 @@ function RhythmEmptyState({
         <div className="text-xs text-(--ink-faint) mt-1">
           {hasBaseline
             ? `${signalCount} timing observations available; more are needed for the recent rhythm view.`
-            : 'Circadia will establish the reference from your actual sensed review sessions.'}
+            : 'Luminoesis will establish the reference from your actual sensed review sessions.'}
         </div>
       </div>
     </div>
@@ -509,7 +509,7 @@ function formatHour(hour: number): string {
 function EmptyTopicState() {
   return (
     <div className="rounded-lg border border-(--line) bg-(--surface-muted) p-5 text-sm text-(--ink-soft)">
-      Complete a few reviews and Circadia will show
+      Complete a few reviews and Luminoesis will show
       retention by topic here.
     </div>
   )

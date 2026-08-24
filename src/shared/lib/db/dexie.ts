@@ -14,7 +14,7 @@ import type {
 // Dexie DB
 // ---------------------------------------------------------------------------
 
-export class CircadiaDB extends Dexie {
+export class LuminoesisDB extends Dexie {
   cards!: Table<Card, string>
   reviewSessions!: Table<ReviewSession, string>
   baselineFeatures!: Table<BaselineFeature, string>
@@ -23,7 +23,7 @@ export class CircadiaDB extends Dexie {
   appSettings!: Table<AppSettings, string>
 
   constructor() {
-    super('circadia')
+    super('Luminoesis')
 
     this.version(1).stores({
       cards: 'id, topic, dueDate, targetDate, createdAt',
@@ -36,7 +36,7 @@ export class CircadiaDB extends Dexie {
   }
 }
 
-export const db = new CircadiaDB()
+export const db = new LuminoesisDB()
 
 // ---------------------------------------------------------------------------
 // Helpers for settings (adaptive opt-in, calibration)

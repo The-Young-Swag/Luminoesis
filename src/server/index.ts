@@ -6,7 +6,7 @@ const app = createApp()
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`[circadia-sync] listening on http://0.0.0.0:${PORT} db=${DB_PATH_VALUE}`)
+    console.log(`[Luminoesis-sync] listening on http://0.0.0.0:${PORT} db=${DB_PATH_VALUE}`)
   })
 }
 
