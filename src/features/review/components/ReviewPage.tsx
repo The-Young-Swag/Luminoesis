@@ -5,7 +5,7 @@ import {
   useState,
 } from 'react'
 
-import { Keyboard, Pause } from 'lucide-react'
+import { GraduationCap, Keyboard, Pause } from 'lucide-react'
 
 import type { Card } from '#/shared/types/domain'
 import type { Grade } from '#/shared/lib/sm2'
@@ -24,10 +24,9 @@ import {
 import { completeCalibration } from '#/features/review/application/completeCalibration'
 import { loadReview } from '#/features/review/application/loadReview'
 import { saveSignal } from '#/features/review/application/saveSignal'
-
+import { submitReview } from '#/features/review/application/submitReview'
 
 import { useBaseline } from '#/shared/hooks/useBaseline'
-
 import { useSignalCapture } from '#/features/review/hooks/useSignalCapture'
 
 import { CalibrationBanner } from '#/features/review/components/CalibrationBanner'
@@ -36,21 +35,19 @@ import { QuestionView } from '#/features/review/components/QuestionView'
 import { GradeControls } from '#/features/review/components/GradeControls'
 import { SessionComplete } from '#/features/review/components/SessionComplete'
 
-import { submitReview } from '#/features/review/application/submitReview'
-
-
 import {
   trackAdaptiveDismiss,
   trackAdaptiveOffer,
 } from '#/shared/lib/metrics'
-
-
 
 export function ReviewPage() {
   const [cards, setCards] = useState<Card[]>([])
   const [queue, setQueue] = useState<Card[]>([])
   const [idx, setIdx] = useState(0)
   const [showBack, setShowBack] = useState(false)
+
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<Error | null>(null)
 
   const [adaptReason, setAdaptReason] =
     useState<string | null>(null)
@@ -99,20 +96,40 @@ export function ReviewPage() {
     ? `${Math.min(idx + 1, queue.length)} / ${queue.length}`
     : '0 / 0'
 
-    useEffect(() => {
-      async function load() {
+  useEffect(() => {
+    async function load() {
+      try {
+        setIsLoading(true)
+        setError(null)
+
         const {
           cards: loadedCards,
           adaptiveOptIn,
           calibrationSessions,
         } = await loadReview()
+
         setCards(loadedCards)
         setOptIn(adaptiveOptIn)
         setCalibrationN(calibrationSessions)
         setQueue(buildQueue(loadedCards))
+      } catch (cause) {
+        console.error(
+          'Failed to load review:',
+          cause,
+        )
+
+        setError(
+          cause instanceof Error
+            ? cause
+            : new Error('Failed to load review'),
+        )
+      } finally {
+        setIsLoading(false)
       }
+    }
+
     void load()
-    }, [])
+  }, [])
 
   useEffect(() => {
     if (
@@ -132,7 +149,8 @@ export function ReviewPage() {
     void saveSignal({
       id: crypto.randomUUID().slice(0, 8),
       sessionId: sessionIdRef.current,
-      minuteIndex: minutesRef.current.length - 1,
+      minuteIndex:
+        minutesRef.current.length - 1,
       timestamp: new Date().toISOString(),
       interKeyLatency: live.interKeyLatency,
       dwellTime: live.dwellTime,
@@ -158,7 +176,8 @@ export function ReviewPage() {
         isElevated: elevated,
         hasBaseline,
         adaptiveOptIn: optIn,
-        breakMinutes: recommendedBreak ?? 5,
+        breakMinutes:
+          recommendedBreak ?? 5,
       },
     )
 
@@ -209,9 +228,9 @@ export function ReviewPage() {
 
         if (calibrationN < 5) {
           const nextCalibrationN =
-          await completeCalibration(
-            calibrationN,
-          )
+            await completeCalibration(
+              calibrationN,
+            )
 
           setCalibrationN(nextCalibrationN)
         }
@@ -220,7 +239,8 @@ export function ReviewPage() {
         setShowBack(false)
       }
 
-      const refreshedReview = await loadReview()
+      const refreshedReview =
+        await loadReview()
 
       setCards(refreshedReview.cards)
     },
@@ -232,10 +252,16 @@ export function ReviewPage() {
     ],
   )
 
-  if (!cards.length) {
+  if (isLoading) {
     return (
-      <div className="page-wrap py-6" aria-busy="true" aria-live="polite">
-        <span className="sr-only">Loading cards…</span>
+      <div
+        className="page-wrap py-6"
+        aria-busy="true"
+        aria-live="polite"
+      >
+        <span className="sr-only">
+          Loading cards…
+        </span>
 
         <div className="flex items-center justify-between">
           <div className="skeleton h-4 w-40" />
@@ -246,6 +272,73 @@ export function ReviewPage() {
           <div className="skeleton h-3 w-16" />
           <div className="skeleton mt-3 h-6 w-3/4" />
           <div className="skeleton mt-8 h-10 w-36 rounded-full" />
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="page-wrap py-12">
+        <div className="card-flat p-8 text-center sm:p-12">
+          <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-(--surface-muted)">
+            <GraduationCap
+              size={22}
+              className="text-(--ink-soft)"
+            />
+          </div>
+
+          <h1 className="display mt-5 text-2xl">
+            We couldn't start your review
+          </h1>
+
+          <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-(--ink-soft)">
+            Something went wrong while loading
+            your study cards.
+          </p>
+
+          <button
+            type="button"
+            className="btn-primary mt-6"
+            onClick={() =>
+              window.location.reload()
+            }
+          >
+            Try again
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  if (!cards.length) {
+    return (
+      <div className="page-wrap py-12">
+        <div className="card-flat p-8 text-center sm:p-12">
+          <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-(--surface-muted)">
+            <GraduationCap
+              size={22}
+              className="text-(--ink-soft)"
+            />
+          </div>
+
+          <h1 className="display mt-5 text-2xl">
+            Nothing to review yet
+          </h1>
+
+          <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-(--ink-soft)">
+            Add some study cards to your
+            library first. Once they're due,
+            they'll appear here as a focused
+            review session.
+          </p>
+
+          <a
+            href="/library"
+            className="btn-primary mt-6 inline-flex no-underline"
+          >
+            Go to Library
+          </a>
         </div>
       </div>
     )
@@ -294,16 +387,21 @@ export function ReviewPage() {
 
             if (pending) {
               setQueue((previousQueue) => {
-                const completedIds = new Set(
-                  previousQueue
-                    .slice(0, idx)
-                    .map((card) => card.id),
-                )
+                const completedIds =
+                  new Set(
+                    previousQueue
+                      .slice(0, idx)
+                      .map(
+                        (card) => card.id,
+                      ),
+                  )
 
                 const remaining =
                   pending.adapted.orderedCards.filter(
                     (card) =>
-                      !completedIds.has(card.id),
+                      !completedIds.has(
+                        card.id,
+                      ),
                   )
 
                 return [
@@ -346,8 +444,12 @@ export function ReviewPage() {
           showBack={showBack}
           captureEnabled={captureEnabled}
           live={live}
-          onShowBack={() => setShowBack(true)}
-          onHideBack={() => setShowBack(false)}
+          onShowBack={() =>
+            setShowBack(true)
+          }
+          onHideBack={() =>
+            setShowBack(false)
+          }
           onGrade={handleGrade}
         />
       )}
@@ -410,7 +512,8 @@ function ReviewHeader({
             : 'Standard SM-2'}
         </span>
 
-        {breakRec && !isCalibrating ? (
+        {breakRec &&
+        !isCalibrating ? (
           <button
             type="button"
             className="inline-flex items-center gap-1.5 rounded-full bg-(--ink) px-3 py-1.5 text-xs font-medium text-white"
@@ -446,8 +549,9 @@ function ReviewBreak({
       </h2>
 
       <p className="mt-2 text-sm text-(--ink-soft)">
-        A short pause is available if it feels
-        useful. You decide when to return.
+        A short pause is available if it
+        feels useful. You decide when to
+        return.
       </p>
 
       <button
@@ -496,8 +600,9 @@ function ReviewCard({
 
       <div className="mt-6 flex items-center gap-2 text-xs text-(--ink-faint)">
         <span className="h-2 w-2 rounded-full bg-(--line-strong)" />
-        Type in the answer field to let rhythm sensing work
-        — or just grade without typing.
+        Type in the answer field to let rhythm
+        sensing work — or just grade without
+        typing.
       </div>
 
       <input
