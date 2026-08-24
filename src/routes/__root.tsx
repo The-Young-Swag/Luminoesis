@@ -47,10 +47,10 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         <HeadContent />
       </head>
-      <body className="font-sans antialiased [overflow-wrap:anywhere] selection:bg-[#f8fafc] dark:selection:bg-[#1e293b]">
+      <body className="font-sans antialiased wrap-anywhere selection:bg-[#f8fafc] dark:selection:bg-[#1e293b]">
         <div className="min-h-screen flex flex-col lg:flex-row">
           <Sidebar />
-          <div className="flex-1 min-w-0 flex flex-col lg:pl-[72px] pb-[72px] lg:pb-0">
+          <div className="flex-1 min-w-0 flex flex-col lg:pl-18 pb-18 lg:pb-0">
             <main className="flex-1 min-h-[calc(100vh-64px)]">{children}</main>
             <Footer />
           </div>
