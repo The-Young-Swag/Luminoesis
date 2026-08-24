@@ -4,26 +4,31 @@ export type Theme = 'light' | 'dark'
 
 const THEME_STORAGE_KEY = 'theme'
 
-function getInitialTheme(): Theme {
-  if (typeof window === 'undefined') {
-    return 'light'
-  }
-
-  return window.localStorage.getItem(THEME_STORAGE_KEY) === 'dark'
-    ? 'dark'
-    : 'light'
-}
-
 function applyTheme(theme: Theme): void {
-  document.documentElement.classList.toggle('dark', theme === 'dark')
+  document.documentElement.classList.toggle(
+    'dark',
+    theme === 'dark',
+  )
 }
 
 export function useTheme() {
-  const [theme, setTheme] = useState<Theme>(getInitialTheme)
+  // Must be deterministic during SSR and the first client render.
+  // THEME_INIT_SCRIPT in __root.tsx handles the visual theme
+  // before React hydrates.
+  const [theme, setTheme] = useState<Theme>('light')
+
+  useEffect(() => {
+    const storedTheme =
+      window.localStorage.getItem(THEME_STORAGE_KEY)
+
+    const resolvedTheme: Theme =
+      storedTheme === 'dark' ? 'dark' : 'light'
+
+    setTheme(resolvedTheme)
+  }, [])
 
   useEffect(() => {
     applyTheme(theme)
-    window.localStorage.setItem(THEME_STORAGE_KEY, theme)
   }, [theme])
 
   const toggleTheme = useCallback(() => {
