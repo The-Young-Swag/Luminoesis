@@ -38,7 +38,7 @@ import { SessionComplete } from '#/features/review/components/SessionComplete'
 import {
   trackAdaptiveDismiss,
   trackAdaptiveOffer,
-} from '#/shared/lib/metrics'
+} from '#/features/dashboard/domain/metrics'
 
 export function ReviewPage() {
   const [cards, setCards] = useState<Card[]>([])
