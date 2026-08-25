@@ -1,9 +1,9 @@
+import { db } from '#/shared/lib/db/dexie'
 import {
-  db,
   getSetting,
   setSetting,
   SETTINGS_KEYS,
-} from '#/shared/lib/db/dexie'
+} from '#/shared/lib/db/settings'
 
 export const settingsRepository = {
   getAdaptiveOptIn(): Promise<boolean | null> {
