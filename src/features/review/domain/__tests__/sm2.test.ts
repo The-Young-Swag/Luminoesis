@@ -5,7 +5,7 @@ import {
   confidenceScore,
   daysOverdue,
   isDue,
-} from '#/shared/lib/sm2'
+} from '#/features/review/domain/sm2'
 
 describe('SM-2', () => {
   const fixedNow = new Date('2026-08-21T12:00:00.000Z')

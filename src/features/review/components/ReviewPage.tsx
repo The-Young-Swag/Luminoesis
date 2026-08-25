@@ -8,14 +8,14 @@ import {
 import { GraduationCap, Keyboard, Pause } from 'lucide-react'
 
 import type { Card } from '#/shared/types/domain'
-import type { Grade } from '#/shared/lib/sm2'
+import type { Grade } from '#/features/review/domain/sm2'
 import type { AggregatedFeatures } from '#/shared/lib/signals'
 
-import { daysOverdue } from '#/shared/lib/sm2'
+import { daysOverdue } from '#/features/review/domain/sm2'
 import {
   adaptQueue,
   buildQueue,
-} from '#/shared/lib/adapt'
+} from '#/features/review/domain/adapt'
 import {
   isElevatedLoad,
   recommendBreakMinutes,

@@ -67,7 +67,7 @@ describe('EWMA baseline', () => {
   })
 
   it('recommendBreak uses median clamped', () => {
-    expect(recommendBreakMinutes([])).toBe(5)
+    expect(recommendBreakMinutes([])).toBe(null)
     expect(recommendBreakMinutes([20])).toBe(15) // clamped
     expect(recommendBreakMinutes([1])).toBe(2) // clamped min 2
     expect(recommendBreakMinutes([2, 4, 6, 10])).toBe(5) // median of 4,6 =>5

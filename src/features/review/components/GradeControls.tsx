@@ -1,4 +1,4 @@
-import type { Grade } from '#/shared/lib/sm2'
+import type { Grade } from '#/features/review/domain/sm2'
 
 type GradeControlsProps = {
   onGrade: (grade: Grade) => void

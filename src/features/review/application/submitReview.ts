@@ -4,7 +4,7 @@ import type { AggregatedFeatures } from '#/shared/lib/signals'
 import { GradeSchema } from '#/features/review/schemas'
 
 import { DEFAULT_ALPHA, updateEwma } from '#/shared/lib/baseline'
-import { sm2 } from '#/shared/lib/sm2'
+import { sm2 } from '#/features/review/domain/sm2'
 import { baselineRepository } from '#/shared/repositories/baselineRepository'
 import { cardRepository } from '#/shared/repositories/cardRepository'
 import { sessionRepository } from '#/shared/repositories/sessionRepository'

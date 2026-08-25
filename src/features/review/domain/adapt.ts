@@ -6,7 +6,7 @@
  * - disclose why
  */
 
-import { confidenceScore } from '#/shared/lib/sm2'
+import { confidenceScore } from '#/features/review/domain/sm2'
 import type { Card } from '#/shared/types/domain'
 
 export type Adaptation = {
