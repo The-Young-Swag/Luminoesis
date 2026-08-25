@@ -10,7 +10,7 @@ import type {
   SessionSignal,
 } from '#/shared/types/domain'
 
-import type { LearningSpace } from '#/features/learning-space/domain/learningSpace'
+import type { LearningSpace } from '#/shared/types/learningSpace'
 
 // ---------------------------------------------------------------------------
 // Dexie DB

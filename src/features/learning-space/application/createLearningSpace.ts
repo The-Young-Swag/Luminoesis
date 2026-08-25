@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 import { learningSpaceRepository } from '#/shared/repositories/learningSpaceRepository'
 import { createLearningSpaceId } from '#/features/learning-space/domain/ids'
-import type { LearningSpace } from '#/features/learning-space/domain/learningSpace'
+import type { LearningSpace } from '#/shared/types/learningSpace'
 
 const CreateLearningSpaceSchema = z.object({
   title: z.string().trim().min(1),

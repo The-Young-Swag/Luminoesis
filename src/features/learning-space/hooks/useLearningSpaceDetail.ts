@@ -1,7 +1,7 @@
-﻿import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { liveQuery } from 'dexie'
 
-import type { LearningSpace } from '#/features/learning-space/domain/learningSpace'
+import type { LearningSpace } from '#/shared/types/learningSpace'
 import { learningSpaceRepository } from '#/shared/repositories/learningSpaceRepository'
 
 export function useLearningSpaceDetail(id: string) {
