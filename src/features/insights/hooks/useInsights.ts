@@ -7,7 +7,7 @@ import {
   actionablePattern,
   retentionByTopic,
   sessionLengthVsPerf,
-} from '#/shared/lib/insights'
+} from '#/features/insights/domain/analytics'
 
 import { cardRepository } from '#/shared/repositories/cardRepository'
 import { sessionRepository } from '#/shared/repositories/sessionRepository'

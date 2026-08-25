@@ -5,7 +5,7 @@ import {
   retentionByTopic,
   retentionPeriodComparison,
   sessionSummaries,
-} from '#/shared/lib/insights'
+} from '#/features/insights/domain/analytics'
 import { classifyLearningState } from '#/features/learning-state/domain/classifyState'
 import { MIN_SAMPLES_FOR_BASELINE, peakWindow, zScore } from '#/shared/lib/baseline'
 
