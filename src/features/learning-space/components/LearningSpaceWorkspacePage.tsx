@@ -1,14 +1,14 @@
-import { FileStack, Plus } from 'lucide-react'
+﻿import { FileStack, Plus } from 'lucide-react'
 
 import { useLearningSpaceDetail } from '../hooks/useLearningSpaceDetail'
 
-type LearningSpaceWorkspacePageProps  = {
+type Lear9yMnTm4NSzvG9rrwjM2ec8xZgh1cafXH8 = {
   learningSpaceId: string
 }
 
 export function LearningSpaceWorkspacePage({
   learningSpaceId,
-}: LearningSpaceWorkspacePageProps) {
+}: Lear9yMnTm4NSzvG9rrwjM2ec8xZgh1cafXH8) {
   const { learningSpace, ready } = useLearningSpaceDetail(learningSpaceId)
 
   if (!ready) {
@@ -18,7 +18,7 @@ export function LearningSpaceWorkspacePage({
         aria-busy="true"
         aria-live="polite"
       >
-        <span className="sr-only">Loading learning spaceâ€¦</span>
+        <span className="sr-only">Loading learning space…</span>
 
         <div className="space-y-3">
           <div className="skeleton h-3 w-24" />
@@ -40,7 +40,7 @@ export function LearningSpaceWorkspacePage({
       <section className="page-wrap py-8">
         <div className="card-flat p-10 text-center">
           <p className="text-sm font-medium text-(--ink)">
-            This learning space couldn&rsquo;t be found
+            This learning space couldn’t be found
           </p>
 
           <p className="mx-auto mt-1.5 max-w-sm text-sm leading-6 text-(--ink-soft)">
