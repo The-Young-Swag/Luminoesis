@@ -1,9 +1,9 @@
 import type { Card } from '#/shared/types/domain'
-import type { AggregatedFeatures } from '#/shared/lib/signals'
+import type { AggregatedFeatures } from '#/features/learning-state/domain/signals'
 
 import { GradeSchema } from '#/features/review/schemas'
 
-import { DEFAULT_ALPHA, updateEwma } from '#/shared/lib/baseline'
+import { DEFAULT_ALPHA, updateEwma } from '#/features/learning-state/domain/baseline'
 import { sm2 } from '#/features/review/domain/sm2'
 import { baselineRepository } from '#/shared/repositories/baselineRepository'
 import { cardRepository } from '#/shared/repositories/cardRepository'

@@ -8,7 +8,7 @@ import {
   recommendBreakMinutes,
   peakWindow,
   MIN_SAMPLES_FOR_BASELINE,
-} from '#/shared/lib/baseline'
+} from '#/features/learning-state/domain/baseline'
 
 describe('EWMA baseline', () => {
   it('starts empty and gains samples', () => {

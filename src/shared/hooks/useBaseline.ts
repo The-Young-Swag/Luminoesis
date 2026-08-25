@@ -3,8 +3,8 @@ import { useEffect, useState } from 'react'
 import {
   createEmptyBaseline,
   hasBaseline,
-} from '#/shared/lib/baseline'
-import type { BaselineMap } from '#/shared/lib/baseline'
+} from '#/features/learning-state/domain/baseline'
+import type { BaselineMap } from '#/features/learning-state/domain/baseline'
 
 import { baselineRepository } from '#/shared/repositories/baselineRepository'
 

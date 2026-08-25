@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { aggregate, createCapture } from '#/shared/lib/signals'
+import { aggregate, createCapture } from '#/features/learning-state/domain/signals'
 
 describe('signals aggregation', () => {
   it('returns null for too few events', () => {

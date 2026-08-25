@@ -9,7 +9,7 @@ import { GraduationCap, Keyboard, Pause } from 'lucide-react'
 
 import type { Card } from '#/shared/types/domain'
 import type { Grade } from '#/features/review/domain/sm2'
-import type { AggregatedFeatures } from '#/shared/lib/signals'
+import type { AggregatedFeatures } from '#/features/learning-state/domain/signals'
 
 import { daysOverdue } from '#/features/review/domain/sm2'
 import {
@@ -19,7 +19,7 @@ import {
 import {
   isElevatedLoad,
   recommendBreakMinutes,
-} from '#/shared/lib/baseline'
+} from '#/features/learning-state/domain/baseline'
 
 import { completeCalibration } from '#/features/review/application/completeCalibration'
 import { loadReview } from '#/features/review/application/loadReview'

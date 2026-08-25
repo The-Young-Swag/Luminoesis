@@ -1,5 +1,5 @@
 import { Keyboard } from 'lucide-react'
-import type { AggregatedFeatures } from '#/shared/lib/signals'
+import type { AggregatedFeatures } from '#/features/learning-state/domain/signals'
 
 type SessionCompleteProps = {
   minutes: number

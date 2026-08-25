@@ -7,9 +7,9 @@ import {
   sessionSummaries,
 } from '#/features/insights/domain/analytics'
 import { classifyLearningState } from '#/features/learning-state/domain/classifyState'
-import { MIN_SAMPLES_FOR_BASELINE, peakWindow, zScore } from '#/shared/lib/baseline'
+import { MIN_SAMPLES_FOR_BASELINE, peakWindow, zScore } from '#/features/learning-state/domain/baseline'
 
-import type { BaselineMap } from '#/shared/lib/baseline'
+import type { BaselineMap } from '#/features/learning-state/domain/baseline'
 import type { Card, ReviewSession, SessionSignal } from '#/shared/types/domain'
 
 export type RecentActivityItem = {

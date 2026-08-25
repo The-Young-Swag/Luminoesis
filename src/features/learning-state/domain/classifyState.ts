@@ -2,15 +2,15 @@ import {
   hasBaseline as checkHasBaseline,
   isElevatedLoad,
   zScore,
-} from '#/shared/lib/baseline'
+} from '#/features/learning-state/domain/baseline'
 
 import type {
   BaselineMap,
-} from '#/shared/lib/baseline'
+} from '#/features/learning-state/domain/baseline'
 
 import type {
   AggregatedFeatures,
-} from '#/shared/lib/signals'
+} from '#/features/learning-state/domain/signals'
 
 export type LearningState =
   | 'Sharp'
