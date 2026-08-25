@@ -10,8 +10,8 @@ import {
   X,
 } from 'lucide-react'
 
-import type { RawCard } from '#/shared/lib/import'
-import { parseAny } from '#/shared/lib/import'
+import type { RawCard } from '#/features/library/domain/import'
+import { parseAny } from '#/features/library/domain/import'
 
 import { importCards } from '../application/importCards'
 import { ImportPreview } from './ImportPreview'

@@ -1,4 +1,4 @@
-import type { RawCard } from '#/shared/lib/import'
+import type { RawCard } from '#/features/library/domain/import'
 import { Inbox, Trash2 } from 'lucide-react'
 
 type ImportPreviewProps = {

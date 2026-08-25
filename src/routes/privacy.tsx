@@ -14,7 +14,7 @@ import {
   setAdaptiveOptIn,
 } from '#/features/privacy/privacyService'
 
-import { exportToJson } from '#/shared/lib/import'
+import { exportToJson } from '#/features/library/domain/import'
 
 export const Route = createFileRoute('/privacy')({
   component: Privacy,

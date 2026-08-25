@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { autoSegment, parseJsonImport } from '#/shared/lib/import'
+import { autoSegment, parseJsonImport } from '#/features/library/domain/import'
 
 describe('import autoSegment', () => {
   it('splits headers into topics', () => {

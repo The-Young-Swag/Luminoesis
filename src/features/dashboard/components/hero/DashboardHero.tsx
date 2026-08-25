@@ -1,7 +1,7 @@
 import { Link } from '@tanstack/react-router'
 import { ArrowUpRight, GraduationCap } from 'lucide-react'
 
-import { gainFrameDue, ownershipCue } from '#/shared/lib/engagement-copy'
+import { gainFrameDue, ownershipCue } from '#/features/dashboard/domain/engagement-copy'
 
 import { CornerBrackets } from '#/features/dashboard/components/layout/CornerBrackets'
 import { headlineForState, stateDot } from '#/features/dashboard/components/lib/dashboardFormatters'

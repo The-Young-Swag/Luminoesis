@@ -11,7 +11,7 @@ import type { Card } from '#/shared/types/domain'
 import {
   exportToJson,
   exportToMarkdown,
-} from '#/shared/lib/import'
+} from '#/features/library/domain/import'
 
 import { deleteCard } from '../application/deleteCard'
 import { useLibraryData } from '../hooks/useLibraryData'

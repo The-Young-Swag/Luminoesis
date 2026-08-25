@@ -1,5 +1,5 @@
 import type { Card } from '#/shared/types/domain'
-import type { RawCard } from '#/shared/lib/import'
+import type { RawCard } from '#/features/library/domain/import'
 
 import { cardRepository } from '#/shared/repositories/cardRepository'
 

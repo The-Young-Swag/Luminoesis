@@ -1,6 +1,6 @@
 import { Activity, Clock3, Layers, TrendingUp } from 'lucide-react'
 
-import { gainFrameDue } from '#/shared/lib/engagement-copy'
+import { gainFrameDue } from '#/features/dashboard/domain/engagement-copy'
 
 import { SectionHeading } from '#/features/dashboard/components/layout/SectionHeading'
 import { StatCard } from '#/features/dashboard/components/snapshot/StatCard'
