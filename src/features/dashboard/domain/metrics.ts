@@ -1,4 +1,4 @@
-import { settingsRepository } from '#/shared/repositories/settingsRepository'
+import { getMetric, setMetric } from '#/features/dashboard/repositories/metricsRepository'
 
 const METRIC_KEYS = {
   calibrationAttempts: 'metrics:calibrationAttempts',
@@ -15,11 +15,11 @@ async function incrementMetric(
   key: MetricKey,
 ): Promise<number> {
   const current =
-    await settingsRepository.getMetric(key)
+    await getMetric(key)
 
   const next = current + 1
 
-  await settingsRepository.setMetric(key, next)
+  await setMetric(key, next)
 
   return next
 }
@@ -62,19 +62,19 @@ export async function getMetrics() {
     dismissals,
     overrides,
   ] = await Promise.all([
-    settingsRepository.getMetric(
+    getMetric(
       METRIC_KEYS.calibrationAttempts,
     ),
-    settingsRepository.getMetric(
+    getMetric(
       METRIC_KEYS.calibrationCompletions,
     ),
-    settingsRepository.getMetric(
+    getMetric(
       METRIC_KEYS.adaptiveOffers,
     ),
-    settingsRepository.getMetric(
+    getMetric(
       METRIC_KEYS.adaptiveDismissals,
     ),
-    settingsRepository.getMetric(
+    getMetric(
       METRIC_KEYS.adaptiveOverrides,
     ),
   ])

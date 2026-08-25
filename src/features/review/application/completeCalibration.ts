@@ -1,4 +1,4 @@
-import { settingsRepository } from '#/shared/repositories/settingsRepository'
+import { setCalibrationSessions } from '#/features/review/repositories/calibrationRepository'
 
 const MAX_CALIBRATION_SESSIONS = 5
 
@@ -10,7 +10,7 @@ export async function completeCalibration(
     MAX_CALIBRATION_SESSIONS,
   )
 
-  await settingsRepository.setCalibrationSessions(
+  await setCalibrationSessions(
     nextCount,
   )
 

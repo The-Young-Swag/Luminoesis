@@ -1,6 +1,6 @@
 import { seedIfEmpty } from '#/shared/lib/db/seed'
 import { cardRepository } from '#/features/library/repositories/cardRepository'
-import { settingsRepository } from '#/shared/repositories/settingsRepository'
+import { getCalibrationSessions } from '#/features/review/repositories/calibrationRepository'
 
 const MAX_CALIBRATION_SESSIONS = 5
 
@@ -14,7 +14,7 @@ export async function loadReview() {
   ] = await Promise.all([
     cardRepository.findAll(),
     settingsRepository.getAdaptiveOptIn(),
-    settingsRepository.getCalibrationSessions(),
+    getCalibrationSessions(),
   ])
 
   return {
