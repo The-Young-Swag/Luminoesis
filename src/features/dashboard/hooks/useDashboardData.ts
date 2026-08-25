@@ -7,8 +7,8 @@ import type { Card } from '#/features/library/domain/card'
 
 import { seedIfEmpty } from '#/shared/lib/db/seed'
 import { cardRepository } from '#/features/library/repositories/cardRepository'
-import { sessionRepository } from '#/shared/repositories/sessionRepository'
-import { signalRepository } from '#/shared/repositories/signalRepository'
+import { sessionRepository } from '#/features/review/repositories/sessionRepository'
+import { signalRepository } from '#/features/review/repositories/signalRepository'
 import { settingsRepository } from '#/shared/repositories/settingsRepository'
 
 const RECENT_SIGNAL_LIMIT = 100

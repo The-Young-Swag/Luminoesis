@@ -10,7 +10,7 @@ import {
 } from '#/features/insights/domain/analytics'
 
 import { cardRepository } from '#/features/library/repositories/cardRepository'
-import { sessionRepository } from '#/shared/repositories/sessionRepository'
+import { sessionRepository } from '#/features/review/repositories/sessionRepository'
 
 type InsightsData = {
   cards: Awaited<

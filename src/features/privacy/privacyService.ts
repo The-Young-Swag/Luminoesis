@@ -2,11 +2,11 @@ import type { BaselineFeature, SessionSignal } from '#/features/learning-state/d
 import type { Card } from '#/features/library/domain/card'
 import type { ReviewSession } from '#/features/review/domain/reviewSession'
 
-  import { baselineRepository } from '#/shared/repositories/baselineRepository'
+  import { baselineRepository } from '#/features/learning-state/repositories/baselineRepository'
   import { cardRepository } from '#/features/library/repositories/cardRepository'
-  import { sessionRepository } from '#/shared/repositories/sessionRepository'
+  import { sessionRepository } from '#/features/review/repositories/sessionRepository'
   import { settingsRepository } from '#/shared/repositories/settingsRepository'
-  import { signalRepository } from '#/shared/repositories/signalRepository'
+  import { signalRepository } from '#/features/review/repositories/signalRepository'
 
   export type PrivacySignal = SessionSignal
 

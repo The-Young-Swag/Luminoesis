@@ -6,7 +6,7 @@ import {
 } from '#/features/learning-state/domain/baseline'
 import type { BaselineMap } from '#/features/learning-state/domain/baseline'
 
-import { baselineRepository } from '#/shared/repositories/baselineRepository'
+import { baselineRepository } from '#/features/learning-state/repositories/baselineRepository'
 
 export function useBaseline() {
   const [baseline, setBaseline] = useState<BaselineMap>(

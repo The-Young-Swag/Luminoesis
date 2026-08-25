@@ -5,9 +5,9 @@ import { GradeSchema } from '#/features/review/schemas'
 
 import { DEFAULT_ALPHA, updateEwma } from '#/features/learning-state/domain/baseline'
 import { sm2 } from '#/features/review/domain/sm2'
-import { baselineRepository } from '#/shared/repositories/baselineRepository'
+import { baselineRepository } from '#/features/learning-state/repositories/baselineRepository'
 import { cardRepository } from '#/features/library/repositories/cardRepository'
-import { sessionRepository } from '#/shared/repositories/sessionRepository'
+import { sessionRepository } from '#/features/review/repositories/sessionRepository'
 
 type SubmitReviewParams = {
   card: Card
