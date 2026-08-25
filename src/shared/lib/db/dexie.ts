@@ -10,20 +10,23 @@ import type {
   SessionSignal,
 } from '#/shared/types/domain'
 
+import type { LearningSpace } from '#/features/learning-space/domain/learningSpace'
+
 // ---------------------------------------------------------------------------
 // Dexie DB
 // ---------------------------------------------------------------------------
 
-export class LuminoesisDB extends Dexie {
+export class CircadiaDB extends Dexie {
   cards!: Table<Card, string>
   reviewSessions!: Table<ReviewSession, string>
   baselineFeatures!: Table<BaselineFeature, string>
   sessionSignals!: Table<SessionSignal, string>
   insights!: Table<Insight, string>
   appSettings!: Table<AppSettings, string>
+  learningSpaces!: Table<LearningSpace, string>
 
   constructor() {
-    super('Luminoesis')
+    super('circadia')
 
     this.version(1).stores({
       cards: 'id, topic, dueDate, targetDate, createdAt',
@@ -33,10 +36,17 @@ export class LuminoesisDB extends Dexie {
       insights: 'id, timestamp, dismissed, kind',
       appSettings: 'key',
     })
+
+    // Additive only — version 1's stores are untouched. Dexie carries
+    // unchanged tables forward automatically; only the new store needs
+    // restating here.
+    this.version(2).stores({
+      learningSpaces: 'id, createdAt, updatedAt',
+    })
   }
 }
 
-export const db = new LuminoesisDB()
+export const db = new CircadiaDB()
 
 // ---------------------------------------------------------------------------
 // Helpers for settings (adaptive opt-in, calibration)

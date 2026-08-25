@@ -11,9 +11,11 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as InsightsRouteImport } from './routes/insights'
+import { Route as LearningSpacesRouteImport } from './routes/learning-spaces'
 import { Route as LibraryRouteImport } from './routes/library'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ReviewRouteImport } from './routes/review'
+import { Route as LearningSpacesLearningSpaceIdRouteImport } from './routes/learning-spaces.$learningSpaceId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -23,6 +25,11 @@ const IndexRoute = IndexRouteImport.update({
 const InsightsRoute = InsightsRouteImport.update({
   id: '/insights',
   path: '/insights',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LearningSpacesRoute = LearningSpacesRouteImport.update({
+  id: '/learning-spaces',
+  path: '/learning-spaces',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LibraryRoute = LibraryRouteImport.update({
@@ -40,40 +47,75 @@ const ReviewRoute = ReviewRouteImport.update({
   path: '/review',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LearningSpacesLearningSpaceIdRoute =
+  LearningSpacesLearningSpaceIdRouteImport.update({
+    id: '/$learningSpaceId',
+    path: '/$learningSpaceId',
+    getParentRoute: () => LearningSpacesRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/insights': typeof InsightsRoute
+  '/learning-spaces': typeof LearningSpacesRouteWithChildren
   '/library': typeof LibraryRoute
   '/privacy': typeof PrivacyRoute
   '/review': typeof ReviewRoute
+  '/learning-spaces/$learningSpaceId': typeof LearningSpacesLearningSpaceIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/insights': typeof InsightsRoute
+  '/learning-spaces': typeof LearningSpacesRouteWithChildren
   '/library': typeof LibraryRoute
   '/privacy': typeof PrivacyRoute
   '/review': typeof ReviewRoute
+  '/learning-spaces/$learningSpaceId': typeof LearningSpacesLearningSpaceIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/insights': typeof InsightsRoute
+  '/learning-spaces': typeof LearningSpacesRouteWithChildren
   '/library': typeof LibraryRoute
   '/privacy': typeof PrivacyRoute
   '/review': typeof ReviewRoute
+  '/learning-spaces/$learningSpaceId': typeof LearningSpacesLearningSpaceIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/insights' | '/library' | '/privacy' | '/review'
+  fullPaths:
+    | '/'
+    | '/insights'
+    | '/learning-spaces'
+    | '/library'
+    | '/privacy'
+    | '/review'
+    | '/learning-spaces/$learningSpaceId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/insights' | '/library' | '/privacy' | '/review'
-  id: '__root__' | '/' | '/insights' | '/library' | '/privacy' | '/review'
+  to:
+    | '/'
+    | '/insights'
+    | '/learning-spaces'
+    | '/library'
+    | '/privacy'
+    | '/review'
+    | '/learning-spaces/$learningSpaceId'
+  id:
+    | '__root__'
+    | '/'
+    | '/insights'
+    | '/learning-spaces'
+    | '/library'
+    | '/privacy'
+    | '/review'
+    | '/learning-spaces/$learningSpaceId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   InsightsRoute: typeof InsightsRoute
+  LearningSpacesRoute: typeof LearningSpacesRouteWithChildren
   LibraryRoute: typeof LibraryRoute
   PrivacyRoute: typeof PrivacyRoute
   ReviewRoute: typeof ReviewRoute
@@ -93,6 +135,13 @@ declare module '@tanstack/react-router' {
       path: '/insights'
       fullPath: '/insights'
       preLoaderRoute: typeof InsightsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/learning-spaces': {
+      id: '/learning-spaces'
+      path: '/learning-spaces'
+      fullPath: '/learning-spaces'
+      preLoaderRoute: typeof LearningSpacesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/library': {
@@ -116,12 +165,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReviewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/learning-spaces/$learningSpaceId': {
+      id: '/learning-spaces/$learningSpaceId'
+      path: '/$learningSpaceId'
+      fullPath: '/learning-spaces/$learningSpaceId'
+      preLoaderRoute: typeof LearningSpacesLearningSpaceIdRouteImport
+      parentRoute: typeof LearningSpacesRoute
+    }
   }
 }
+
+interface LearningSpacesRouteChildren {
+  LearningSpacesLearningSpaceIdRoute: typeof LearningSpacesLearningSpaceIdRoute
+}
+
+const LearningSpacesRouteChildren: LearningSpacesRouteChildren = {
+  LearningSpacesLearningSpaceIdRoute: LearningSpacesLearningSpaceIdRoute,
+}
+
+const LearningSpacesRouteWithChildren = LearningSpacesRoute._addFileChildren(
+  LearningSpacesRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   InsightsRoute: InsightsRoute,
+  LearningSpacesRoute: LearningSpacesRouteWithChildren,
   LibraryRoute: LibraryRoute,
   PrivacyRoute: PrivacyRoute,
   ReviewRoute: ReviewRoute,
