@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { liveQuery } from 'dexie'
 
 import type { LearningSpace } from '#/shared/types/learningSpace'
-import { learningSpaceRepository } from '#/shared/repositories/learningSpaceRepository'
+import { learningSpaceRepository } from '#/features/learning-space/repositories/learningSpaceRepository'
 
 export function useLearningSpaceDetail(id: string) {
   const [learningSpace, setLearningSpace] = useState<

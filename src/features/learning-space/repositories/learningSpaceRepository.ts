@@ -1,4 +1,4 @@
-import { db } from '#/shared/lib/db/dexie'
+﻿import { db } from '#/shared/lib/db/dexie'
 import type { LearningSpace } from '#/shared/types/learningSpace'
 
 export const learningSpaceRepository = {

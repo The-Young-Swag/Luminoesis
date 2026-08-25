@@ -1,6 +1,6 @@
-import { z } from 'zod'
+﻿import { z } from 'zod'
 
-import { learningSpaceRepository } from '#/shared/repositories/learningSpaceRepository'
+import { learningSpaceRepository } from '#/features/learning-space/repositories/learningSpaceRepository'
 import { createLearningSpaceId } from '#/features/learning-space/domain/ids'
 import type { LearningSpace } from '#/shared/types/learningSpace'
 
