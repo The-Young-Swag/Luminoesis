@@ -15,7 +15,6 @@ import type { LucideIcon } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 import { useTheme } from '#/shared/hooks/useTheme'
-import type { Theme } from '#/shared/hooks/useTheme'
 
 type NavItem = {
   to: string
@@ -60,24 +59,31 @@ const SECONDARY_NAV_ITEMS: NavItem[] = [
   },
 ]
 
-const MOBILE_PRIMARY_ITEMS = PRIMARY_NAV_ITEMS.slice(0, 3)
+const MOBILE_TAB_COUNT = 3
+
+const MOBILE_PRIMARY_ITEMS = PRIMARY_NAV_ITEMS.slice(
+  0,
+  MOBILE_TAB_COUNT,
+)
+
 const MOBILE_MORE_ITEMS = [
-  ...PRIMARY_NAV_ITEMS.slice(3),
+  ...PRIMARY_NAV_ITEMS.slice(MOBILE_TAB_COUNT),
   ...SECONDARY_NAV_ITEMS,
 ]
 
-export default function Sidebar() {
-  const { theme, toggleTheme } = useTheme()
+function cx(...classes: Array<string | false | undefined>) {
+  return classes.filter(Boolean).join(' ')
+}
 
+export default function Sidebar() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [moreOpen, setMoreOpen] = useState(false)
-  const [collapsed, setCollapsed] = useState(false)
 
   const pathname = useRouterState({
     select: (state) => state.location.pathname,
   })
 
-  const isReview = pathname.startsWith('/review')
+  const isFocusMode = pathname.startsWith('/review')
 
   useEffect(() => {
     setMobileOpen(false)
@@ -86,20 +92,17 @@ export default function Sidebar() {
 
   return (
     <>
-      {!isReview && (
-        <MobileHeader
-          theme={theme}
-          onToggleTheme={toggleTheme}
-          onOpenNavigation={() => setMobileOpen(true)}
-        />
-      )}
+      {/* Mobile */}
+      <MobileHeader
+        focusMode={isFocusMode}
+        onOpenNavigation={() => setMobileOpen(true)}
+      />
 
-      {!isReview && (
-        <MobileBottomNavigation
-          moreOpen={moreOpen}
-          onToggleMore={() => setMoreOpen((open) => !open)}
-        />
-      )}
+      <MobileBottomNavigation
+        focusMode={isFocusMode}
+        moreOpen={moreOpen}
+        onToggleMore={() => setMoreOpen((open) => !open)}
+      />
 
       {moreOpen && (
         <MobileMoreSheet
@@ -109,39 +112,38 @@ export default function Sidebar() {
       )}
 
       {mobileOpen && (
-        <MobileDrawer
-          theme={theme}
-          onToggleTheme={toggleTheme}
-          onClose={() => setMobileOpen(false)}
-        />
+        <MobileDrawer onClose={() => setMobileOpen(false)} />
       )}
 
-      <DesktopSidebar
-        collapsed={collapsed}
-        isReview={isReview}
-        theme={theme}
-        onToggleTheme={toggleTheme}
-        onToggleCollapsed={() => setCollapsed((value) => !value)}
-        onExpand={() => setCollapsed(false)}
-        onCollapse={() => setCollapsed(true)}
-      />
+      {/* Desktop */}
+      <DesktopSidebar focusMode={isFocusMode} />
     </>
   )
 }
 
+/* -------------------------------------------------------------------------- */
+/* Mobile header */
+/* -------------------------------------------------------------------------- */
+
 type MobileHeaderProps = {
-  theme: Theme
-  onToggleTheme: () => void
+  focusMode: boolean
   onOpenNavigation: () => void
 }
 
 function MobileHeader({
-  theme,
-  onToggleTheme,
+  focusMode,
   onOpenNavigation,
 }: MobileHeaderProps) {
   return (
-    <header className="glass-nav glass-specular sticky top-0 z-40 flex h-14 items-center justify-between border-b border-(--line) px-4 lg:hidden">
+    <header
+      inert={focusMode}
+      aria-hidden={focusMode}
+      className={cx(
+        'glass-nav fixed inset-x-0 top-0 z-40 flex h-14 items-center justify-between border-b border-(--line) px-4 lg:hidden',
+        focusMode &&
+          'pointer-events-none -translate-y-full opacity-0',
+      )}
+    >
       <Link
         to="/"
         className="flex items-center gap-2.5 no-underline"
@@ -154,10 +156,7 @@ function MobileHeader({
       </Link>
 
       <div className="flex items-center gap-2">
-        <ThemeToggle
-          theme={theme}
-          onToggle={onToggleTheme}
-        />
+        <ThemeToggle />
 
         <button
           type="button"
@@ -172,17 +171,31 @@ function MobileHeader({
   )
 }
 
-function MobileBottomNavigation({
-  moreOpen,
-  onToggleMore,
-}: {
+/* -------------------------------------------------------------------------- */
+/* Mobile bottom navigation */
+/* -------------------------------------------------------------------------- */
+
+type MobileBottomNavigationProps = {
+  focusMode: boolean
   moreOpen: boolean
   onToggleMore: () => void
-}) {
+}
+
+function MobileBottomNavigation({
+  focusMode,
+  moreOpen,
+  onToggleMore,
+}: MobileBottomNavigationProps) {
   return (
     <nav
       aria-label="Mobile navigation"
-      className="safe-area-pb glass-nav fixed inset-x-0 bottom-0 z-40 flex items-center justify-around border-t border-(--line) px-2 py-2 lg:hidden"
+      inert={focusMode}
+      aria-hidden={focusMode}
+      className={cx(
+        'safe-area-pb glass-nav fixed inset-x-0 bottom-0 z-40 flex items-center justify-around border-t border-(--line) px-2 py-2 lg:hidden',
+        focusMode &&
+          'pointer-events-none translate-y-full opacity-0',
+      )}
     >
       {MOBILE_PRIMARY_ITEMS.map((item) => (
         <MobileTab key={item.to} item={item} />
@@ -196,11 +209,40 @@ function MobileBottomNavigation({
         className="flex flex-col items-center gap-1 rounded-xl px-3 py-1.5 text-(--ink-soft)"
       >
         <MoreHorizontal size={20} aria-hidden="true" />
-        <span className="mono-label text-[10px]">MORE</span>
+
+        <span className="mono-label text-[10px]">
+          More
+        </span>
       </button>
     </nav>
   )
 }
+
+function MobileTab({ item }: { item: NavItem }) {
+  const Icon = item.icon
+
+  return (
+    <Link
+      to={item.to}
+      className="flex flex-col items-center gap-1 rounded-xl px-3 py-1.5 text-(--ink-soft)"
+      activeProps={{
+        className:
+          'flex flex-col items-center gap-1 rounded-xl bg-(--racing) px-3 py-1.5 text-white',
+        'aria-current': 'page',
+      }}
+    >
+      <Icon size={20} aria-hidden="true" />
+
+      <span className="mono-label text-[10px]">
+        {item.label}
+      </span>
+    </Link>
+  )
+}
+
+/* -------------------------------------------------------------------------- */
+/* Mobile overlays */
+/* -------------------------------------------------------------------------- */
 
 function MobileMoreSheet({
   items,
@@ -218,7 +260,7 @@ function MobileMoreSheet({
         className="glass-scrim flex-1"
       />
 
-      <div className="glass-panel glass-specular space-y-2 rounded-t-2xl border-t border-(--line) p-4">
+      <div className="glass-panel space-y-2 rounded-t-2xl border-t border-(--line) p-4">
         {items.map((item) => (
           <MoreNavLink
             key={item.to}
@@ -252,15 +294,19 @@ function MoreNavLink({
     <Link
       to={item.to}
       onClick={onNavigate}
-      className="flex items-center gap-3 rounded-xl border border-(--line) px-3 py-3"
+      className="flex items-center gap-3 rounded-xl border border-(--line) px-3 py-3 no-underline"
     >
-      <Icon size={18} aria-hidden="true" />
+      <Icon
+        size={18}
+        aria-hidden="true"
+        className="text-(--ink-soft)"
+      />
 
-      <span className="font-medium">
+      <span className="font-medium text-(--ink)">
         {item.label}
       </span>
 
-      <span className="mono-label ml-auto">
+      <span className="chip ml-auto">
         {item.meta}
       </span>
     </Link>
@@ -268,12 +314,8 @@ function MoreNavLink({
 }
 
 function MobileDrawer({
-  theme,
-  onToggleTheme,
   onClose,
 }: {
-  theme: Theme
-  onToggleTheme: () => void
   onClose: () => void
 }) {
   return (
@@ -285,10 +327,10 @@ function MobileDrawer({
         className="glass-scrim flex-1"
       />
 
-      <aside className="glass-nav glass-specular flex w-75 max-w-[84vw] flex-col border-l border-sidebar-border shadow-2xl">
+      <aside className="glass-nav flex w-75 max-w-[84vw] flex-col border-l border-sidebar-border shadow-2xl">
         <div className="flex h-14 shrink-0 items-center justify-between border-b border-sidebar-border px-4">
           <span className="mono-label text-(--ink-faint)">
-            NAVIGATION
+            Navigation
           </span>
 
           <button
@@ -301,164 +343,113 @@ function MobileDrawer({
           </button>
         </div>
 
-        <nav className="flex-1 overflow-auto p-4">
-          <SidebarNav
-            onNavigate={onClose}
-          />
+        <nav
+          aria-label="Sidebar navigation"
+          className="min-h-0 flex-1 overflow-y-auto p-4"
+        >
+          <SidebarNav onNavigate={onClose} />
         </nav>
 
-        <SidebarFooter
-          theme={theme}
-          onToggleTheme={onToggleTheme}
-        />
+        <SidebarFooter />
       </aside>
     </div>
   )
 }
 
-type DesktopSidebarProps = {
-  collapsed: boolean
-  isReview: boolean
-  theme: Theme
-  onToggleTheme: () => void
-  onToggleCollapsed: () => void
-  onExpand: () => void
-  onCollapse: () => void
-}
+/* -------------------------------------------------------------------------- */
+/* Desktop sidebar */
+/* -------------------------------------------------------------------------- */
 
 function DesktopSidebar({
-  collapsed,
-  isReview,
-  theme,
-  onToggleTheme,
-  onToggleCollapsed,
-  onExpand,
-  onCollapse,
-}: DesktopSidebarProps) {
-  const widthClass = collapsed
-    ? 'lg:w-[72px] hover:lg:w-[280px]'
-    : 'lg:w-[280px]'
-
-  const reviewClass = isReview
-    ? 'opacity-40 hover:opacity-100'
-    : ''
-
+  focusMode,
+}: {
+  focusMode: boolean
+}) {
   return (
     <aside
-      className={`sidebar-shell glass-specular group/sidebar fixed inset-y-0 left-0 z-30 hidden flex-col transition-all duration-200 lg:flex ${widthClass} ${reviewClass}`}
-      onMouseEnter={collapsed ? onExpand : undefined}
-      onMouseLeave={collapsed ? onCollapse : undefined}
+      className={cx(
+        'sidebar-shell fixed inset-y-0 left-0 z-50 hidden w-70 lg:flex',
+        focusMode && 'focus-sidebar',
+      )}
     >
-      <div className="flex h-18 shrink-0 items-center gap-3 border-b border-sidebar-border px-4">
-        <BrandMark />
+      <div className="flex min-h-0 w-full flex-col">
+        {/* Brand */}
+        <div className="flex h-20 shrink-0 items-center gap-3 border-b border-sidebar-border px-5">
+          <Link
+            to="/"
+            className="flex min-w-0 flex-1 items-center gap-3 no-underline"
+          >
+            <BrandMark />
 
-        {!collapsed && (
-          <div className="min-w-0 leading-none">
-            <div className="display truncate text-xl tracking-tight">
-              Luminoesis
+            <div className="min-w-0 leading-none">
+              <div className="display truncate text-xl tracking-tight">
+                Luminoesis
+              </div>
+
+              <div className="mono-label mt-1 truncate text-(--ink-faint)">
+                Adaptive study
+              </div>
             </div>
+          </Link>
+        </div>
 
-            <div className="mono-label mt-1 truncate text-(--ink-faint)">
-              ADAPTIVE STUDY
-            </div>
-          </div>
-        )}
-
-        <button
-          type="button"
-          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          onClick={onToggleCollapsed}
-          className="glass-pill ml-auto hidden h-7 w-7 place-items-center text-(--ink-faint) lg:grid"
+        {/* Navigation */}
+        <nav
+          aria-label="Sidebar navigation"
+          className="sidebar-scroll min-h-0 flex-1 overflow-y-auto px-4 py-6"
         >
-          <span className="mono-label text-[10px]" aria-hidden="true">
-            {collapsed ? '→' : '←'}
-          </span>
-        </button>
+          <SidebarNav />
+        </nav>
+
+        {/* Footer */}
+        <SidebarFooter />
       </div>
-
-      <nav
-        aria-label="Sidebar navigation"
-        className="flex-1 space-y-6 overflow-auto px-3 py-6"
-      >
-        <SidebarNav collapsed={collapsed} />
-      </nav>
-
-      <SidebarFooter
-        theme={theme}
-        onToggleTheme={onToggleTheme}
-        collapsed={collapsed}
-      />
     </aside>
   )
 }
 
-function MobileTab({ item }: { item: NavItem }) {
-  const Icon = item.icon
+/* -------------------------------------------------------------------------- */
+/* Shared navigation */
+/* -------------------------------------------------------------------------- */
 
-  return (
-    <Link
-      to={item.to}
-      className="flex flex-col items-center gap-1 rounded-xl px-3 py-1.5 text-(--ink-soft)"
-      activeProps={{
-        className:
-          'flex flex-col items-center gap-1 rounded-xl bg-(--racing) px-3 py-1.5 text-white',
-      }}
-    >
-      <Icon size={20} aria-hidden="true" />
-
-      <span className="mono-label text-[10px]">
-        {item.label.toUpperCase()}
-      </span>
-    </Link>
-  )
+type SidebarNavProps = {
+  onNavigate?: () => void
 }
 
 function SidebarNav({
   onNavigate,
-  collapsed = false,
-}: {
-  onNavigate?: () => void
-  collapsed?: boolean
-}) {
+}: SidebarNavProps) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-7">
       <NavSection
         label="Study"
         items={PRIMARY_NAV_ITEMS}
-        collapsed={collapsed}
         onNavigate={onNavigate}
       />
 
       <NavSection
         label="Intelligence"
         items={SECONDARY_NAV_ITEMS}
-        collapsed={collapsed}
         onNavigate={onNavigate}
       />
     </div>
   )
 }
 
+type NavSectionProps = {
+  label: string
+  items: NavItem[]
+  onNavigate?: () => void
+}
+
 function NavSection({
   label,
   items,
-  collapsed,
   onNavigate,
-}: {
-  label: string
-  items: NavItem[]
-  collapsed: boolean
-  onNavigate?: () => void
-}) {
-  const labelClass = collapsed
-    ? 'hidden group-hover/sidebar:block'
-    : ''
-
+}: NavSectionProps) {
   return (
     <section>
-      <div
-        className={`sidebar-kicker mb-2 px-2 ${labelClass}`}
-      >
+      <div className="sidebar-kicker mb-2 px-2">
         {label}
       </div>
 
@@ -467,7 +458,6 @@ function NavSection({
           <SidebarNavLink
             key={item.to}
             item={item}
-            collapsed={collapsed}
             onNavigate={onNavigate}
           />
         ))}
@@ -476,47 +466,41 @@ function NavSection({
   )
 }
 
+type SidebarNavLinkProps = {
+  item: NavItem
+  onNavigate?: () => void
+}
+
 function SidebarNavLink({
   item,
-  collapsed,
   onNavigate,
-}: {
-  item: NavItem
-  collapsed: boolean
-  onNavigate?: () => void
-}) {
+}: SidebarNavLinkProps) {
   const Icon = item.icon
-
-  const contentClass = collapsed
-    ? 'hidden group-hover/sidebar:block'
-    : ''
 
   return (
     <Link
       to={item.to}
       onClick={onNavigate}
-      title={collapsed ? item.label : undefined}
       className="sidebar-link group"
       activeProps={{
         className: 'sidebar-link is-active group',
+        'aria-current': 'page',
       }}
     >
-      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-(--line) bg-(--surface-muted) transition-colors group-[.is-active]:border-white/20 group-[.is-active]:bg-white/15">
+      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-(--line) bg-(--surface-muted) transition-colors group-[.is-active]:border-white/20 group-[.is-active]:bg-white/15">
         <Icon
-          size={16}
+          size={17}
           aria-hidden="true"
           className="text-(--ink-soft) group-[.is-active]:text-white"
         />
       </span>
 
-      <span
-        className={`min-w-0 flex-1 leading-none ${contentClass}`}
-      >
-        <span className="block truncate text-sm">
+      <span className="min-w-0 flex-1 leading-none">
+        <span className="block truncate text-sm font-medium">
           {item.label}
         </span>
 
-        <span className="mono-label block truncate text-[10px] leading-none opacity-60 group-[.is-active]:opacity-80">
+        <span className="mono-label mt-1 block truncate text-[10px] leading-none opacity-60 group-[.is-active]:opacity-80">
           {item.meta}
         </span>
       </span>
@@ -524,56 +508,31 @@ function SidebarNavLink({
   )
 }
 
-function SidebarFooter({
-  theme,
-  onToggleTheme,
-  collapsed = false,
-}: {
-  theme: Theme
-  onToggleTheme: () => void
-  collapsed?: boolean
-}) {
+/* -------------------------------------------------------------------------- */
+/* Sidebar footer */
+/* -------------------------------------------------------------------------- */
+
+function SidebarFooter() {
   return (
-    <>
-      {collapsed && (
-        <div className="flex flex-col items-center gap-2 border-t border-sidebar-border p-2 group-hover/sidebar:hidden">
-          <SignalStatus />
-
-          <ThemeToggle
-            theme={theme}
-            onToggle={onToggleTheme}
-          />
-        </div>
-      )}
-
-      <div
-        className={`space-y-3 border-t border-sidebar-border p-4 ${
-          collapsed ? 'hidden group-hover/sidebar:block' : ''
-        }`}
-      >
-        <div className="rounded-xl border border-(--line) bg-(--surface-muted) p-3">
-          <div className="mono-label">
-            Personal signal
-          </div>
-
-          <SignalStatus showLabel />
-
-          <div className="mono-label mt-1 opacity-70">
-            On this device • Never key content
-          </div>
+    <div className="shrink-0 space-y-3 border-t border-sidebar-border p-4">
+      <div className="rounded-xl border border-(--line) bg-(--surface-muted) p-3">
+        <div className="mono-label">
+          Personal signal
         </div>
 
-        <ThemeToggle
-          theme={theme}
-          onToggle={onToggleTheme}
-          expanded
-        />
+        <SignalStatus showLabel />
 
-        <div className="mono-label text-center opacity-60">
-          © 2026 Luminoesis • Veridian/Emerald/BRG
+        <div className="mono-label mt-1 opacity-70">
+          On this device · Never key content
         </div>
       </div>
-    </>
+
+      <ThemeToggle expanded />
+
+      <div className="mono-label text-center opacity-60">
+        © 2026 Luminoesis
+      </div>
+    </div>
   )
 }
 
@@ -583,9 +542,15 @@ function SignalStatus({
   showLabel?: boolean
 }) {
   return (
-    <div className={showLabel ? 'mt-1.5 flex items-center gap-1.5 text-[11px] font-mono text-(--ink-faint)' : undefined}>
+    <div
+      className={
+        showLabel
+          ? 'mt-1.5 flex items-center gap-1.5 text-[11px] font-mono text-(--ink-faint)'
+          : undefined
+      }
+    >
       <span
-        className="h-2 w-2 shrink-0 animate-pulse rounded-full bg-(--emerald)"
+        className="pulse-dot"
         aria-hidden="true"
         title="Personal signal active"
       />
@@ -595,16 +560,18 @@ function SignalStatus({
   )
 }
 
+/* -------------------------------------------------------------------------- */
+/* Theme */
+/* -------------------------------------------------------------------------- */
+
 function ThemeToggle({
-  theme,
-  onToggle,
   expanded = false,
 }: {
-  theme: Theme
-  onToggle: () => void
   expanded?: boolean
 }) {
+  const { theme, toggleTheme } = useTheme()
   const isDark = theme === 'dark'
+
   const Icon = isDark ? Sun : Moon
   const label = isDark ? 'Light mode' : 'Dark mode'
 
@@ -613,7 +580,7 @@ function ThemeToggle({
       <button
         type="button"
         aria-label={`Switch to ${label.toLowerCase()}`}
-        onClick={onToggle}
+        onClick={toggleTheme}
         className="glass-pill grid h-8 w-8 place-items-center"
       >
         <Icon size={14} aria-hidden="true" />
@@ -625,7 +592,7 @@ function ThemeToggle({
     <button
       type="button"
       aria-label={`Switch to ${label.toLowerCase()}`}
-      onClick={onToggle}
+      onClick={toggleTheme}
       className="glass-pill flex w-full items-center justify-between px-3 py-2 text-sm font-medium"
     >
       <span className="flex items-center gap-2">
@@ -633,18 +600,28 @@ function ThemeToggle({
         {label}
       </span>
 
-      <span className="mono-label rounded-full bg-(--racing) px-2 py-1 text-[10px] text-white">
-        {theme.toUpperCase()}
+      <span className="chip">
+        {theme}
       </span>
     </button>
   )
 }
 
+/* -------------------------------------------------------------------------- */
+/* Brand */
+/* -------------------------------------------------------------------------- */
+
 function BrandMark() {
   return (
-    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-(--racing) text-white shadow-sm">
+    <span className="relative grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-(--racing) text-white shadow-sm">
       <span
-        className="h-3 w-3 rounded-full bg-(--emerald)"
+        className="pointer-events-none absolute inset-0 rounded-xl opacity-40 blur-md"
+        style={{ background: 'var(--emerald)' }}
+        aria-hidden="true"
+      />
+
+      <span
+        className="relative h-3 w-3 rounded-full bg-(--emerald)"
         aria-hidden="true"
       />
     </span>

@@ -5,29 +5,31 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* ==========================================================================
+   DESIGN TOKENS
+   ========================================================================== */
+
 :root {
-  /* Palette — Veridian #40826D, Emerald #50C878, BRG #004225 — §6 */
+  /* Brand */
   --veridian: #40826d;
   --veridian-strong: #2f5d4f;
   --veridian-muted: #e8f5ef;
   --veridian-small-dark: #4a9179;
-  /* for small text on dark per §6 */
+
   --emerald: #50c878;
   --emerald-strong: #3aa361;
   --emerald-muted: #e6f5eb;
+
   --racing: #004225;
   --racing-strong: #002a16;
   --racing-muted: #e6f0eb;
 
-  /* Semantic performance tone — distinct from brand greens so grade/perf
-     signals (Again/Hard/Good/Easy, low/med/high) stay visually distinguishable.
-     Matches the amber-500 already used for the "Warming Down" state dot. */
+  /* Semantic performance tone */
   --warning: #d97706;
   --warning-strong: #b45309;
   --warning-muted: #fef3e2;
 
-  /* Legacy aliases — now map to 3 distinct semantic tones, not 2 shades of
-     green. blue=good(emerald), amber=medium(warning), purple=poor(destructive) */
+  /* Legacy aliases */
   --amber: var(--warning);
   --amber-strong: var(--warning-strong);
   --blue: var(--emerald);
@@ -35,41 +37,59 @@
   --purple: var(--destructive);
   --purple-strong: #b91c1c;
 
+  /* Typography / surfaces */
   --ink: #17201b;
   --ink-soft: #5d6862;
   --ink-faint: #667269;
+
   --line: #dce3de;
   --line-strong: #c5d8ce;
+
   --surface: #ffffff;
   --surface-muted: #f5f9f7;
   --surface-raised: #fbfcf9;
+
   --nav-bg: #ffffff;
 
   --background: #f6f7f3;
   --foreground: var(--ink);
+
+  /* Semantic UI tokens */
   --card: var(--surface);
   --card-foreground: var(--ink);
+
   --popover: var(--surface);
   --popover-foreground: var(--ink);
+
   --primary: var(--racing);
   --primary-foreground: #ffffff;
+
   --secondary: #e8f5ef;
   --secondary-foreground: var(--racing);
+
   --muted: #f0f7f3;
   --muted-foreground: var(--ink-faint);
+
   --accent: var(--emerald-muted);
   --accent-foreground: var(--racing);
+
   --destructive: #dc2626;
   --destructive-foreground: #ffffff;
+
   --border: var(--line);
   --input: var(--line);
   --ring: var(--veridian);
+
   --radius: 0.75rem;
+
+  /* Charts */
   --chart-1: var(--veridian);
   --chart-2: var(--emerald);
   --chart-3: var(--racing);
   --chart-4: #17201b;
   --chart-5: #94a3b8;
+
+  /* Sidebar */
   --sidebar: #ffffff;
   --sidebar-foreground: var(--ink);
   --sidebar-primary: var(--racing);
@@ -79,21 +99,23 @@
   --sidebar-border: var(--line);
   --sidebar-ring: var(--veridian);
 
-  /* Glass surfaces — §3. Restrained, functional, never decorative-only. */
+  /* Glass */
   --glass-bg: color-mix(in oklab, var(--surface) 62%, transparent);
   --glass-bg-strong: color-mix(in oklab, var(--surface) 80%, transparent);
   --glass-border: color-mix(in oklab, var(--line) 55%, transparent);
-  --glass-shadow: 0 1px 2px rgba(15, 23, 42, 0.05), 0 24px 56px rgba(15, 23, 42, 0.14);
+
+  --glass-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.05),
+    0 24px 56px rgba(15, 23, 42, 0.14);
+
   --scrim: rgba(15, 23, 42, 0.34);
 
-  /* Page backdrop — the image glass surfaces blur against. Without visual
-     detail behind it, backdrop-filter has nothing to reveal. */
+  /* Background */
   --bg-image: url('/assets/light.webp');
   --bg-scrim: color-mix(in oklab, var(--background) 58%, transparent);
 }
 
 .dark {
-  /* Slightly lighter amber for AA contrast against dark surfaces */
   --warning: #f59e0b;
   --warning-strong: #d97706;
   --warning-muted: #2a2115;
@@ -101,37 +123,50 @@
   --ink: #e9f2ec;
   --ink-soft: #aabbb0;
   --ink-faint: #718279;
+
   --line: #2e3036;
   --line-strong: #3a3d44;
+
   --surface: #1c1e22;
   --surface-muted: #141517;
   --surface-raised: #24262b;
+
   --nav-bg: #1c1e22;
 
   --background: #141517;
   --foreground: #e9f2ec;
+
   --card: #1c1e22;
   --card-foreground: #e9f2ec;
+
   --popover: #1c1e22;
   --popover-foreground: #e9f2ec;
+
   --primary: var(--emerald);
   --primary-foreground: #141517;
+
   --secondary: #24262b;
   --secondary-foreground: #e9f2ec;
+
   --muted: #24262b;
   --muted-foreground: #aabbb0;
+
   --accent: #24262b;
   --accent-foreground: #e9f2ec;
+
   --destructive: #ef4444;
   --destructive-foreground: #fef2f2;
+
   --border: #2e3036;
   --input: #2e3036;
   --ring: var(--veridian);
+
   --chart-1: var(--veridian);
   --chart-2: var(--emerald);
   --chart-3: var(--veridian-small-dark);
   --chart-4: #e9f2ec;
   --chart-5: #718279;
+
   --sidebar: #141517;
   --sidebar-foreground: #e9f2ec;
   --sidebar-primary: #50c878;
@@ -144,45 +179,65 @@
   --glass-bg: color-mix(in oklab, var(--surface) 56%, transparent);
   --glass-bg-strong: color-mix(in oklab, var(--surface) 76%, transparent);
   --glass-border: color-mix(in oklab, var(--line-strong) 65%, transparent);
-  --glass-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 24px 56px rgba(0, 0, 0, 0.5);
+
+  --glass-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.35),
+    0 24px 56px rgba(0, 0, 0, 0.5);
+
   --scrim: rgba(4, 6, 8, 0.5);
 
   --bg-image: url('/assets/dark.webp');
   --bg-scrim: color-mix(in oklab, var(--background) 62%, transparent);
 }
 
+/* ==========================================================================
+   TAILWIND THEME
+   ========================================================================== */
+
 @theme inline {
   --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
   --font-display: 'Fraunces', Georgia, serif;
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
+
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
+
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
+
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
+
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
+
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -193,37 +248,44 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
-html,
-body,
-#app {
+/* ==========================================================================
+   BASE
+   ========================================================================== */
+
+html {
+  min-width: 320px;
   min-height: 100%;
 }
 
 body {
+  min-height: 100dvh;
   margin: 0;
+
   color: var(--ink);
   font-family: var(--font-sans);
+
   background-color: var(--background);
   background-image:
     linear-gradient(var(--bg-scrim), var(--bg-scrim)),
     var(--bg-image);
+
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
   background-attachment: fixed;
+
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  overflow-x: hidden;
 }
 
-/* iOS Safari renders fixed backgrounds unreliably (and expensively) on
-   touch scroll — fall back to a normal scrolling background there. */
 @media (pointer: coarse) {
   body {
     background-attachment: scroll;
   }
 }
 
-/* Flat, no gradients */
 a {
   color: var(--veridian);
   text-underline-offset: 3px;
@@ -232,6 +294,94 @@ a {
 a:hover {
   color: var(--veridian-strong);
 }
+
+/* ==========================================================================
+   APPLICATION SHELL
+   ========================================================================== */
+
+/*
+  Desktop geometry:
+
+  ┌───────────────┬───────────────────────────────────────┐
+  │               │                                       │
+  │   SIDEBAR     │             APPLICATION               │
+  │   280px       │             100% remaining            │
+  │               │                                       │
+  └───────────────┴───────────────────────────────────────┘
+
+  The sidebar owns the first 280px.
+  The application owns everything else.
+
+  No page should need to know about the sidebar.
+*/
+
+.app-shell {
+  width: 100%;
+  min-height: 100dvh;
+}
+
+.app-main {
+  position: relative;
+
+  width: 100%;
+  min-width: 0;
+  min-height: 100dvh;
+
+  overflow-x: hidden;
+  isolation: isolate;
+}
+
+.app-content {
+  position: relative;
+
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 100dvh;
+
+  overflow-x: hidden;
+}
+
+/*
+  Desktop application column.
+
+  IMPORTANT:
+  Do not add another margin/padding offset to the root or page
+  for the sidebar. This is the only desktop sidebar offset.
+*/
+@media (min-width: 1024px) {
+  .app-main {
+    width: calc(100% - 280px);
+    max-width: calc(100% - 280px);
+    margin-left: 280px;
+  }
+
+  .app-content {
+    width: 100%;
+    max-width: 100%;
+    min-height: calc(100dvh - 73px);
+  }
+}
+
+/*
+  Prevent wide dashboard children from escaping the application column.
+*/
+.app-main > *,
+.app-content > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Footer belongs to the application column, not the sidebar. */
+
+.app-footer {
+  border-top: 1px solid var(--line);
+  padding-block: 1.5rem;
+}
+
+/* ==========================================================================
+   PAGE WIDTHS
+   ========================================================================== */
 
 .page-wrap {
   width: min(1120px, calc(100% - 2rem));
@@ -243,14 +393,39 @@ a:hover {
   margin-inline: auto;
 }
 
-/* Display — Fraunces for hero/major headings */
+/*
+  At narrower desktop widths, reduce the gutter before the content becomes
+  cramped.
+*/
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .page-wrap {
+    width: min(100% - 2rem, 1040px);
+  }
+
+  .page-wrap--wide {
+    width: calc(100% - 2rem);
+  }
+}
+
+@media (max-width: 639px) {
+  .page-wrap,
+  .page-wrap--wide {
+    width: min(100% - 1.5rem, 100%);
+  }
+}
+
+/* ==========================================================================
+   TYPOGRAPHY
+   ========================================================================== */
+
 .display {
   font-family: 'Fraunces', Georgia, serif;
   font-weight: 700;
   letter-spacing: -0.02em;
 }
 
-.kicker {
+.kicker,
+.eyebrow {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.68rem;
   letter-spacing: 0.14em;
@@ -259,7 +434,6 @@ a:hover {
   color: var(--ink-faint);
 }
 
-/* Technical — JetBrains Mono for labels, metadata, dates, stacks */
 .technical,
 .font-mono {
   font-family: 'JetBrains Mono', ui-monospace, monospace;
@@ -273,123 +447,555 @@ a:hover {
   font-weight: 600;
 }
 
-/* Eyebrow — alias of .kicker so page headers and section labels share one
-   rule. Existing markup references either name. */
-.eyebrow,
-.kicker {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.68rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  font-weight: 600;
-  color: var(--ink-faint);
-}
+/* ==========================================================================
+   GLASS
+   ========================================================================== */
 
-/* Glass — §3. Reserved for surfaces that sit above the page: dialogs,
-   overlays, floating toolbars, and persistent nav chrome. Never applied to
-   the base page or dense data surfaces (tables, card-flat).
-
-   Shape (border-radius) is deliberately NOT baked into these classes —
-   Tailwind's utilities live in `@layer utilities`, and any unlayered rule
-   (which these are, by design, for override-proofing) always beats a
-   layered one regardless of specificity. Baking `border-radius: 20px` in
-   here would silently defeat a consumer's `rounded-t-2xl` on a bottom
-   sheet. Each consumer sets its own rounded-* utility instead. */
 .glass-surface {
   background: var(--glass-bg);
   backdrop-filter: blur(28px) saturate(1.7);
   -webkit-backdrop-filter: blur(28px) saturate(1.7);
+
   border: 1px solid var(--glass-border);
-  box-shadow: var(--glass-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+
+  box-shadow:
+    var(--glass-shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 .glass-panel {
   background: var(--glass-bg-strong);
   backdrop-filter: blur(18px) saturate(1.5);
   -webkit-backdrop-filter: blur(18px) saturate(1.5);
+
   border: 1px solid var(--glass-border);
 }
 
 .glass-scrim {
   background: var(--scrim);
+
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
 }
 
-/* Nav chrome — header, sidebar, bottom nav, drawers. Tinted toward
-   --sidebar rather than --surface so it reads as "the app's glass",
-   distinct from dialog/toolbar glass. No border/radius/shadow baked in —
-   these surfaces are edge-to-edge or drawer-shaped and already carry
-   their own border/shadow utilities per consumer. */
 .glass-nav {
   background: color-mix(in oklab, var(--sidebar) 66%, transparent);
+
   backdrop-filter: blur(26px) saturate(1.6);
   -webkit-backdrop-filter: blur(26px) saturate(1.6);
 }
+
+/* ==========================================================================
+   SIDEBAR
+   ========================================================================== */
 
 .sidebar-shell {
-  background: color-mix(in oklab, var(--sidebar) 66%, transparent);
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 50;
+
+  width: 280px;
+  height: 100dvh;
+
+  display: flex;
+
+  background: color-mix(in oklab, var(--sidebar) 82%, transparent);
+
   backdrop-filter: blur(26px) saturate(1.6);
   -webkit-backdrop-filter: blur(26px) saturate(1.6);
+
   border-right: 1px solid var(--glass-border);
-  box-shadow: 4px 0 32px rgba(15, 23, 42, 0.06);
+
+  box-shadow:
+    4px 0 32px rgba(15, 23, 42, 0.08);
+
+  overflow: hidden;
 }
 
-/* Small floating controls (icon buttons) sitting on top of other glass —
-   a lighter, brighter layer for that stacked "liquid glass" depth. */
+.sidebar-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+}
+
+.sidebar-scroll::-webkit-scrollbar {
+  width: 5px;
+}
+
+.sidebar-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar-scroll::-webkit-scrollbar-thumb {
+  background: var(--line-strong);
+  border-radius: 999px;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+
+  gap: 0.75rem;
+
+  padding: 0.6rem 0.75rem;
+
+  border-radius: 10px;
+
+  color: var(--ink-soft);
+
+  font-weight: 500;
+  font-size: 0.875rem;
+
+  text-decoration: none;
+
+  transition:
+    background-color 150ms ease,
+    color 150ms ease,
+    transform 150ms ease;
+}
+
+.sidebar-link:hover {
+  background: var(--sidebar-accent);
+  color: var(--sidebar-foreground);
+}
+
+.sidebar-link:active {
+  transform: translateY(1px);
+}
+
+.sidebar-link.is-active {
+  background: var(--sidebar-primary);
+  color: var(--sidebar-primary-foreground);
+
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.sidebar-link.is-active svg {
+  color: var(--sidebar-primary-foreground);
+}
+
+.sidebar-kicker {
+  font-family: 'JetBrains Mono', monospace;
+
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+
+  text-transform: uppercase;
+  font-weight: 600;
+
+  color: var(--ink-faint);
+}
+
+/*
+  Review mode can visually de-emphasize the navigation without changing
+  the application geometry.
+*/
+.focus-sidebar {
+  opacity: 0.45;
+  transition: opacity 180ms ease;
+}
+
+.focus-sidebar:hover {
+  opacity: 1;
+}
+
+/* ==========================================================================
+   NAVIGATION
+   ========================================================================== */
+
+.nav-link {
+  color: var(--ink-soft);
+
+  text-decoration: none;
+
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.nav-link:hover {
+  color: var(--ink);
+}
+
+/* ==========================================================================
+   GLASS CONTROLS
+   ========================================================================== */
+
 .glass-pill {
   background: var(--glass-bg-strong);
+
   backdrop-filter: blur(16px) saturate(1.6);
   -webkit-backdrop-filter: blur(16px) saturate(1.6);
+
   border: 1px solid var(--glass-border);
   border-radius: 9999px;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  transition: background 150ms;
+
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+
+  transition:
+    background-color 150ms ease,
+    transform 150ms ease;
 }
 
 .glass-pill:hover {
   background: color-mix(in oklab, var(--surface) 92%, transparent);
 }
 
+.glass-pill:active {
+  transform: translateY(1px);
+}
+
 .btn-glass {
   background: var(--glass-bg-strong);
+
   backdrop-filter: blur(16px) saturate(1.6);
   -webkit-backdrop-filter: blur(16px) saturate(1.6);
+
   border: 1px solid var(--glass-border);
   border-radius: 9999px;
+
   padding: 0.6rem 1rem;
+
   font-weight: 600;
   font-size: 0.875rem;
+
   color: var(--ink);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  transition: background 150ms;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+
+  transition: background-color 150ms ease;
 }
 
 .btn-glass:hover {
   background: color-mix(in oklab, var(--surface) 92%, transparent);
 }
 
-/* Liquid-glass sheen — a soft diagonal highlight, opt-in via a second
-   class so plain glass surfaces that don't want it aren't forced into it.
-   `border-radius: inherit` reads the host element's own computed radius
-   (whatever Tailwind rounded-* class it carries), so this stays correct
-   regardless of shape. */
+/* ==========================================================================
+   LIQUID GLASS SHEEN
+   ========================================================================== */
+
 .glass-specular {
   position: relative;
 }
 
 .glass-specular::before {
   content: '';
+
   position: absolute;
   inset: 0;
+
   border-radius: inherit;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0) 45%);
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.16),
+      rgba(255, 255, 255, 0) 45%
+    );
+
   pointer-events: none;
 }
 
 .dark .glass-specular::before {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0) 45%);
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.07),
+      rgba(255, 255, 255, 0) 45%
+    );
 }
+
+/* ==========================================================================
+   CARDS
+   ========================================================================== */
+
+.card-flat {
+  background: var(--surface);
+
+  border: 1px solid var(--line);
+  border-radius: 16px;
+
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.04),
+    0 8px 24px rgba(15, 23, 42, 0.04);
+}
+
+.card-flat:hover {
+  border-color: var(--line-strong);
+}
+
+.card-glass {
+  background: var(--glass-bg-strong);
+
+  backdrop-filter: blur(20px) saturate(1.5);
+  -webkit-backdrop-filter: blur(20px) saturate(1.5);
+
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+
+  box-shadow: var(--glass-shadow);
+}
+
+/* ==========================================================================
+   BUTTONS
+   ========================================================================== */
+
+.btn-primary {
+  background: var(--racing);
+  color: white;
+
+  border-radius: 9999px;
+  border: 1px solid var(--racing);
+
+  padding: 0.65rem 1.1rem;
+
+  font-weight: 600;
+  font-size: 0.875rem;
+
+  transition:
+    background-color 150ms ease,
+    transform 150ms ease;
+}
+
+.btn-primary:hover {
+  background: var(--racing-strong);
+}
+
+.btn-primary:active {
+  transform: translateY(1px);
+}
+
+.btn-ghost {
+  background: transparent;
+
+  border: 1px solid var(--line);
+  border-radius: 9999px;
+
+  padding: 0.6rem 1rem;
+
+  font-weight: 600;
+  font-size: 0.875rem;
+
+  color: var(--ink);
+
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease;
+}
+
+.btn-ghost:hover {
+  background: var(--surface-muted);
+  border-color: var(--line-strong);
+}
+
+/* ==========================================================================
+   HUD / GAMING UI
+   ========================================================================== */
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+
+  gap: 0.35rem;
+
+  padding: 0.25rem 0.6rem;
+
+  border-radius: 9999px;
+  border: 1px solid var(--line);
+
+  background: var(--surface-muted);
+
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem;
+
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 600;
+
+  color: var(--ink-soft);
+
+  white-space: nowrap;
+}
+
+.chip-live {
+  border-color:
+    color-mix(in oklab, var(--veridian) 45%, var(--line));
+
+  background: var(--veridian-muted);
+  color: var(--veridian-strong);
+}
+
+.pulse-dot {
+  position: relative;
+
+  display: inline-flex;
+
+  height: 0.5rem;
+  width: 0.5rem;
+
+  flex-shrink: 0;
+
+  border-radius: 9999px;
+
+  background: var(--emerald);
+}
+
+.pulse-dot::after {
+  content: '';
+
+  position: absolute;
+  inset: -4px;
+
+  border-radius: inherit;
+
+  background: inherit;
+
+  opacity: 0.55;
+
+  animation:
+    pulse-ring 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.85);
+    opacity: 0.5;
+  }
+
+  70% {
+    transform: scale(1.9);
+    opacity: 0;
+  }
+
+  100% {
+    transform: scale(1.9);
+    opacity: 0;
+  }
+}
+
+.rank-badge {
+  display: grid;
+  place-items: center;
+
+  height: 1.5rem;
+  width: 1.5rem;
+
+  flex-shrink: 0;
+
+  border-radius: 9999px;
+
+  background: var(--surface-muted);
+
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.625rem;
+
+  color: var(--ink-faint);
+}
+
+.rank-badge-first {
+  background: var(--veridian);
+  color: white;
+
+  box-shadow:
+    0 0 0 3px var(--veridian-muted);
+}
+
+/* ==========================================================================
+   FEED
+   ========================================================================== */
+
+.feed-row {
+  transition: background-color 150ms ease;
+}
+
+.feed-row:hover {
+  background: var(--surface-muted);
+}
+
+/* ==========================================================================
+   ANIMATION
+   ========================================================================== */
+
+.rise {
+  animation:
+    rise 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ==========================================================================
+   SKELETON
+   ========================================================================== */
+
+.skeleton {
+  border-radius: var(--radius-md);
+
+  background:
+    linear-gradient(
+      100deg,
+      var(--surface-muted) 40%,
+      var(--line) 50%,
+      var(--surface-muted) 60%
+    );
+
+  background-size: 200% 100%;
+
+  animation:
+    skeleton-shimmer 1.6s ease-in-out infinite;
+}
+
+@keyframes skeleton-shimmer {
+  from {
+    background-position: 150% 0;
+  }
+
+  to {
+    background-position: -50% 0;
+  }
+}
+
+/* ==========================================================================
+   CHARTS
+   ========================================================================== */
+
+.chart-tooltip {
+  background: var(--surface);
+
+  border: 1px solid var(--line);
+  border-radius: 10px;
+
+  padding: 8px 10px;
+
+  font-size: 12px;
+
+  box-shadow:
+    0 4px 12px rgba(15, 23, 42, 0.08);
+}
+
+/* ==========================================================================
+   FOCUS
+   ========================================================================== */
+
+*:focus-visible {
+  outline: 2px solid var(--veridian);
+  outline-offset: 2px;
+}
+
+/* ==========================================================================
+   FALLBACK GLASS
+   ========================================================================== */
 
 @supports not (backdrop-filter: blur(1px)) {
   .glass-surface,
@@ -406,168 +1012,44 @@ a:hover {
   }
 }
 
-/* Cards — flat, subtle shadow, no accent border */
-.card-flat {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  box-shadow:
-    0 1px 2px rgba(15, 23, 42, 0.04),
-    0 8px 24px rgba(15, 23, 42, 0.04);
-}
+/* ==========================================================================
+   MOBILE
+   ========================================================================== */
 
-.card-flat:hover {
-  border-color: var(--line-strong);
-}
-
-.card-glass {
-  background: var(--glass-bg-strong);
-  backdrop-filter: blur(20px) saturate(1.5);
-  -webkit-backdrop-filter: blur(20px) saturate(1.5);
-  border: 1px solid var(--glass-border);
-  border-radius: 16px;
-  box-shadow: var(--glass-shadow);
-}
-
-/* Nav — sidebar tokens */
-.nav-link {
-  color: var(--ink-soft);
-  text-decoration: none;
-  font-weight: 500;
-  font-size: 0.875rem;
-}
-
-.nav-link:hover {
-  color: var(--ink);
-}
-
-/* Sidebar — glass definition lives earlier in this file, in the Glass
-   section, so it stays grouped with .glass-nav and the other glass
-   utilities it shares tokens with. */
-
-.sidebar-link {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.6rem 0.75rem;
-  border-radius: 10px;
-  color: var(--ink-soft);
-  font-weight: 500;
-  font-size: 0.875rem;
-  transition: all 150ms;
-}
-
-.sidebar-link:hover {
-  background: var(--sidebar-accent);
-  color: var(--sidebar-foreground);
-}
-
-.sidebar-link.is-active {
-  background: var(--sidebar-primary);
-  color: var(--sidebar-primary-foreground);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-}
-
-.sidebar-link.is-active svg {
-  color: var(--sidebar-primary-foreground);
-}
-
-.sidebar-kicker {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.62rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  font-weight: 600;
-  color: var(--ink-faint);
-}
-
-/* Buttons — solid, no gradients, racing primary */
-.btn-primary {
-  background: var(--racing);
-  color: white;
-  border-radius: 9999px;
-  padding: 0.65rem 1.1rem;
-  font-weight: 600;
-  font-size: 0.875rem;
-  border: 1px solid var(--racing);
-}
-
-.btn-primary:hover {
-  background: var(--racing-strong);
-}
-
-.btn-ghost {
-  background: transparent;
-  border: 1px solid var(--line);
-  border-radius: 9999px;
-  padding: 0.6rem 1rem;
-  font-weight: 600;
-  font-size: 0.875rem;
-  color: var(--ink);
-}
-
-.btn-ghost:hover {
-  background: var(--surface-muted);
-}
-
-/* Focus ring */
-*:focus-visible {
-  outline: 2px solid var(--veridian);
-  outline-offset: 2px;
-}
-
-/* Anim */
-.rise {
-  animation: rise 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-@keyframes rise {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
+@media (max-width: 1023px) {
+  .app-main {
+    width: 100%;
+    min-height: 100dvh;
   }
 
-  to {
-    opacity: 1;
-    transform: translateY(0);
+  .app-content {
+    width: 100%;
+    max-width: 100%;
+    min-height: 100dvh;
+
+    padding-top: 3.5rem;
+    padding-bottom: 5rem;
+  }
+
+  .app-footer {
+    display: none;
+  }
+
+  /*
+    The desktop sidebar is fixed and removed from layout below 1024px.
+    Mobile navigation is provided by Sidebar.tsx.
+  */
+  .sidebar-shell {
+    display: none;
   }
 }
 
-/* Skeleton — loading states, §11 */
-.skeleton {
-  border-radius: var(--radius-md);
-  background: linear-gradient(
-    100deg,
-    var(--surface-muted) 40%,
-    var(--line) 50%,
-    var(--surface-muted) 60%
-  );
-  background-size: 200% 100%;
-  animation: skeleton-shimmer 1.6s ease-in-out infinite;
-}
-
-@keyframes skeleton-shimmer {
-  from {
-    background-position: 150% 0;
-  }
-
-  to {
-    background-position: -50% 0;
-  }
-}
-
-/* Chart tooltip */
-.chart-tooltip {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 8px 10px;
-  font-size: 12px;
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
-}
+/* ==========================================================================
+   REDUCED MOTION
+   ========================================================================== */
 
 @media (prefers-reduced-motion: reduce) {
-  .animate-pulse {
+  .pulse-dot::after {
     animation: none !important;
   }
 
@@ -584,6 +1066,10 @@ a:hover {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ==========================================================================
+   TAILWIND BASE
+   ========================================================================== */
 
 @layer base {
   * {

@@ -8,31 +8,44 @@ type RetentionBarsProps = {
 }
 
 export function RetentionBars({ data }: RetentionBarsProps) {
-  if (data.length === 0)
+  if (data.length === 0) {
     return <p className="text-sm text-(--ink-soft)">No reviews yet.</p>
+  }
+
   return (
-    <div className="space-y-2">
-      {data.map((r) => (
-        <div key={r.topic} className="flex items-center gap-3 group">
-          <span className="w-28 truncate text-xs font-medium">{r.topic}</span>
-          <div className="flex-1 h-2.5 rounded-full bg-(--surface-muted) overflow-hidden">
-            <div
-              className="h-full rounded-full bg-(--blue)"
-              style={{ width: `${r.rate}%` }}
-            />
-          </div>
-          <span className="text-xs font-medium w-10 text-right">{r.rate}%</span>
-          {/* Direct per-topic action — spec §5.3 requires a button, not just a bar */}
-          <Link
-            to="/review"
-            search={{ topic: r.topic }}
-            className="inline-flex items-center gap-1 text-xs font-medium text-(--veridian) opacity-70 group-hover:opacity-100 hover:text-(--veridian-strong) shrink-0 no-underline"
-            aria-label={`Review ${r.topic}`}
-          >
-            Review <ArrowUpRight size={12} />
-          </Link>
-        </div>
+    <ol className="space-y-1">
+      {data.map((topic, index) => (
+        <RetentionRow key={topic.topic} rank={index + 1} topic={topic} />
       ))}
-    </div>
+    </ol>
+  )
+}
+
+function RetentionRow({ rank, topic }: { rank: number; topic: RetentionItem }) {
+  return (
+    <li className="group flex items-center gap-3 rounded-xl px-2 py-1.5 transition-colors hover:bg-(--surface-muted)">
+      <span className={`rank-badge ${rank === 1 ? 'rank-badge-first' : ''}`}>{rank}</span>
+
+      <span className="w-28 shrink-0 truncate text-xs font-medium">{topic.topic}</span>
+
+      <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-(--surface-muted)">
+        <div
+          className="h-full rounded-full bg-linear-to-r from-(--veridian) to-(--blue) transition-[width] duration-500"
+          style={{ width: `${topic.rate}%` }}
+        />
+      </div>
+
+      <span className="w-10 shrink-0 text-right text-xs font-medium">{topic.rate}%</span>
+
+      {/* Direct per-topic action — spec §5.3 requires a button, not just a bar */}
+      <Link
+        to="/review"
+        search={{ topic: topic.topic }}
+        className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-(--veridian) opacity-0 no-underline transition-opacity hover:text-(--veridian-strong) group-hover:opacity-100"
+        aria-label={`Review ${topic.topic}`}
+      >
+        Review <ArrowUpRight size={12} />
+      </Link>
+    </li>
   )
 }
