@@ -10,7 +10,7 @@ import type {
   SessionSignal,
 } from '#/shared/types/settings'
 
-import type { LearningSpace } from '#/features/learning-space/domain/learningSpace'
+import type { LearningSpaceRecord } from '#/shared/lib/db/models'
 
 // ---------------------------------------------------------------------------
 // Dexie DB
@@ -23,7 +23,7 @@ export class CircadiaDB extends Dexie {
   sessionSignals!: Table<SessionSignal, string>
   insights!: Table<Insight, string>
   appSettings!: Table<AppSettings, string>
-  learningSpaces!: Table<LearningSpace, string>
+  learningSpaces!: Table<LearningSpaceRecord, string>
 
   constructor() {
     super('circadia')
