@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import { Plus } from 'lucide-react'
 
-import type { LearningSpace } from '#/shared/types/learningSpace'
+import type { LearningSpace } from '#/features/learning-space/domain/learningSpace'
 
 import { useLearningSpaceList } from '../hooks/useLearningSpaceList'
 import { CreateLearningSpaceDialog } from './CreateLearningSpaceDialog'

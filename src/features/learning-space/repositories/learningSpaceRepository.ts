@@ -1,5 +1,5 @@
-﻿import { db } from '#/shared/lib/db/dexie'
-import type { LearningSpace } from '#/shared/types/learningSpace'
+import { db } from '#/shared/lib/db/dexie'
+import type { LearningSpace } from '#/features/learning-space/domain/learningSpace'
 
 export const learningSpaceRepository = {
   async findAll(): Promise<LearningSpace[]> {
