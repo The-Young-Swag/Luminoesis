@@ -26,7 +26,7 @@ import { loadReview } from '#/features/review/application/loadReview'
 import { saveSignal } from '#/features/review/application/saveSignal'
 import { submitReview } from '#/features/review/application/submitReview'
 
-import { useBaseline } from '#/shared/hooks/useBaseline'
+import { useBaseline } from '#/features/learning-state/hooks/useBaseline'
 import { useSignalCapture } from '#/features/review/hooks/useSignalCapture'
 
 import { CalibrationBanner } from '#/features/review/components/CalibrationBanner'

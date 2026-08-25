@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 
-import { useBaseline } from '#/shared/hooks/useBaseline'
+import { useBaseline } from '#/features/learning-state/hooks/useBaseline'
 import { trackCalibrationAttempt, trackCalibrationCompletion } from '#/features/dashboard/domain/metrics'
 
 import { useDashboardAnalytics } from '#/features/dashboard/hooks/useDashboardAnalytics'
