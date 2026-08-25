@@ -1,7 +1,7 @@
 import { useEffect, useState, useTransition } from 'react'
 import { Pencil, Plus } from 'lucide-react'
 
-import type { Card } from '#/shared/types/domain'
+import type { Card } from '#/features/library/domain/card'
 
 import { createCard } from '../application/createCard'
 import { updateCard } from '../application/updateCard'

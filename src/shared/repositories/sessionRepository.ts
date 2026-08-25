@@ -1,5 +1,5 @@
 import { db } from '#/shared/lib/db/dexie'
-import type { ReviewSession } from '#/shared/types/domain'
+import type { ReviewSession } from '#/features/review/domain/reviewSession'
 
 export const sessionRepository = {
   async findAll(): Promise<ReviewSession[]> {

@@ -1,5 +1,5 @@
 import { seedIfEmpty } from '#/shared/lib/db/seed'
-import { cardRepository } from '#/shared/repositories/cardRepository'
+import { cardRepository } from '#/features/library/repositories/cardRepository'
 import { settingsRepository } from '#/shared/repositories/settingsRepository'
 
 const MAX_CALIBRATION_SESSIONS = 5

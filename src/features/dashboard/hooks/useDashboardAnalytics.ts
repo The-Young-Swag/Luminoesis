@@ -10,7 +10,9 @@ import { classifyLearningState } from '#/features/learning-state/domain/classify
 import { MIN_SAMPLES_FOR_BASELINE, peakWindow, zScore } from '#/features/learning-state/domain/baseline'
 
 import type { BaselineMap } from '#/features/learning-state/domain/baseline'
-import type { Card, ReviewSession, SessionSignal } from '#/shared/types/domain'
+import type { ReviewSession } from '#/features/review/domain/reviewSession'
+import type { SessionSignal } from '#/features/learning-state/domain/learningSignals'
+import type { Card } from '#/features/library/domain/card'
 
 export type RecentActivityItem = {
   id: string

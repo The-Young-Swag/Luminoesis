@@ -1,5 +1,5 @@
 import { db } from '#/shared/lib/db/dexie'
-import type { SessionSignal } from '#/shared/types/domain'
+import type { SessionSignal } from '#/features/review/domain/signals'
 
 export const signalRepository = {
   async findAll(): Promise<SessionSignal[]> {

@@ -1,7 +1,7 @@
 import type {
   Card,
   ReviewSession,
-} from '#/shared/types/domain'
+} from '#/features/insights/domain/insight'
 
 export type RetentionByTopic = {
   topic: string

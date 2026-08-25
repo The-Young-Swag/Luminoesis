@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
 import { liveQuery } from 'dexie'
 
-import type { Card, ReviewSession, SessionSignal } from '#/shared/types/domain'
+import type { ReviewSession } from '#/features/review/domain/reviewSession'
+import type { SessionSignal } from '#/features/learning-state/domain/learningSignals'
+import type { Card } from '#/features/library/domain/card'
 
 import { seedIfEmpty } from '#/shared/lib/db/seed'
-import { cardRepository } from '#/shared/repositories/cardRepository'
+import { cardRepository } from '#/features/library/repositories/cardRepository'
 import { sessionRepository } from '#/shared/repositories/sessionRepository'
 import { signalRepository } from '#/shared/repositories/signalRepository'
 import { settingsRepository } from '#/shared/repositories/settingsRepository'

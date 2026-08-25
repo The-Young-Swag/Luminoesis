@@ -7,7 +7,7 @@ import {
 
 import { GraduationCap, Keyboard, Pause } from 'lucide-react'
 
-import type { Card } from '#/shared/types/domain'
+import type { Card } from '#/features/library/domain/card'
 import type { Grade } from '#/features/review/domain/sm2'
 import type { AggregatedFeatures } from '#/features/learning-state/domain/signals'
 

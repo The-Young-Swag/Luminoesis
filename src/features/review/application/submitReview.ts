@@ -1,4 +1,4 @@
-import type { Card } from '#/shared/types/domain'
+import type { Card } from '#/features/library/domain/card'
 import type { AggregatedFeatures } from '#/features/learning-state/domain/signals'
 
 import { GradeSchema } from '#/features/review/schemas'
@@ -6,7 +6,7 @@ import { GradeSchema } from '#/features/review/schemas'
 import { DEFAULT_ALPHA, updateEwma } from '#/features/learning-state/domain/baseline'
 import { sm2 } from '#/features/review/domain/sm2'
 import { baselineRepository } from '#/shared/repositories/baselineRepository'
-import { cardRepository } from '#/shared/repositories/cardRepository'
+import { cardRepository } from '#/features/library/repositories/cardRepository'
 import { sessionRepository } from '#/shared/repositories/sessionRepository'
 
 type SubmitReviewParams = {

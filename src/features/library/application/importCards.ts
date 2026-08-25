@@ -1,7 +1,7 @@
-import type { Card } from '#/shared/types/domain'
+import type { Card } from '#/features/library/domain/card'
 import type { RawCard } from '#/features/library/domain/import'
 
-import { cardRepository } from '#/shared/repositories/cardRepository'
+import { cardRepository } from '#/features/library/repositories/cardRepository'
 
 export async function importCards(
     rawCards: RawCard[],

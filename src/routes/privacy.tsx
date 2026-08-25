@@ -1,10 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
 
-import type {
-  BaselineFeature,
-  SessionSignal,
-} from '#/shared/types/domain'
+import type { BaselineFeature, SessionSignal } from '#/features/learning-state/domain/learningSignals'
 
 import {
   deleteAllData,

@@ -7,7 +7,7 @@ import {
   X,
 } from 'lucide-react'
 
-import type { Card } from '#/shared/types/domain'
+import type { Card } from '#/features/library/domain/card'
 import {
   exportToJson,
   exportToMarkdown,

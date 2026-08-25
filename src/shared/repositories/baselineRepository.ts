@@ -2,7 +2,7 @@ import { db } from '#/shared/lib/db/dexie'
 import type {
   BaselineFeature,
   FeatureName,
-} from '#/shared/types/domain'
+} from '#/features/learning-state/domain/learningSignals'
 
 export const baselineRepository = {
   async findAll(): Promise<BaselineFeature[]> {

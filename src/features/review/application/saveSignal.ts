@@ -1,4 +1,4 @@
-import type { SessionSignal } from '#/shared/types/domain'
+import type { SessionSignal } from '#/features/learning-state/domain/learningSignals'
 
 import { signalRepository } from '#/shared/repositories/signalRepository'
 

@@ -7,7 +7,7 @@
  */
 
 import { confidenceScore } from '#/features/review/domain/sm2'
-import type { Card } from '#/shared/types/domain'
+import type { Card } from '#/features/library/domain/card'
 
 export type Adaptation = {
   shouldAdapt: boolean

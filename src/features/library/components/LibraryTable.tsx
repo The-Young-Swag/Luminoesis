@@ -1,4 +1,4 @@
-import type { Card } from '#/shared/types/domain'
+import type { Card } from '#/features/library/domain/card'
 import { Pencil, SearchX, Trash2 } from 'lucide-react'
 
 type LibraryTableProps = {

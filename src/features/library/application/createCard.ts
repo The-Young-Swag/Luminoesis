@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
-import { cardRepository } from '#/shared/repositories/cardRepository'
-import type { Card } from '#/shared/types/domain'
+import { cardRepository } from '#/features/library/repositories/cardRepository'
+import type { Card } from '#/features/library/domain/card'
 
 const CreateCardSchema = z.object({
   front: z.string().trim().min(1),

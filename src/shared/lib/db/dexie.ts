@@ -8,7 +8,7 @@ import type {
   Insight,
   ReviewSession,
   SessionSignal,
-} from '#/shared/types/domain'
+} from '#/shared/types/settings'
 
 import type { LearningSpace } from '#/shared/types/learningSpace'
 

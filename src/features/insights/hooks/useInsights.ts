@@ -9,7 +9,7 @@ import {
   sessionLengthVsPerf,
 } from '#/features/insights/domain/analytics'
 
-import { cardRepository } from '#/shared/repositories/cardRepository'
+import { cardRepository } from '#/features/library/repositories/cardRepository'
 import { sessionRepository } from '#/shared/repositories/sessionRepository'
 
 type InsightsData = {

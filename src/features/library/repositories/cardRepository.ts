@@ -1,5 +1,5 @@
 import { db } from '#/shared/lib/db/dexie'
-import type { Card } from '#/shared/types/domain'
+import type { Card } from '#/features/library/domain/card'
 
 export const cardRepository = {
   async findAll(): Promise<Card[]> {

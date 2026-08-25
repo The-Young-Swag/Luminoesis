@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
 import { liveQuery } from 'dexie'
 
-import type { Card } from '#/shared/types/domain'
+import type { Card } from '#/features/library/domain/card'
 
 import { seedIfEmpty } from '#/shared/lib/db/seed'
-import { cardRepository } from '#/shared/repositories/cardRepository'
+import { cardRepository } from '#/features/library/repositories/cardRepository'
 
 export function useLibraryData() {
   const [cards, setCards] = useState<Card[]>([])

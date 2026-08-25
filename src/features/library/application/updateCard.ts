@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { cardRepository } from '#/shared/repositories/cardRepository'
+import { cardRepository } from '#/features/library/repositories/cardRepository'
 
 const UpdateCardSchema = z.object({
   front: z.string().trim().min(1),

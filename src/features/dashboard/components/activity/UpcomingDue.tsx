@@ -1,6 +1,6 @@
 import { Link } from '@tanstack/react-router'
 import { GraduationCap, Sparkles } from 'lucide-react'
-import type { Card } from '#/shared/types/domain'
+import type { Card } from '#/features/library/domain/card'
 
 const MAX_VISIBLE_CARDS = 5
 

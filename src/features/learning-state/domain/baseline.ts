@@ -1,4 +1,4 @@
-import type { FeatureName } from '#/shared/types/domain'
+import type { FeatureName } from '#/features/learning-state/domain/learningSignals'
 
 export type BaselineSnapshot = {
   mean: number
