@@ -1,6 +1,11 @@
 import type { RecentActivityItem } from '#/features/dashboard/hooks/useDashboardAnalytics'
 
-const GRADE_LABELS = ['Again', 'Hard', 'Good', 'Easy'] as const
+const GRADE_LABELS = [
+  'Again',
+  'Hard',
+  'Good',
+  'Easy',
+] as const
 
 const GRADE_TONE_COLOR = {
   high: 'var(--blue)',
@@ -8,7 +13,9 @@ const GRADE_TONE_COLOR = {
   low: 'var(--purple)',
 } as const
 
-function gradeTone(grade: number): keyof typeof GRADE_TONE_COLOR {
+function gradeTone(
+  grade: number,
+): keyof typeof GRADE_TONE_COLOR {
   if (grade >= 2) return 'high'
   if (grade === 1) return 'mid'
   return 'low'
@@ -18,20 +25,32 @@ type RecentActivityProps = {
   items: RecentActivityItem[]
 }
 
-export function RecentActivity({ items }: RecentActivityProps) {
+export function RecentActivity({
+  items,
+}: RecentActivityProps) {
   return (
-    <div className="card-flat p-5">
-      <div className="mb-3 flex items-center justify-between">
-        <h3 className="text-sm font-semibold">Recent activity</h3>
-        <span className="chip">Feed</span>
+    <div className="card-flat p-4 sm:p-5">
+      <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <h3 className="text-sm font-semibold">
+          Recent activity
+        </h3>
+
+        <span className="chip w-fit">
+          Feed
+        </span>
       </div>
 
       {items.length === 0 ? (
-        <p className="text-sm text-(--ink-soft)">No activity yet — start a review.</p>
+        <p className="text-sm leading-6 text-(--ink-soft)">
+          No activity yet — start a review.
+        </p>
       ) : (
         <ol className="-mx-2">
           {items.map((item) => (
-            <ActivityRow key={item.id} item={item} />
+            <ActivityRow
+              key={item.id}
+              item={item}
+            />
           ))}
         </ol>
       )}
@@ -39,24 +58,36 @@ export function RecentActivity({ items }: RecentActivityProps) {
   )
 }
 
-function ActivityRow({ item }: { item: RecentActivityItem }) {
+function ActivityRow({
+  item,
+}: {
+  item: RecentActivityItem
+}) {
   const tone = gradeTone(item.grade)
 
   return (
-    <li className="feed-row flex items-center gap-3 rounded-xl px-2 py-2.5">
+    <li className="feed-row flex min-w-0 items-center gap-3 rounded-xl px-2 py-2.5">
       <span
         className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-[11px] font-semibold text-white"
-        style={{ background: GRADE_TONE_COLOR[tone] }}
+        style={{
+          background:
+            GRADE_TONE_COLOR[tone],
+        }}
         aria-hidden="true"
       >
         {GRADE_LABELS[item.grade].slice(0, 1)}
       </span>
 
       <div className="min-w-0 flex-1">
-        <div className="truncate text-sm leading-tight">{item.cardFront}</div>
+        <div className="wrap-break-word text-sm leading-5">
+          {item.cardFront}
+        </div>
 
-        <div className="mt-0.5 text-xs text-(--ink-faint)">
-          {new Date(item.timestamp).toLocaleString()} · {GRADE_LABELS[item.grade]}
+        <div className="mt-0.5 wrap-break-word text-xs leading-5 text-(--ink-faint)">
+          {new Date(
+            item.timestamp,
+          ).toLocaleString()}{' '}
+          · {GRADE_LABELS[item.grade]}
         </div>
       </div>
     </li>

@@ -1,7 +1,5 @@
-import type {
-  Card,
-  ReviewSession,
-} from '#/features/insights/domain/insight'
+import type { Card } from '#/features/library/domain/card'
+import type { ReviewSession } from '#/features/review/domain/reviewSession'
 
 export type RetentionByTopic = {
   topic: string
@@ -196,6 +194,7 @@ export function sessionSummaries(
       grouped.get(review.sessionId) ?? []
 
     group.push(review)
+
     grouped.set(
       review.sessionId,
       group,

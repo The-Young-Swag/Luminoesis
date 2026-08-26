@@ -4,7 +4,9 @@ import {
   createEmptyBaseline,
   hasBaseline,
 } from '#/features/learning-state/domain/baseline'
-import type { BaselineMap } from '#/features/learning-state/domain/baseline'
+import type {
+  BaselineMap,
+} from '#/features/learning-state/domain/baseline'
 
 import { baselineRepository } from '#/features/learning-state/repositories/baselineRepository'
 
@@ -12,24 +14,30 @@ export function useBaseline() {
   const [baseline, setBaseline] = useState<BaselineMap>(
     createEmptyBaseline(),
   )
+
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
     let alive = true
 
     async function loadBaseline() {
-      const features = await baselineRepository.findAll()
+      const features =
+        await baselineRepository.findAll()
 
       if (!alive) {
         return
       }
 
-      const map = Object.fromEntries(
-        features.map((feature) => [
-          feature.name,
-          feature,
-        ]),
-      ) as BaselineMap
+      const map = createEmptyBaseline()
+
+      for (const feature of features) {
+        map[feature.name] = {
+          mean: feature.mean,
+          variance: feature.variance,
+          stddev: feature.stddev,
+          sampleCount: feature.sampleCount,
+        }
+      }
 
       setBaseline(map)
       setReady(true)

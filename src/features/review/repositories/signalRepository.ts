@@ -1,5 +1,5 @@
 import { db } from '#/shared/lib/db/dexie'
-import type { SessionSignal } from '#/features/review/domain/signals'
+import type { SessionSignal } from '#/features/learning-state/domain/learningSignals'
 
 export const signalRepository = {
   async findAll(): Promise<SessionSignal[]> {
@@ -27,7 +27,9 @@ export const signalRepository = {
       .toArray()
   },
 
-  async create(signal: SessionSignal): Promise<void> {
+  async create(
+    signal: SessionSignal,
+  ): Promise<void> {
     await db.sessionSignals.add(signal)
   },
 

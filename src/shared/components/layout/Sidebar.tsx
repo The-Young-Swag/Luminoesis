@@ -1,6 +1,7 @@
 import { Link, useRouterState } from '@tanstack/react-router'
 import {
   GraduationCap,
+  Layers3,
   LayoutDashboard,
   Library,
   LineChart,
@@ -29,6 +30,12 @@ const PRIMARY_NAV_ITEMS: NavItem[] = [
     label: 'Home',
     icon: LayoutDashboard,
     meta: 'OVERVIEW',
+  },
+  {
+    to: '/learning-spaces',
+    label: 'Learning Spaces',
+    icon: Layers3,
+    meta: 'SPACES',
   },
   {
     to: '/review',
