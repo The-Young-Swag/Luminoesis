@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { Link } from '@tanstack/react-router'
-import { Plus } from 'lucide-react'
+import { useNavigate } from '@tanstack/react-router'
+import { ArrowRight, Plus } from 'lucide-react'
 
 import type { LearningSpace } from '#/features/learning-space/domain/learningSpace'
 
@@ -9,6 +9,7 @@ import { CreateLearningSpaceDialog } from './CreateLearningSpaceDialog'
 
 export function LearningSpaceListPage() {
   const { learningSpaces, ready } = useLearningSpaceList()
+
   const [isDialogOpen, setIsDialogOpen] = useState(false)
 
   if (!ready) {
@@ -18,7 +19,9 @@ export function LearningSpaceListPage() {
         aria-busy="true"
         aria-live="polite"
       >
-        <span className="sr-only">Loading your learning spacesâ€¦</span>
+        <span className="sr-only">
+          Loading your learning spaces...
+        </span>
 
         <div className="mb-8 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
           <div className="w-full max-w-sm space-y-3">
@@ -32,7 +35,10 @@ export function LearningSpaceListPage() {
 
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 3 }).map((_, index) => (
-            <div key={index} className="card-flat p-5">
+            <div
+              key={index}
+              className="card-flat p-5"
+            >
               <div className="skeleton h-4 w-32" />
               <div className="skeleton mt-3 h-3 w-full" />
               <div className="skeleton mt-1.5 h-3 w-2/3" />
@@ -55,8 +61,9 @@ export function LearningSpaceListPage() {
             </h1>
 
             <p className="mt-2 max-w-2xl text-sm leading-6 text-(--ink-soft)">
-              Bring the materials for one subject together in one place â€”
-              open a space to keep working on it.
+              Bring the materials for one subject together
+              in one place — open a space to keep working on
+              it.
             </p>
           </div>
 
@@ -65,7 +72,10 @@ export function LearningSpaceListPage() {
             onClick={() => setIsDialogOpen(true)}
             className="btn-primary inline-flex shrink-0 items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-(--blue)/30 focus:ring-offset-2 focus:ring-offset-background"
           >
-            <Plus size={16} aria-hidden="true" />
+            <Plus
+              size={16}
+              aria-hidden="true"
+            />
             New learning space
           </button>
         </div>
@@ -78,8 +88,8 @@ export function LearningSpaceListPage() {
           </p>
 
           <p className="mx-auto mt-1.5 max-w-sm text-sm leading-6 text-(--ink-soft)">
-            Create one for a subject or lesson you&rsquo;re studying, then
-            bring its materials together.
+            Create one for a subject or lesson you&apos;re
+            studying, then bring its materials together.
           </p>
         </div>
       ) : (
@@ -110,30 +120,55 @@ type LearningSpaceCardProps = {
 function LearningSpaceCard({
   learningSpace,
 }: LearningSpaceCardProps) {
+  const navigate = useNavigate()
+
+  function openLearningSpace() {
+    void navigate({
+      to: '/learning-spaces/$learningSpaceId',
+      params: {
+        learningSpaceId: learningSpace.id,
+      },
+    })
+  }
+
   return (
-    <div className="card-flat group relative p-5">
-      <Link
-        to="/learning-spaces/$learningSpaceId"
-        params={{ learningSpaceId: learningSpace.id }}
-        className="block no-underline"
-      >
-        <h2 className="truncate font-semibold text-(--ink)">
-          {learningSpace.title}
-        </h2>
+    <button
+      type="button"
+      onClick={openLearningSpace}
+      className="card-flat group block w-full cursor-pointer p-5 text-left transition hover:-translate-y-0.5 hover:border-(--blue)/30 focus:outline-none focus:ring-2 focus:ring-(--blue)/30"
+      aria-label={`Open learning space: ${learningSpace.title}`}
+    >
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <p className="text-xs font-medium uppercase tracking-[0.14em] text-(--ink-soft)">
+            Learning Space
+          </p>
 
-        <p className="mt-1.5 line-clamp-2 text-sm text-(--ink-soft)">
-          {learningSpace.description || 'No description yet.'}
-        </p>
-      </Link>
+          <h2 className="mt-2 truncate font-semibold text-(--ink)">
+            {learningSpace.title}
+          </h2>
+        </div>
 
-      <button
-        type="button"
-        aria-label={`Delete ${learningSpace.title}`}
-        onClick={onDelete}
-        className="absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-full text-(--ink-faint) opacity-0 transition-colors hover:bg-(--destructive)/10 hover:text-destructive focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-(--destructive)/20 group-hover:opacity-100"
-      >
-        <Trash2 size={14} aria-hidden="true" />
-      </button>
-    </div>
+        <ArrowRight
+          size={17}
+          className="mt-1 shrink-0 text-(--ink-soft) transition-transform group-hover:translate-x-0.5 group-hover:text-(--ink)"
+          aria-hidden="true"
+        />
+      </div>
+
+      <p className="mt-2 line-clamp-2 text-sm text-(--ink-soft)">
+        {learningSpace.description || 'No description yet.'}
+      </p>
+
+      <div className="mt-5 flex items-center justify-between border-t border-(--line) pt-4">
+        <span className="text-xs font-medium text-(--ink-soft)">
+          Open space
+        </span>
+
+        <span className="text-xs text-(--ink-soft)">
+          View materials
+        </span>
+      </div>
+    </button>
   )
 }
