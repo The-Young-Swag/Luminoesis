@@ -1,20 +1,13 @@
 import Dexie from 'dexie'
 import type { Table } from 'dexie'
 
-import type {
-  AppSettings,
-  BaselineFeature,
-  Card,
-  Insight,
-  ReviewSession,
-  SessionSignal,
-} from '#/shared/types/settings'
-
+import type { AppSettings } from '#/shared/types/settings'
 import type { LearningSpaceRecord } from '#/shared/lib/db/models'
-
-// ---------------------------------------------------------------------------
-// Dexie DB
-// ---------------------------------------------------------------------------
+import type { Material } from '#/features/learning-space/domain/learningSpace'
+import type { BaselineFeature, SessionSignal } from '#/features/learning-state/domain/learningSignals'
+import type { Card } from '#/features/library/domain/card'
+import type { Insight } from '#/features/insights/domain/insight'
+import type { ReviewSession } from '#/features/review/domain/reviewSession'
 
 export class CircadiaDB extends Dexie {
   cards!: Table<Card, string>
@@ -24,6 +17,7 @@ export class CircadiaDB extends Dexie {
   insights!: Table<Insight, string>
   appSettings!: Table<AppSettings, string>
   learningSpaces!: Table<LearningSpaceRecord, string>
+  materials!: Table<Material, string>
 
   constructor() {
     super('circadia')
@@ -37,11 +31,12 @@ export class CircadiaDB extends Dexie {
       appSettings: 'key',
     })
 
-    // Additive only — version 1's stores are untouched. Dexie carries
-    // unchanged tables forward automatically; only the new store needs
-    // restating here.
     this.version(2).stores({
       learningSpaces: 'id, createdAt, updatedAt',
+    })
+
+    this.version(3).stores({
+      materials: 'id, learningSpaceId, createdAt, updatedAt',
     })
   }
 }
