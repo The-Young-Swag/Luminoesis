@@ -80,7 +80,7 @@ function ActivityRow({
 
       <div className="min-w-0 flex-1">
         <div className="wrap-break-word text-sm leading-5">
-          {item.cardFront}
+          {item.label}
         </div>
 
         <div className="mt-0.5 wrap-break-word text-xs leading-5 text-(--ink-faint)">

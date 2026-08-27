@@ -1,4 +1,6 @@
 import type { Card } from '#/features/library/domain/card'
+import type { Concept } from '#/features/learning-space/domain/learningSpace'
+import type { ReviewEvent } from '#/features/review/domain/reviewEvent'
 import type { ReviewSession } from '#/features/review/domain/reviewSession'
 
 export type RetentionByTopic = {
@@ -41,10 +43,132 @@ export type ActionablePattern = {
   action: string
 } | null
 
+function isSuccessfulRecallGrade(
+  grade: number,
+): boolean {
+  return grade >= 2
+}
+
 function isSuccessfulRecall(
   session: ReviewSession,
 ): boolean {
-  return session.grade >= 2
+  return isSuccessfulRecallGrade(session.grade)
+}
+
+/**
+ * Concept-level retention derived from the canonical ReviewEvent bridge.
+ *
+ * Every study path (flashcards, quizzes, brain-trainer, and the legacy
+ * /review page via submitReview) records a ReviewEvent keyed by conceptId,
+ * so this is the single source of truth for mastery — replacing the older
+ * card/topic-based retention that only saw library-card reviews.
+ */
+export function retentionByConcept(
+  events: ReviewEvent[],
+  concepts: Concept[],
+): RetentionByTopic[] {
+  const nameById = new Map(
+    concepts.map((concept) => [concept.id, concept.name]),
+  )
+
+  const groups = new Map<
+    string,
+    {
+      name: string
+      total: number
+      correct: number
+    }
+  >()
+
+  for (const event of events) {
+    const group =
+      groups.get(event.conceptId) ?? {
+        name: nameById.get(event.conceptId) ?? 'General',
+        total: 0,
+        correct: 0,
+      }
+
+    group.total += 1
+
+    if (isSuccessfulRecallGrade(event.grade)) {
+      group.correct += 1
+    }
+
+    groups.set(event.conceptId, group)
+  }
+
+  return [...groups.entries()]
+    .map(([, group]) => ({
+      topic: group.name,
+      total: group.total,
+      correct: group.correct,
+      rate:
+        group.total > 0
+          ? group.correct / group.total
+          : 0,
+    }))
+    .sort((a, b) => b.total - a.total || b.rate - a.rate)
+}
+
+function eventRetentionRate(
+  events: ReviewEvent[],
+): number | null {
+  if (events.length === 0) {
+    return null
+  }
+
+  const successful = events.filter((event) =>
+    isSuccessfulRecallGrade(event.grade),
+  ).length
+
+  return successful / events.length
+}
+
+/**
+ * Period-over-period recall comparison sourced from ReviewEvents (concept
+ * bridge) rather than the legacy per-session table.
+ */
+export function retentionPeriodComparisonEvents(
+  events: ReviewEvent[],
+  periodDays = 7,
+  now = new Date(),
+): RetentionPeriodComparison {
+  const periodMs =
+    periodDays *
+    24 *
+    60 *
+    60 *
+    1000
+
+  const nowMs = now.getTime()
+  const currentStart = nowMs - periodMs
+  const previousStart = currentStart - periodMs
+
+  const currentEvents = events.filter(
+    (event) =>
+      event.timestamp >= currentStart &&
+      event.timestamp <= nowMs,
+  )
+
+  const previousEvents = events.filter(
+    (event) =>
+      event.timestamp >= previousStart &&
+      event.timestamp < currentStart,
+  )
+
+  const current = eventRetentionRate(currentEvents)
+  const previous = eventRetentionRate(previousEvents)
+
+  return {
+    current,
+    previous,
+    delta:
+      current !== null && previous !== null
+        ? current - previous
+        : null,
+    currentReviews: currentEvents.length,
+    previousReviews: previousEvents.length,
+  }
 }
 
 export function retentionByTopic(

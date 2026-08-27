@@ -20,7 +20,7 @@ import { RecentActivity } from '#/features/dashboard/components/activity/RecentA
 import { UpcomingDue } from '#/features/dashboard/components/activity/UpcomingDue'
 
 export function DashboardPage() {
-  const { cards, sessions, signals, ready, optIn, setOptIn } = useDashboardData()
+  const { cards, sessions, signals, concepts, reviewEvents, ready, optIn, setOptIn } = useDashboardData()
   const { baseline, hasBaseline } = useBaseline()
 
   const {
@@ -40,7 +40,7 @@ export function DashboardPage() {
     recallValue,
     recallHint,
     calibrationProgress,
-  } = useDashboardAnalytics({ cards, sessions, signals, baseline, hasBaseline })
+  } = useDashboardAnalytics({ cards, sessions, signals, baseline, hasBaseline, concepts, reviewEvents })
 
   useEffect(() => {
     if (isCalibrating) {
