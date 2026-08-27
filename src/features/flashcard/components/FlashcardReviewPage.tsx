@@ -52,7 +52,10 @@ export function FlashcardReviewPage() {
             Learning Space, or open a space to create more.
           </p>
 
-          <Link to="/learning-spaces" className="btn-primary mt-5">
+          <Link
+            to="/learning-spaces"
+            className="btn-primary mt-5 inline-flex items-center justify-center gap-2"
+          >
             <Layers size={16} aria-hidden="true" />
             Go to Learning Spaces
           </Link>
