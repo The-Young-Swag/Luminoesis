@@ -516,7 +516,7 @@ function ReviewHeader({
         !isCalibrating ? (
           <button
             type="button"
-            className="inline-flex items-center gap-1.5 rounded-full bg-(--ink) px-3 py-1.5 text-xs font-medium text-white"
+            className="inline-flex items-center gap-1.5 rounded-full bg-(--ink) px-3 py-1.5 text-xs font-medium text-(--surface)"
             onClick={onToggleBreak}
           >
             <Pause size={12} />

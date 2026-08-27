@@ -80,7 +80,7 @@ export function AddConceptDialog({
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex items-start gap-3">
-          <span className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-full bg-(--ink) text-white">
+          <span className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-full bg-(--ink) text-(--surface)">
             <Lightbulb size={16} aria-hidden="true" />
           </span>
 

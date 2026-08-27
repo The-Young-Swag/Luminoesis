@@ -235,7 +235,7 @@ export function ImportWizard({
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1">
               <h2 className="display flex items-center gap-2 text-[22px] leading-tight">
-                <span className="grid h-8 w-8 place-items-center rounded-full bg-(--ink) text-white">
+                <span className="grid h-8 w-8 place-items-center rounded-full bg-(--ink) text-(--surface)">
                   <Sparkles size={16} />
                 </span>
 
