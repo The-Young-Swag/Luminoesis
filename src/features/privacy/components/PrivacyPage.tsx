@@ -1,7 +1,10 @@
-
 import { useEffect, useState } from 'react'
 
-import type { BaselineFeature, SessionSignal } from '#/features/learning-state/domain/learningSignals'
+import type {
+  BaselineFeature,
+  FeatureName,
+  SessionSignal,
+} from '#/features/learning-state/domain/learningSignals'
 
 import {
   deleteAllData,
@@ -11,18 +14,10 @@ import {
   setAdaptiveOptIn,
 } from '#/features/privacy/privacyService'
 
-import { exportToJson } from '#/features/library/domain/import'
-
-
-
-function downloadJson(
-  filename: string,
-  data: unknown,
-): void {
-  const blob = new Blob(
-    [JSON.stringify(data, null, 2)],
-    { type: 'application/json' },
-  )
+function downloadJson(filename: string, data: unknown): void {
+  const blob = new Blob([JSON.stringify(data, null, 2)], {
+    type: 'application/json',
+  })
 
   const url = URL.createObjectURL(blob)
   const anchor = document.createElement('a')
@@ -34,15 +29,51 @@ function downloadJson(
   URL.revokeObjectURL(url)
 }
 
+const FEATURE_LABEL: Record<FeatureName, string> = {
+  interKeyLatency: 'Time between keystrokes',
+  dwellTime: 'Key hold time',
+  correctionRate: 'Backspace rate',
+  wpm: 'Typing speed',
+}
+
+/**
+ * Translate a baseline feature's mean/standard-deviation/sample-count
+ * into plain language. The numbers are preserved in the muted
+ * "reference" line so the underlying statistics stay available.
+ */
+function describeBaseline(feature: BaselineFeature): {
+  summary: string
+  reference: string
+} {
+  const low = Math.max(0, feature.mean - feature.stddev)
+  const high = feature.mean + feature.stddev
+
+  if (feature.name === 'correctionRate') {
+    const pct = (value: number) => `${(value * 100).toFixed(1)}%`
+
+    return {
+      summary: `Usually around ${pct(feature.mean)} of keystrokes are corrections, most often between ${pct(low)} and ${pct(high)}.`,
+      reference: `Typical ${pct(feature.mean)} · spread ${pct(feature.stddev)} · ${feature.sampleCount} samples`,
+    }
+  }
+
+  if (feature.name === 'wpm') {
+    return {
+      summary: `Usually about ${Math.round(feature.mean)} words per minute, typically ranging ${Math.round(low)}–${Math.round(high)}.`,
+      reference: `Typical ${feature.mean.toFixed(1)} wpm · spread ${feature.stddev.toFixed(1)} · ${feature.sampleCount} samples`,
+    }
+  }
+
+  return {
+    summary: `Usually about ${Math.round(feature.mean)} ms, typically ranging ${Math.round(low)}–${Math.round(high)} ms.`,
+    reference: `Typical ${feature.mean.toFixed(1)} ms · spread ${feature.stddev.toFixed(1)} ms · ${feature.sampleCount} samples`,
+  }
+}
+
 export function PrivacyPage() {
-  const [optIn, setOptIn] =
-    useState<boolean | null>(null)
-
-  const [signals, setSignals] =
-    useState<SessionSignal[]>([])
-
-  const [baseline, setBaseline] =
-    useState<BaselineFeature[]>([])
+  const [optIn, setOptIn] = useState<boolean | null>(null)
+  const [signals, setSignals] = useState<SessionSignal[]>([])
+  const [baseline, setBaseline] = useState<BaselineFeature[]>([])
 
   const refresh = async () => {
     const data = await loadPrivacyData()
@@ -54,12 +85,6 @@ export function PrivacyPage() {
 
   useEffect(() => {
     void refresh()
-
-    const id = setInterval(() => {
-      void refresh()
-    }, 2000)
-
-    return () => clearInterval(id)
   }, [])
 
   const handleOptIn = async () => {
@@ -74,36 +99,23 @@ export function PrivacyPage() {
 
   const handleExport = async () => {
     const data = await exportAllData()
-
-    downloadJson(
-      'Luminoesis-export.json',
-      data,
-    )
+    downloadJson('Luminoesis-export.json', data)
   }
 
   const handleExportCards = async () => {
     const cards = await exportCards()
 
-    const data = exportToJson(
-      cards.map((card) => ({
-        front: card.front,
-        back: card.back,
-        topic: card.topic,
-      })),
-    )
+    const data = cards.map((card) => ({
+      front: card.front,
+      back: card.back,
+      topic: card.topic,
+    }))
 
-    downloadJson(
-      'Luminoesis-cards.json',
-      data,
-    )
+    downloadJson('Luminoesis-cards.json', data)
   }
 
   const handleDelete = async () => {
-    if (
-      !confirm(
-        'Delete all on-device data? This cannot be undone.',
-      )
-    ) {
+    if (!confirm('Delete all on-device data? This cannot be undone.')) {
       return
     }
 
@@ -113,76 +125,62 @@ export function PrivacyPage() {
 
   return (
     <div className="page-wrap max-w-220 py-8">
-      <p className="kicker">
-        Transparency & privacy
-      </p>
+      <p className="kicker">Transparency &amp; privacy</p>
 
-      <h1 className="display text-[28px]">
-        Your data trains only you
-      </h1>
+      <h1 className="display text-[28px]">Your data trains only you</h1>
 
       <p className="mt-1 text-sm text-(--ink-soft)">
-        Luminoesis never records <em>what</em> you type —
-        only timing deltas — and that boundary is
-        architectural: the listener resolves to a numeric
-        delta and the actual <code>key</code> value is
-        discarded synchronously, never reaching storage.
-        No backend is required.
+        Luminoesis does not record the words you type. It only measures{' '}
+        <em>timing</em> — how you type, not what you write. That protection is
+        built in: the instant a key is pressed, only a number (the timing) is
+        kept, and the actual character is thrown away before anything is ever
+        stored. Nothing is sent to a server.
       </p>
 
       <div className="card-flat mt-6 p-5">
-        <h2 className="text-sm font-semibold">
-          What is measured
-        </h2>
+        <h2 className="text-sm font-semibold">What gets measured</h2>
 
         <ul className="mt-3 grid gap-2 text-sm">
           <li className="flex gap-2">
             <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-(--blue)" />
-
             <span>
-              <strong>Inter-key latency</strong> —
-              flight time between keys (ms).
+              <strong>Time between keystrokes</strong> — the pause from one key
+              to the next, in milliseconds.
             </span>
           </li>
 
           <li className="flex gap-2">
             <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-(--purple)" />
-
             <span>
-              <strong>Key dwell time</strong> —
-              press-to-release duration (ms).
+              <strong>Key hold time</strong> — how long you keep each key
+              pressed down.
             </span>
           </li>
 
           <li className="flex gap-2">
             <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-(--amber)" />
-
             <span>
-              <strong>Correction rate</strong> —
-              Backspace / total keys in rolling window.
+              <strong>Backspace rate</strong> — how often you press Backspace to
+              fix a mistake.
             </span>
           </li>
 
           <li className="flex gap-2">
             <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-(--veridian)" />
-
             <span>
-              <strong>Typing speed</strong> —
-              rolling WPM (5 chars = 1 word).
+              <strong>Typing speed</strong> — how fast you type, in words per
+              minute.
             </span>
           </li>
         </ul>
 
         <p className="mt-3 text-xs text-(--ink-faint)">
-          Only aggregated, numeric features are stored.
-          Raw key content is never captured, stored, or
-          included in any derived feature.
+          Only these summarized numbers are ever kept. The actual characters you
+          type are never saved, sent, or used to build any of these measures.
         </p>
 
         <div className="mt-4 flex items-center gap-3">
-          <span className="text-sm font-medium">
-            Adaptive mode
-          </span>
+          <span className="text-sm font-medium">Adaptive mode</span>
 
           <span
             className={`rounded-full border px-2.5 py-1 text-xs ${
@@ -218,86 +216,83 @@ export function PrivacyPage() {
         </div>
 
         <p className="mt-2 text-xs text-(--ink-faint)">
-          Fallback is first-class: with adaptive off, or
-          on non-keyboard input, Luminoesis runs as a complete
-          high-quality SM-2 scheduler with zero adaptation.
+          If you opt out, or on non-keyboard input, Luminoesis still works
+          fully — it simply falls back to a standard study scheduler with no
+          personalization.
         </p>
       </div>
 
       <div className="mt-4 grid gap-4 md:grid-cols-2">
         <div className="card-flat p-5">
-          <h3 className="text-sm font-semibold">
-            Baseline (rolling EWMA)
-          </h3>
+          <h3 className="text-sm font-semibold">Your personal baseline</h3>
 
-          <div className="mt-3 space-y-2 text-sm">
+          <p className="mt-1 text-xs text-(--ink-faint)">
+            A reference built from your own typing, so Luminoesis can notice
+            when your rhythm changes. “Typical” is your normal value; “spread”
+            is how much it usually varies.
+          </p>
+
+          <div className="mt-3 space-y-1 text-sm">
             {baseline.length === 0 && (
               <p className="text-(--ink-soft)">
-                No baseline yet — completes after 3–5
-                sessions.
+                No baseline yet — this fills in after a few typing sessions.
               </p>
             )}
 
-            {baseline.map((item) => (
-              <div
-                key={item.name}
-                className="flex justify-between border-b border-(--line) py-2 last:border-0"
-              >
-                <span className="font-medium">
-                  {item.name}
-                </span>
+            {baseline.map((item) => {
+              const text = describeBaseline(item)
 
-                <span className="text-(--ink-soft)">
-                  μ {item.mean.toFixed(1)} · σ{' '}
-                  {item.stddev.toFixed(1)} · n{' '}
-                  {item.sampleCount}
-                </span>
-              </div>
-            ))}
+              return (
+                <div
+                  key={item.name}
+                  className="border-b border-(--line) py-3 last:border-0"
+                >
+                  <p className="font-medium text-(--ink)">
+                    {FEATURE_LABEL[item.name]}
+                  </p>
+
+                  <p className="mt-1 text-(--ink-soft)">{text.summary}</p>
+
+                  <p className="mt-1 text-xs text-(--ink-faint)">
+                    {text.reference}
+                  </p>
+                </div>
+              )
+            })}
           </div>
         </div>
 
         <div className="card-flat p-5">
-          <h3 className="text-sm font-semibold">
-            Last 24h derived values
-          </h3>
+          <h3 className="text-sm font-semibold">Your typing, last 24 hours</h3>
 
           <p className="text-xs text-(--ink-faint)">
-            Aggregated per-minute snapshots — never raw
+            A once-per-minute summary of how you typed — never the actual
             keystrokes.
           </p>
 
           <div className="mt-3 max-h-55 space-y-1.5 overflow-auto text-xs">
             {signals.length === 0 && (
               <p className="text-sm text-(--ink-soft)">
-                No signals yet. Type in Review to generate.
+                No readings yet. Type in Review to generate some.
               </p>
             )}
 
             {signals.map((signal) => (
               <div
                 key={signal.timestamp}
-                className="flex gap-3 rounded-lg border border-(--line) bg-(--surface-muted) px-3 py-2"
+                className="flex flex-wrap gap-3 rounded-lg border border-(--line) bg-(--surface-muted) px-3 py-2"
               >
                 <span className="text-(--ink-faint)">
-                  {new Date(
-                    signal.timestamp,
-                  ).toLocaleTimeString()}
+                  {new Date(signal.timestamp).toLocaleTimeString()}
                 </span>
 
-                <span>
-                  IKL {Math.round(signal.interKeyLatency)}ms
-                </span>
+                <span>Between keys {Math.round(signal.interKeyLatency)} ms</span>
 
                 <span>
-                  Corr{' '}
-                  {(signal.correctionRate * 100).toFixed(1)}
-                  %
+                  Backspaces {(signal.correctionRate * 100).toFixed(1)}%
                 </span>
 
-                <span>
-                  {Math.round(signal.wpm)}wpm
-                </span>
+                <span>{Math.round(signal.wpm)} wpm</span>
               </div>
             ))}
           </div>
@@ -305,16 +300,11 @@ export function PrivacyPage() {
       </div>
 
       <div className="card-flat mt-4 p-5">
-        <h3 className="text-sm font-semibold">
-          Data controls
-        </h3>
+        <h3 className="text-sm font-semibold">Your data controls</h3>
 
         <div className="mt-3 flex flex-wrap gap-2">
-          <button
-            className="btn-primary"
-            onClick={() => void handleExport()}
-          >
-            Export JSON
+          <button className="btn-primary" onClick={() => void handleExport()}>
+            Export everything
           </button>
 
           <button
@@ -333,23 +323,19 @@ export function PrivacyPage() {
         </div>
 
         <p className="mt-2 text-xs text-(--ink-faint)">
-          One-tap full data export and one-tap full
-          delete. No cloud, no account.
+          One click exports everything in a single file, and one click deletes
+          it all. No cloud account required.
         </p>
       </div>
 
       <div className="card-flat mt-4 p-5">
-        <h3 className="text-sm font-semibold">
-          Offline-first & zero-cost
-        </h3>
+        <h3 className="text-sm font-semibold">Works offline, costs nothing</h3>
 
         <p className="mt-1 text-sm text-(--ink-soft)">
-          Core review loop works with zero network —
-          IndexedDB via Dexie is the source of truth,
-          Service Worker caches assets for airplane-mode.
-          Optional Express + SQLite sync (port 4901) never
-          gates core function — sync just queues until it’s
-          back. No paid API anywhere.
+          Core study works with no network at all — your data lives on your
+          device, and the app caches itself so it runs in airplane mode. If you
+          switch on the optional sync, it simply waits and catches up later; it
+          never blocks studying. There is no paid service anywhere.
         </p>
       </div>
     </div>
