@@ -85,10 +85,6 @@ export function ConceptsSection({
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {concepts.map((concept) => {
-            const linkedTitles = concept.materialIds
-              .map((id) => materialTitleById.get(id))
-              .filter((title): title is string => Boolean(title))
-
             const confirming = confirmingId === concept.id
             const busy = busyId === concept.id
 
@@ -132,7 +128,7 @@ export function ConceptsSection({
                 )}
 
                 <div className="mt-4 border-t border-(--line) pt-3">
-                  {linkedTitles.length > 0 ? (
+                  {concept.materialIds.length > 0 ? (
                     <div className="flex flex-wrap items-center gap-1.5">
                       <Link2
                         size={13}
@@ -140,11 +136,15 @@ export function ConceptsSection({
                         aria-hidden="true"
                       />
 
-                      {linkedTitles.map((title) => (
-                        <span key={title} className="chip">
-                          {title}
-                        </span>
-                      ))}
+                      {concept.materialIds.map((id) => {
+                        const title = materialTitleById.get(id)
+                        if (!title) return null
+                        return (
+                          <span key={id} className="chip">
+                            {title}
+                          </span>
+                        )
+                      })}
                     </div>
                   ) : (
                     <span className="text-xs text-(--ink-faint)">

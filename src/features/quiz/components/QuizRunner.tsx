@@ -92,11 +92,11 @@ export function QuizRunner({
 
         <div className="mt-4 space-y-2">
           {choices.length > 0 ? (
-            choices.map((choice) => {
+            choices.map((choice, choiceIndex) => {
               const selected = userAnswer === choice
               return (
                 <button
-                  key={choice}
+                  key={choiceIndex}
                   type="button"
                   onClick={() => selectChoice(choice)}
                   className={`card-flat w-full px-4 py-3 text-left text-(--ink) transition ${
