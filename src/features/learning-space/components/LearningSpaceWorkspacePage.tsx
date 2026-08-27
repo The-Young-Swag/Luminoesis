@@ -55,7 +55,7 @@ export function LearningSpaceWorkspacePage({
   const { learningSpace, ready: spaceReady } =
     useLearningSpaceDetail(learningSpaceId)
 
-  const { materials, ready: materialsReady } =
+  const { materials, ready: materialsReady, refresh } =
     useMaterials(learningSpaceId)
 
   const { concepts, ready: conceptsReady } =
@@ -184,8 +184,10 @@ export function LearningSpaceWorkspacePage({
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {materials.map((material) => (
-              <article
+              <Link
                 key={material.id}
+                to="/material/$materialId"
+                params={{ materialId: material.id }}
                 className="card-flat group flex flex-col p-5 transition hover:border-(--blue)/30"
               >
                 <div className="flex items-start justify-between gap-4">
@@ -224,7 +226,7 @@ export function LearningSpaceWorkspacePage({
                     </span>
                   </span>
                 </div>
-              </article>
+              </Link>
             ))}
           </div>
         )}
@@ -245,7 +247,7 @@ export function LearningSpaceWorkspacePage({
       {showAddMaterial && (
         <AddMaterialDialog
           learningSpaceId={learningSpaceId}
-          onCreated={() => undefined}
+          onCreated={refresh}
           onClose={() => setShowAddMaterial(false)}
         />
       )}

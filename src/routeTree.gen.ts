@@ -18,6 +18,7 @@ import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ReviewRouteImport } from './routes/review'
 import { Route as LearningSpacesIndexRouteImport } from './routes/learning-spaces/index'
 import { Route as LearningSpacesLearningSpaceIdRouteImport } from './routes/learning-spaces.$learningSpaceId'
+import { Route as MaterialMaterialIdRouteImport } from './routes/material.$materialId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -65,6 +66,11 @@ const LearningSpacesLearningSpaceIdRoute =
     path: '/$learningSpaceId',
     getParentRoute: () => LearningSpacesRoute,
   } as any)
+const MaterialMaterialIdRoute = MaterialMaterialIdRouteImport.update({
+  id: '/material/$materialId',
+  path: '/material/$materialId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -75,6 +81,7 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/review': typeof ReviewRoute
   '/learning-spaces/$learningSpaceId': typeof LearningSpacesLearningSpaceIdRoute
+  '/material/$materialId': typeof MaterialMaterialIdRoute
   '/learning-spaces/': typeof LearningSpacesIndexRoute
 }
 export interface FileRoutesByTo {
@@ -85,6 +92,7 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/review': typeof ReviewRoute
   '/learning-spaces/$learningSpaceId': typeof LearningSpacesLearningSpaceIdRoute
+  '/material/$materialId': typeof MaterialMaterialIdRoute
   '/learning-spaces': typeof LearningSpacesIndexRoute
 }
 export interface FileRoutesById {
@@ -97,6 +105,7 @@ export interface FileRoutesById {
   '/privacy': typeof PrivacyRoute
   '/review': typeof ReviewRoute
   '/learning-spaces/$learningSpaceId': typeof LearningSpacesLearningSpaceIdRoute
+  '/material/$materialId': typeof MaterialMaterialIdRoute
   '/learning-spaces/': typeof LearningSpacesIndexRoute
 }
 export interface FileRouteTypes {
@@ -110,6 +119,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/review'
     | '/learning-spaces/$learningSpaceId'
+    | '/material/$materialId'
     | '/learning-spaces/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -120,6 +130,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/review'
     | '/learning-spaces/$learningSpaceId'
+    | '/material/$materialId'
     | '/learning-spaces'
   id:
     | '__root__'
@@ -131,6 +142,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/review'
     | '/learning-spaces/$learningSpaceId'
+    | '/material/$materialId'
     | '/learning-spaces/'
   fileRoutesById: FileRoutesById
 }
@@ -142,6 +154,7 @@ export interface RootRouteChildren {
   LibraryRoute: typeof LibraryRoute
   PrivacyRoute: typeof PrivacyRoute
   ReviewRoute: typeof ReviewRoute
+  MaterialMaterialIdRoute: typeof MaterialMaterialIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -209,6 +222,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LearningSpacesLearningSpaceIdRouteImport
       parentRoute: typeof LearningSpacesRoute
     }
+    '/material/$materialId': {
+      id: '/material/$materialId'
+      path: '/material/$materialId'
+      fullPath: '/material/$materialId'
+      preLoaderRoute: typeof MaterialMaterialIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -234,6 +254,7 @@ const rootRouteChildren: RootRouteChildren = {
   LibraryRoute: LibraryRoute,
   PrivacyRoute: PrivacyRoute,
   ReviewRoute: ReviewRoute,
+  MaterialMaterialIdRoute: MaterialMaterialIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
