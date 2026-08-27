@@ -2,6 +2,12 @@ import { describe, expect, it, vi, beforeEach } from 'vitest'
 
 import type { Concept } from '#/features/learning-space/domain/learningSpace'
 
+import {
+  createConcept,
+  updateConcept,
+  deleteConcept,
+} from '#/features/learning-space/application/concept'
+
 const { repository } = vi.hoisted(() => ({
   repository: {
     create: vi.fn(),
@@ -21,12 +27,6 @@ vi.mock(
     conceptRepository: repository,
   }),
 )
-
-import {
-  createConcept,
-  updateConcept,
-  deleteConcept,
-} from '#/features/learning-space/application/concept'
 
 describe('concept application', () => {
   beforeEach(() => {

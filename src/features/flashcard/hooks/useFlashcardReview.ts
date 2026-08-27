@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react'
 import { liveQuery } from 'dexie'
 
-import type { Concept } from '#/features/learning-space/domain/learningSpace'
-import type { Material } from '#/features/learning-space/domain/learningSpace'
+import type { Concept, Material  } from '#/features/learning-space/domain/learningSpace'
 import type { Flashcard } from '#/features/flashcard/domain/flashcard'
 import { flashcardRepository } from '#/features/flashcard/repositories/flashcardRepository'
 import { conceptRepository } from '#/features/learning-space/repositories/conceptRepository'

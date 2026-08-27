@@ -1,5 +1,7 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 
+import { recordReviewEvent } from '#/features/review/application/recordReviewEvent'
+
 const { reviewEventRepository } = vi.hoisted(() => ({
   reviewEventRepository: {
     create: vi.fn(),
@@ -9,8 +11,6 @@ const { reviewEventRepository } = vi.hoisted(() => ({
 vi.mock('#/features/review/repositories/reviewEventRepository', () => ({
   reviewEventRepository,
 }))
-
-import { recordReviewEvent } from '#/features/review/application/recordReviewEvent'
 
 type RecordInput = Parameters<typeof recordReviewEvent>[0]
 

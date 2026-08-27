@@ -2,6 +2,13 @@ import { describe, expect, it, vi, beforeEach } from 'vitest'
 
 import type { Flashcard } from '#/features/flashcard/domain/flashcard'
 
+import {
+  createFlashcard,
+  updateFlashcard,
+  deleteFlashcard,
+  gradeFlashcard,
+} from '#/features/flashcard/application/flashcard'
+
 const { flashcardRepository } = vi.hoisted(() => ({
   flashcardRepository: {
     create: vi.fn(),
@@ -23,13 +30,6 @@ vi.mock('#/features/flashcard/repositories/flashcardRepository', () => ({
 vi.mock('#/features/review/application/recordReviewEvent', () => ({
   recordReviewEvent,
 }))
-
-import {
-  createFlashcard,
-  updateFlashcard,
-  deleteFlashcard,
-  gradeFlashcard,
-} from '#/features/flashcard/application/flashcard'
 
 function baseFlashcard(overrides: Partial<Flashcard> = {}): Flashcard {
   return {
