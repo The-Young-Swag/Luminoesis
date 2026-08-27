@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as FlashcardsRouteImport } from './routes/flashcards'
 import { Route as InsightsRouteImport } from './routes/insights'
 import { Route as LearningSpacesRouteImport } from './routes/learning-spaces'
 import { Route as LibraryRouteImport } from './routes/library'
@@ -21,6 +22,11 @@ import { Route as LearningSpacesLearningSpaceIdRouteImport } from './routes/lear
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FlashcardsRoute = FlashcardsRouteImport.update({
+  id: '/flashcards',
+  path: '/flashcards',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InsightsRoute = InsightsRouteImport.update({
@@ -62,6 +68,7 @@ const LearningSpacesLearningSpaceIdRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/flashcards': typeof FlashcardsRoute
   '/insights': typeof InsightsRoute
   '/learning-spaces': typeof LearningSpacesRouteWithChildren
   '/library': typeof LibraryRoute
@@ -72,6 +79,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/flashcards': typeof FlashcardsRoute
   '/insights': typeof InsightsRoute
   '/library': typeof LibraryRoute
   '/privacy': typeof PrivacyRoute
@@ -82,6 +90,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/flashcards': typeof FlashcardsRoute
   '/insights': typeof InsightsRoute
   '/learning-spaces': typeof LearningSpacesRouteWithChildren
   '/library': typeof LibraryRoute
@@ -94,6 +103,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/flashcards'
     | '/insights'
     | '/learning-spaces'
     | '/library'
@@ -104,6 +114,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/flashcards'
     | '/insights'
     | '/library'
     | '/privacy'
@@ -113,6 +124,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/flashcards'
     | '/insights'
     | '/learning-spaces'
     | '/library'
@@ -124,6 +136,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  FlashcardsRoute: typeof FlashcardsRoute
   InsightsRoute: typeof InsightsRoute
   LearningSpacesRoute: typeof LearningSpacesRouteWithChildren
   LibraryRoute: typeof LibraryRoute
@@ -138,6 +151,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/flashcards': {
+      id: '/flashcards'
+      path: '/flashcards'
+      fullPath: '/flashcards'
+      preLoaderRoute: typeof FlashcardsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/insights': {
@@ -208,6 +228,7 @@ const LearningSpacesRouteWithChildren = LearningSpacesRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  FlashcardsRoute: FlashcardsRoute,
   InsightsRoute: InsightsRoute,
   LearningSpacesRoute: LearningSpacesRouteWithChildren,
   LibraryRoute: LibraryRoute,

@@ -11,6 +11,7 @@ import {
   ShieldCheck,
   Sun,
   X,
+  Brain,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { useEffect, useState } from 'react'
@@ -54,6 +55,12 @@ const PRIMARY_NAV_ITEMS: NavItem[] = [
     label: 'Insights',
     icon: LineChart,
     meta: 'ANALYTICS',
+  },
+  {
+    to: '/flashcards',
+    label: 'Flashcards',
+    icon: Brain,
+    meta: 'REVIEW',
   },
 ]
 
