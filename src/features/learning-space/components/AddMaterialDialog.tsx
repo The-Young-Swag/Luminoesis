@@ -101,7 +101,7 @@ export function AddMaterialDialog({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-(--scrim) p-4"
       role="presentation"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) {
@@ -110,7 +110,7 @@ export function AddMaterialDialog({
       }}
     >
       <div
-        className="w-full max-w-lg rounded-2xl border border-black/10 bg-white p-6 shadow-2xl dark:border-white/10 dark:bg-zinc-950"
+        className="w-full max-w-lg rounded-2xl border border-(--line) bg-(--surface) p-6 shadow-2xl"
         role="dialog"
         aria-modal="true"
         aria-labelledby="add-material-title"
@@ -119,12 +119,12 @@ export function AddMaterialDialog({
           <div>
             <h2
               id="add-material-title"
-              className="text-lg font-semibold text-zinc-950 dark:text-zinc-50"
+              className="text-lg font-semibold text-(--ink)"
             >
               Add material
             </h2>
 
-            <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+            <p className="mt-1 text-sm text-(--ink-faint)">
               Add a file to this Learning Space.
             </p>
           </div>
@@ -132,7 +132,7 @@ export function AddMaterialDialog({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-2 text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-900 dark:hover:bg-zinc-900 dark:hover:text-zinc-100"
+            className="rounded-lg p-2 text-(--ink-faint) transition hover:bg-(--surface-muted) hover:text-(--ink)"
             aria-label="Close"
           >
             <X size={18} aria-hidden="true" />
@@ -140,19 +140,19 @@ export function AddMaterialDialog({
         </div>
 
         <label
-          className="flex cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-zinc-300 px-6 py-10 text-center transition hover:border-zinc-500 dark:border-zinc-700 dark:hover:border-zinc-500"
+          className="flex cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-(--line-strong) px-6 py-10 text-center transition hover:border-(--ink-faint)"
         >
           <Upload
             size={24}
-            className="mb-3 text-zinc-500"
+            className="mb-3 text-(--ink-faint)"
             aria-hidden="true"
           />
 
-          <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+          <span className="text-sm font-medium text-(--ink)">
             {file ? file.name : 'Choose a file'}
           </span>
 
-          <span className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+          <span className="mt-1 text-xs text-(--ink-faint)">
             PDF, image, PPTX, TXT, or Markdown
           </span>
 
@@ -169,7 +169,7 @@ export function AddMaterialDialog({
         </label>
 
         {error && (
-          <p className="mt-3 text-sm text-red-600 dark:text-red-400">
+          <p className="mt-3 text-sm text-(--destructive)">
             {error}
           </p>
         )}
@@ -179,7 +179,7 @@ export function AddMaterialDialog({
             type="button"
             onClick={onClose}
             disabled={saving}
-            className="rounded-lg px-4 py-2 text-sm font-medium text-zinc-600 transition hover:bg-zinc-100 disabled:opacity-50 dark:text-zinc-300 dark:hover:bg-zinc-900"
+            className="btn-ghost disabled:opacity-50"
           >
             Cancel
           </button>
@@ -188,7 +188,7 @@ export function AddMaterialDialog({
             type="button"
             onClick={() => void handleSubmit()}
             disabled={!file || saving}
-            className="rounded-lg bg-zinc-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-zinc-200"
+            className="btn-primary disabled:cursor-not-allowed disabled:opacity-50"
           >
             {saving ? 'Adding…' : 'Add material'}
           </button>
