@@ -38,8 +38,8 @@ export async function saveMaterialContent(
 
   const content: MaterialContent = {
     materialId: data.materialId,
-    blocks: data.blocks as MaterialContentBlock[],
-    source: data.source as MaterialContentSource,
+    blocks: data.blocks,
+    source: data.source,
     updatedAt: now,
   }
 

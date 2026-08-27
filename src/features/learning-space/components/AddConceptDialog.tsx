@@ -7,6 +7,8 @@ import { createConcept } from '#/features/learning-space/application/concept'
 type AddConceptDialogProps = {
   learningSpaceId: string
   materials: Material[]
+  initialName?: string
+  initialMaterialIds?: string[]
   onCreated: () => void
   onClose: () => void
 }
@@ -14,13 +16,15 @@ type AddConceptDialogProps = {
 export function AddConceptDialog({
   learningSpaceId,
   materials,
+  initialName,
+  initialMaterialIds,
   onCreated,
   onClose,
 }: AddConceptDialogProps) {
-  const [name, setName] = useState('')
+  const [name, setName] = useState(initialName ?? '')
   const [description, setDescription] = useState('')
   const [selectedMaterials, setSelectedMaterials] = useState<Set<string>>(
-    new Set(),
+    new Set(initialMaterialIds ?? []),
   )
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)

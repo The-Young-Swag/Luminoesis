@@ -10,6 +10,8 @@ import type { CreateQuestionInput } from '#/features/quiz/application/question'
 
 type AddQuestionDialogProps = {
   concepts: Concept[]
+  initialPrompt?: string
+  initialMaterialId?: string
   onCreated: (question: Question) => void
   onClose: () => void
 }
@@ -22,12 +24,15 @@ const TYPE_LABELS: Record<QuestionType, string> = {
 
 export function AddQuestionDialog({
   concepts,
+  initialPrompt,
+  initialMaterialId,
   onCreated,
   onClose,
 }: AddQuestionDialogProps) {
   const [conceptId, setConceptId] = useState(concepts[0]?.id ?? '')
   const [type, setType] = useState<QuestionType>('multiple-choice')
-  const [prompt, setPrompt] = useState('')
+  const [prompt, setPrompt] = useState(initialPrompt ?? '')
+  const [materialId] = useState(initialMaterialId ?? '')
   const [choices, setChoices] = useState<string[]>(['', ''])
   const [answer, setAnswer] = useState('')
   const [explanation, setExplanation] = useState('')
@@ -57,6 +62,7 @@ export function AddQuestionDialog({
       conceptId,
       prompt,
       type,
+      materialId: materialId || undefined,
       explanation: explanation || undefined,
       answer,
       ...(isChoiceType ? { choices: effectiveChoices } : {}),

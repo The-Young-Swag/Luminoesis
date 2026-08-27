@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import {
   ArrowLeft,
@@ -22,9 +22,16 @@ import type {
 import { useMaterial } from '../hooks/useMaterial'
 import { useLearningSpaceDetail } from '#/features/learning-space/hooks/useLearningSpaceDetail'
 import { useConcepts } from '#/features/learning-space/hooks/useConcepts'
+import { useMaterials } from '../hooks/useMaterials'
 import { useMaterialContent } from '../hooks/useMaterialContent'
 import { saveMaterialContent } from '#/features/learning-space/application/saveMaterialContent'
+import { createHighlight } from '#/features/learning-space/application/createHighlight'
 import { TutorPanel } from './TutorPanel'
+import { SelectionBubble } from './SelectionBubble'
+import type { ReaderSelection } from './SelectionBubble'
+import { AddConceptDialog } from './AddConceptDialog'
+import { AddFlashcardDialog } from '#/features/flashcard/components/AddFlashcardDialog'
+import { AddQuestionDialog } from '#/features/quiz/components/AddQuestionDialog'
 
 function parseDraft(draft: string): MaterialContentBlock[] {
   return draft
@@ -101,12 +108,54 @@ export function MaterialViewerPage({ materialId }: { materialId: string }) {
   const { learningSpace } = useLearningSpaceDetail(learningSpaceId)
   const { concepts } = useConcepts(learningSpaceId)
   const { content } = useMaterialContent(materialId)
+  const { materials } = useMaterials(learningSpaceId)
+  const [selection, setSelection] = useState<ReaderSelection | null>(null)
+  const [tutorContext, setTutorContext] = useState<string | undefined>()
+  const [showConcept, setShowConcept] = useState(false)
+  const [showFlashcard, setShowFlashcard] = useState(false)
+  const [showQuiz, setShowQuiz] = useState(false)
+  const [pendingText, setPendingText] = useState<string | undefined>()
+  const readerRef = useRef<HTMLElement>(null)
   const [mode, setMode] = useState<Mode>('read')
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState('')
   const [saving, setSaving] = useState(false)
 
   const hasContent = !!content && content.blocks.length > 0
+
+  useEffect(() => {
+    function onMouseUp() {
+      const sel = window.getSelection()
+      if (!sel || sel.isCollapsed) {
+        setSelection(null)
+        return
+      }
+      const text = sel.toString().trim()
+      if (!text) {
+        setSelection(null)
+        return
+      }
+      const anchor = sel.anchorNode
+      if (!anchor || !readerRef.current?.contains(anchor.parentElement)) {
+        setSelection(null)
+        return
+      }
+      const range = sel.getRangeAt(0)
+      const rect = range.getBoundingClientRect()
+      setSelection({
+        text,
+        rect: {
+          top: rect.top,
+          left: rect.left,
+          bottom: rect.bottom,
+          width: rect.width,
+        },
+      })
+    }
+
+    document.addEventListener('mouseup', onMouseUp)
+    return () => document.removeEventListener('mouseup', onMouseUp)
+  }, [])
 
   async function saveContent() {
     if (!material) {
@@ -155,6 +204,49 @@ export function MaterialViewerPage({ materialId }: { materialId: string }) {
   const associatedConcepts: Concept[] = concepts.filter((concept) =>
     concept.materialIds.includes(material.id),
   )
+
+  function clearSelection() {
+    setSelection(null)
+    window.getSelection()?.removeAllRanges()
+  }
+
+  async function handleCreateHighlight(text: string) {
+    if (!material) {
+      return
+    }
+
+    await createHighlight({
+      learningSpaceId: material.learningSpaceId,
+      materialId: material.id,
+      text,
+      locator: { kind: 'text', startOffset: 0, endOffset: text.length },
+    })
+    clearSelection()
+  }
+
+  function handleAskTutor(text: string) {
+    setTutorContext(text)
+    setMode('ask')
+    clearSelection()
+  }
+
+  function handleCreateConcept(text: string) {
+    setPendingText(text)
+    setShowConcept(true)
+    setSelection(null)
+  }
+
+  function handleCreateFlashcard(text: string) {
+    setPendingText(text)
+    setShowFlashcard(true)
+    setSelection(null)
+  }
+
+  function handleCreateQuiz(text: string) {
+    setPendingText(text)
+    setShowQuiz(true)
+    setSelection(null)
+  }
 
   return (
     <div className="page-wrap py-8">
@@ -324,6 +416,7 @@ export function MaterialViewerPage({ materialId }: { materialId: string }) {
                 ) : content && content.blocks.length > 0 ? (
                   <article
                     id="reader-content"
+                    ref={readerRef}
                     className="prose-reader space-y-3"
                   >
                     {content.blocks.map((block) =>
@@ -391,7 +484,9 @@ export function MaterialViewerPage({ materialId }: { materialId: string }) {
               </div>
             )}
 
-            {mode === 'ask' && <TutorPanel materialTitle={material.title} />}
+            {mode === 'ask' && (
+              <TutorPanel materialTitle={material.title} context={tutorContext} />
+            )}
 
             {mode === 'review' && (
               <div>
@@ -471,6 +566,50 @@ export function MaterialViewerPage({ materialId }: { materialId: string }) {
           </section>
         </aside>
       </div>
+
+      {selection && mode === 'read' && (
+        <SelectionBubble
+          selection={selection}
+          onAskTutor={handleAskTutor}
+          onCreateHighlight={handleCreateHighlight}
+          onCreateConcept={handleCreateConcept}
+          onCreateFlashcard={handleCreateFlashcard}
+          onCreateQuiz={handleCreateQuiz}
+          onDismiss={clearSelection}
+        />
+      )}
+
+      {showConcept && (
+        <AddConceptDialog
+          learningSpaceId={material.learningSpaceId}
+          materials={materials}
+          initialName={pendingText?.slice(0, 80)}
+          initialMaterialIds={[material.id]}
+          onCreated={() => setShowConcept(false)}
+          onClose={() => setShowConcept(false)}
+        />
+      )}
+
+      {showFlashcard && (
+        <AddFlashcardDialog
+          concepts={concepts}
+          materials={materials}
+          initialFront={pendingText}
+          initialMaterialId={material.id}
+          onCreated={() => setShowFlashcard(false)}
+          onClose={() => setShowFlashcard(false)}
+        />
+      )}
+
+      {showQuiz && (
+        <AddQuestionDialog
+          concepts={concepts}
+          initialPrompt={pendingText}
+          initialMaterialId={material.id}
+          onCreated={() => setShowQuiz(false)}
+          onClose={() => setShowQuiz(false)}
+        />
+      )}
     </div>
   )
 }

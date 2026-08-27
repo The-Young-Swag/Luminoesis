@@ -12,8 +12,10 @@ const HONEST_BOUNDARY_MESSAGE =
 
 export function TutorPanel({
   materialTitle,
+  context,
 }: {
   materialTitle: string
+  context?: string
 }) {
   const [messages, setMessages] = useState<TutorMessage[]>([
     {
@@ -83,6 +85,12 @@ export function TutorPanel({
       </div>
 
       <div className="border-t border-(--line) p-3">
+        {context && (
+          <div className="mb-3 rounded-lg border border-(--line) bg-(--surface-muted) px-3 py-2 text-xs text-(--ink-soft)">
+            <span className="font-medium text-(--ink)">From your selection: </span>
+            <span className="line-clamp-2">{context}</span>
+          </div>
+        )}
         <div className="flex items-end gap-2">
           <textarea
             value={draft}

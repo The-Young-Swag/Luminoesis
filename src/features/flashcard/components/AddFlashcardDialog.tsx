@@ -12,6 +12,8 @@ type AddFlashcardDialogProps = {
   concepts: Concept[]
   materials: Material[]
   flashcard?: Flashcard
+  initialFront?: string
+  initialMaterialId?: string
   onCreated: () => void
   onClose: () => void
 }
@@ -26,19 +28,21 @@ export function AddFlashcardDialog({
   concepts,
   materials,
   flashcard,
+  initialFront,
+  initialMaterialId,
   onCreated,
   onClose,
 }: AddFlashcardDialogProps) {
   const [conceptId, setConceptId] = useState<string>(() =>
     flashcard?.conceptId ?? (concepts.length > 0 ? concepts[0].id : ''),
   )
-  const [front, setFront] = useState(flashcard?.front ?? '')
+  const [front, setFront] = useState(flashcard?.front ?? initialFront ?? '')
   const [back, setBack] = useState(flashcard?.back ?? '')
   const [difficulty, setDifficulty] = useState<FlashcardDifficulty>(
     flashcard?.difficulty ?? 'medium',
   )
   const [materialId, setMaterialId] = useState(
-    flashcard?.materialId ?? '',
+    flashcard?.materialId ?? initialMaterialId ?? '',
   )
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
