@@ -16,10 +16,45 @@ import type {
   Concept,
   MaterialType,
 } from '#/features/learning-space/domain/learningSpace'
+import type {
+  MaterialContentBlock,
+} from '#/features/learning-space/domain/materialContent'
 import { useMaterial } from '../hooks/useMaterial'
 import { useLearningSpaceDetail } from '#/features/learning-space/hooks/useLearningSpaceDetail'
 import { useConcepts } from '#/features/learning-space/hooks/useConcepts'
+import { useMaterialContent } from '../hooks/useMaterialContent'
+import { saveMaterialContent } from '#/features/learning-space/application/saveMaterialContent'
 import { TutorPanel } from './TutorPanel'
+
+function parseDraft(draft: string): MaterialContentBlock[] {
+  return draft
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0)
+    .map((line) => {
+      if (line.startsWith('# ')) {
+        return {
+          id: crypto.randomUUID(),
+          type: 'heading' as const,
+          text: line.slice(2),
+        }
+      }
+
+      return {
+        id: crypto.randomUUID(),
+        type: 'paragraph' as const,
+        text: line,
+      }
+    })
+}
+
+function serializeDraft(blocks: MaterialContentBlock[]): string {
+  return blocks
+    .map((block) =>
+      block.type === 'heading' ? `# ${block.text}` : block.text,
+    )
+    .join('\n')
+}
 
 type Mode = 'read' | 'explore' | 'ask' | 'review'
 
@@ -65,7 +100,37 @@ export function MaterialViewerPage({ materialId }: { materialId: string }) {
   const learningSpaceId = material?.learningSpaceId ?? ''
   const { learningSpace } = useLearningSpaceDetail(learningSpaceId)
   const { concepts } = useConcepts(learningSpaceId)
+  const { content } = useMaterialContent(materialId)
   const [mode, setMode] = useState<Mode>('read')
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState('')
+  const [saving, setSaving] = useState(false)
+
+  const hasContent = !!content && content.blocks.length > 0
+
+  async function saveContent() {
+    if (!material) {
+      return
+    }
+
+    setSaving(true)
+
+    try {
+      await saveMaterialContent({
+        materialId: material.id,
+        source: 'user',
+        blocks: parseDraft(draft),
+      })
+      setEditing(false)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  function startEditing() {
+    setDraft(content ? serializeDraft(content.blocks) : '')
+    setEditing(true)
+  }
 
   if (!ready) {
     return (
@@ -212,16 +277,88 @@ export function MaterialViewerPage({ materialId }: { materialId: string }) {
 
           <div className="p-5">
             {mode === 'read' && (
-              <div className="prose-reader">
-                <h2 className="text-lg font-semibold text-(--ink)">
-                  {material.title}
-                </h2>
-                <p className="mt-3 text-sm text-(--ink-soft)">
-                  Readable source content isn't stored on this device yet, so
-                  there's nothing to display here. When content is available, it
-                  will appear in this reader and you'll be able to select text to
-                  capture highlights, concepts and flashcards.
-                </p>
+              <div>
+                <div className="mb-4 flex items-center justify-between gap-3">
+                  <h2 className="text-lg font-semibold text-(--ink)">
+                    {material.title}
+                  </h2>
+                  {!editing && (
+                    <button
+                      type="button"
+                      onClick={startEditing}
+                      className="btn-ghost shrink-0"
+                    >
+                      {hasContent ? 'Edit content' : 'Add content'}
+                    </button>
+                  )}
+                </div>
+
+                {editing ? (
+                  <div>
+                    <textarea
+                      value={draft}
+                      onChange={(event) => setDraft(event.target.value)}
+                      rows={12}
+                      placeholder="Paste or write the material's readable text here. Lines starting with '# ' become headings."
+                      className="w-full resize-y rounded-xl border border-(--line) bg-(--surface) p-3 text-sm text-(--ink) outline-none transition focus:border-(--blue)"
+                    />
+                    <div className="mt-3 flex justify-end gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setEditing(false)}
+                        disabled={saving}
+                        className="btn-ghost disabled:opacity-50"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void saveContent()}
+                        disabled={saving || draft.trim().length === 0}
+                        className="btn-primary disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        {saving ? 'Saving…' : 'Save content'}
+                      </button>
+                    </div>
+                  </div>
+                ) : content && content.blocks.length > 0 ? (
+                  <article
+                    id="reader-content"
+                    className="prose-reader space-y-3"
+                  >
+                    {content.blocks.map((block) =>
+                      block.type === 'heading' ? (
+                        <h3
+                          key={block.id}
+                          className="text-base font-semibold text-(--ink)"
+                        >
+                          {block.text}
+                        </h3>
+                      ) : (
+                        <p
+                          key={block.id}
+                          className="text-sm leading-relaxed text-(--ink-soft)"
+                        >
+                          {block.text}
+                        </p>
+                      ),
+                    )}
+                  </article>
+                ) : (
+                  <div className="rounded-xl border border-dashed border-(--line-strong) p-6 text-center">
+                    <p className="text-sm text-(--ink-soft)">
+                      No readable content yet. Add the material's text here, or it
+                      will be filled automatically when extraction is available.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={startEditing}
+                      className="btn-primary mt-4"
+                    >
+                      Add content
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 

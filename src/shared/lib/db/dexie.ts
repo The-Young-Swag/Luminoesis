@@ -4,6 +4,7 @@ import type { Table } from 'dexie'
 import type { AppSettings } from '#/shared/types/settings'
 import type { LearningSpaceRecord } from '#/shared/lib/db/models'
 import type { Material, Concept } from '#/features/learning-space/domain/learningSpace'
+import type { MaterialContent } from '#/features/learning-space/domain/materialContent'
 import type { BaselineFeature, SessionSignal } from '#/features/learning-state/domain/learningSignals'
 import type { Card } from '#/features/library/domain/card'
 import type { Insight } from '#/features/insights/domain/insight'
@@ -27,6 +28,7 @@ export class CircadiaDB extends Dexie {
   reviewEvents!: Table<ReviewEvent, string>
   questions!: Table<Question, string>
   quizAttempts!: Table<QuizAttempt, string>
+  materialContents!: Table<MaterialContent, string>
 
   constructor() {
     super('circadia')
@@ -60,6 +62,10 @@ export class CircadiaDB extends Dexie {
     this.version(6).stores({
       questions: 'id, conceptId, materialId, createdAt, updatedAt',
       quizAttempts: 'id, learningSpaceId, createdAt',
+    })
+
+    this.version(7).stores({
+      materialContents: 'materialId, updatedAt',
     })
   }
 }
