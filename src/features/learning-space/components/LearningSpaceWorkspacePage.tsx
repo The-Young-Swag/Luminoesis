@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { AddMaterialDialog } from './AddMaterialDialog'
 import { ConceptsSection } from './ConceptsSection'
 import { FlashcardsSection } from '#/features/flashcard/components/FlashcardsSection'
+import { QuizSection } from '#/features/quiz/components/QuizSection'
 import { useLearningSpaceDetail } from '../hooks/useLearningSpaceDetail'
 import { useMaterials } from '../hooks/useMaterials'
 import { useConcepts } from '../hooks/useConcepts'
@@ -235,6 +236,8 @@ export function LearningSpaceWorkspacePage({
       />
 
       <FlashcardsSection concepts={concepts} materials={materials} />
+
+      <QuizSection learningSpaceId={learningSpaceId} concepts={concepts} />
 
       {showAddMaterial && (
         <AddMaterialDialog

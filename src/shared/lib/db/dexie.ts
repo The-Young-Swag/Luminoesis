@@ -8,6 +8,8 @@ import type { BaselineFeature, SessionSignal } from '#/features/learning-state/d
 import type { Card } from '#/features/library/domain/card'
 import type { Insight } from '#/features/insights/domain/insight'
 import type { ReviewSession } from '#/features/review/domain/reviewSession'
+import type { Question } from '#/features/quiz/domain/question'
+import type { QuizAttempt } from '#/features/quiz/domain/quizAttempt'
 import type { ReviewEvent } from '#/features/review/domain/reviewEvent'
 import type { Flashcard } from '#/features/flashcard/domain/flashcard'
 
@@ -23,6 +25,8 @@ export class CircadiaDB extends Dexie {
   concepts!: Table<Concept, string>
   flashcards!: Table<Flashcard, string>
   reviewEvents!: Table<ReviewEvent, string>
+  questions!: Table<Question, string>
+  quizAttempts!: Table<QuizAttempt, string>
 
   constructor() {
     super('circadia')
@@ -51,6 +55,11 @@ export class CircadiaDB extends Dexie {
     this.version(5).stores({
       flashcards: 'id, conceptId, materialId, dueDate, createdAt',
       reviewEvents: 'id, conceptId, objectType, objectId, timestamp',
+    })
+
+    this.version(6).stores({
+      questions: 'id, conceptId, materialId, createdAt, updatedAt',
+      quizAttempts: 'id, learningSpaceId, createdAt',
     })
   }
 }
