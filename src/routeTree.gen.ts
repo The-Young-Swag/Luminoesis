@@ -15,6 +15,7 @@ import { Route as LearningSpacesRouteImport } from './routes/learning-spaces'
 import { Route as LibraryRouteImport } from './routes/library'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ReviewRouteImport } from './routes/review'
+import { Route as LearningSpacesIndexRouteImport } from './routes/learning-spaces/index'
 import { Route as LearningSpacesLearningSpaceIdRouteImport } from './routes/learning-spaces.$learningSpaceId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -47,6 +48,11 @@ const ReviewRoute = ReviewRouteImport.update({
   path: '/review',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LearningSpacesIndexRoute = LearningSpacesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => LearningSpacesRoute,
+} as any)
 const LearningSpacesLearningSpaceIdRoute =
   LearningSpacesLearningSpaceIdRouteImport.update({
     id: '/$learningSpaceId',
@@ -62,15 +68,16 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/review': typeof ReviewRoute
   '/learning-spaces/$learningSpaceId': typeof LearningSpacesLearningSpaceIdRoute
+  '/learning-spaces/': typeof LearningSpacesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/insights': typeof InsightsRoute
-  '/learning-spaces': typeof LearningSpacesRouteWithChildren
   '/library': typeof LibraryRoute
   '/privacy': typeof PrivacyRoute
   '/review': typeof ReviewRoute
   '/learning-spaces/$learningSpaceId': typeof LearningSpacesLearningSpaceIdRoute
+  '/learning-spaces': typeof LearningSpacesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -81,6 +88,7 @@ export interface FileRoutesById {
   '/privacy': typeof PrivacyRoute
   '/review': typeof ReviewRoute
   '/learning-spaces/$learningSpaceId': typeof LearningSpacesLearningSpaceIdRoute
+  '/learning-spaces/': typeof LearningSpacesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -92,15 +100,16 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/review'
     | '/learning-spaces/$learningSpaceId'
+    | '/learning-spaces/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/insights'
-    | '/learning-spaces'
     | '/library'
     | '/privacy'
     | '/review'
     | '/learning-spaces/$learningSpaceId'
+    | '/learning-spaces'
   id:
     | '__root__'
     | '/'
@@ -110,6 +119,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/review'
     | '/learning-spaces/$learningSpaceId'
+    | '/learning-spaces/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -165,6 +175,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReviewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/learning-spaces/': {
+      id: '/learning-spaces/'
+      path: '/'
+      fullPath: '/learning-spaces/'
+      preLoaderRoute: typeof LearningSpacesIndexRouteImport
+      parentRoute: typeof LearningSpacesRoute
+    }
     '/learning-spaces/$learningSpaceId': {
       id: '/learning-spaces/$learningSpaceId'
       path: '/$learningSpaceId'
@@ -177,10 +194,12 @@ declare module '@tanstack/react-router' {
 
 interface LearningSpacesRouteChildren {
   LearningSpacesLearningSpaceIdRoute: typeof LearningSpacesLearningSpaceIdRoute
+  LearningSpacesIndexRoute: typeof LearningSpacesIndexRoute
 }
 
 const LearningSpacesRouteChildren: LearningSpacesRouteChildren = {
   LearningSpacesLearningSpaceIdRoute: LearningSpacesLearningSpaceIdRoute,
+  LearningSpacesIndexRoute: LearningSpacesIndexRoute,
 }
 
 const LearningSpacesRouteWithChildren = LearningSpacesRoute._addFileChildren(
@@ -198,12 +217,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}

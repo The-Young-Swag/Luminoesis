@@ -1,7 +1,9 @@
-import { createFileRoute } from '@tanstack/react-router'
-
-import { LearningSpaceListPage } from '#/features/learning-space/components/LearningSpaceListPage'
+import { createFileRoute, Outlet } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/learning-spaces')({
-  component: LearningSpaceListPage,
+  component: LearningSpaceLayout,
 })
+
+function LearningSpaceLayout() {
+  return <Outlet />
+}
