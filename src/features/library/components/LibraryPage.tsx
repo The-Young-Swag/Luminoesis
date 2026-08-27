@@ -22,7 +22,7 @@ import { CardDialog } from './CardDialog'
 import { ImportWizard } from './ImportWizard'
 import { LibraryTable } from './LibraryTable'
 
-const PAGE_SIZE = 20
+const PAGE_SIZE = 10
 
 export function LibraryPage() {
   const [search, setSearch] = useState('')
