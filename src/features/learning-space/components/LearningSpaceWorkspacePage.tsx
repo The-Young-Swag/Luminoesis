@@ -6,6 +6,7 @@ import { AddMaterialDialog } from './AddMaterialDialog'
 import { ConceptsSection } from './ConceptsSection'
 import { FlashcardsSection } from '#/features/flashcard/components/FlashcardsSection'
 import { QuizSection } from '#/features/quiz/components/QuizSection'
+import { BrainTrainerSection } from '#/features/brain-trainer/components/BrainTrainerSection'
 import { useLearningSpaceDetail } from '../hooks/useLearningSpaceDetail'
 import { useMaterials } from '../hooks/useMaterials'
 import { useConcepts } from '../hooks/useConcepts'
@@ -238,6 +239,8 @@ export function LearningSpaceWorkspacePage({
       <FlashcardsSection concepts={concepts} materials={materials} />
 
       <QuizSection learningSpaceId={learningSpaceId} concepts={concepts} />
+
+      <BrainTrainerSection concepts={concepts} />
 
       {showAddMaterial && (
         <AddMaterialDialog
