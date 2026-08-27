@@ -6,8 +6,13 @@ import type { Card } from '#/features/library/domain/card'
 import { seedIfEmpty } from '#/shared/lib/db/seed'
 import { cardRepository } from '#/features/library/repositories/cardRepository'
 
-export function useLibraryData() {
+export function useLibraryData(
+  search: string,
+  page: number,
+  pageSize: number,
+) {
   const [cards, setCards] = useState<Card[]>([])
+  const [total, setTotal] = useState(0)
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
@@ -21,15 +26,23 @@ export function useLibraryData() {
           return
         }
 
-        const subscription = liveQuery(() =>
-          cardRepository.findAll(),
-        ).subscribe({
-          next: (nextCards) => {
+        const subscription = liveQuery(async () => {
+          const offset = page * pageSize
+
+          const [pageCards, totalCards] = await Promise.all([
+            cardRepository.findPage({ offset, limit: pageSize, query: search }),
+            cardRepository.count(search),
+          ])
+
+          return { pageCards, totalCards }
+        }).subscribe({
+          next: ({ pageCards, totalCards }) => {
             if (cancelled) {
               return
             }
 
-            setCards(nextCards)
+            setCards(pageCards)
+            setTotal(totalCards)
             setReady(true)
           },
 
@@ -77,7 +90,7 @@ export function useLibraryData() {
       cancelled = true
       cleanup?.()
     }
-  }, [])
+  }, [search, page, pageSize])
 
-  return { cards, ready }
+  return { cards, total, ready }
 }
