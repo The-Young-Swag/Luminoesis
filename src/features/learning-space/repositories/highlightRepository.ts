@@ -13,6 +13,13 @@ export const highlightRepository = {
       .toArray()
   },
 
+  async findByConceptId(conceptId: string): Promise<Highlight[]> {
+    return db.highlights
+      .where('conceptId')
+      .equals(conceptId)
+      .toArray()
+  },
+
   async create(highlight: Highlight): Promise<void> {
     await db.highlights.add(highlight)
   },

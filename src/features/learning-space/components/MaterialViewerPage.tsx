@@ -470,7 +470,13 @@ export function MaterialViewerPage({ materialId }: { materialId: string }) {
                         className="rounded-xl border border-(--line) bg-(--surface) p-3"
                       >
                         <p className="font-medium text-(--ink)">
-                          {concept.name}
+                          <Link
+                            to="/concepts/$conceptId"
+                            params={{ conceptId: concept.id }}
+                            className="hover:text-(--blue)"
+                          >
+                            {concept.name}
+                          </Link>
                         </p>
                         {concept.description && (
                           <p className="mt-1 text-sm text-(--ink-soft)">

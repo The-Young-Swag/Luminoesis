@@ -1,10 +1,6 @@
 import { z } from 'zod'
 
-import type {
-  MaterialContent,
-  MaterialContentBlock,
-  MaterialContentSource,
-} from '#/features/learning-space/domain/materialContent'
+import type { MaterialContent } from '#/features/learning-space/domain/materialContent'
 import { materialContentRepository } from '#/features/learning-space/repositories/materialContentRepository'
 
 const BlockSchema = z.object({

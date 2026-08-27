@@ -16,6 +16,7 @@ import { Route as LearningSpacesRouteImport } from './routes/learning-spaces'
 import { Route as LibraryRouteImport } from './routes/library'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ReviewRouteImport } from './routes/review'
+import { Route as ConceptsConceptIdRouteImport } from './routes/concepts.$conceptId'
 import { Route as LearningSpacesIndexRouteImport } from './routes/learning-spaces/index'
 import { Route as LearningSpacesLearningSpaceIdRouteImport } from './routes/learning-spaces.$learningSpaceId'
 import { Route as MaterialMaterialIdRouteImport } from './routes/material.$materialId'
@@ -55,6 +56,11 @@ const ReviewRoute = ReviewRouteImport.update({
   path: '/review',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ConceptsConceptIdRoute = ConceptsConceptIdRouteImport.update({
+  id: '/concepts/$conceptId',
+  path: '/concepts/$conceptId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LearningSpacesIndexRoute = LearningSpacesIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -80,6 +86,7 @@ export interface FileRoutesByFullPath {
   '/library': typeof LibraryRoute
   '/privacy': typeof PrivacyRoute
   '/review': typeof ReviewRoute
+  '/concepts/$conceptId': typeof ConceptsConceptIdRoute
   '/learning-spaces/$learningSpaceId': typeof LearningSpacesLearningSpaceIdRoute
   '/material/$materialId': typeof MaterialMaterialIdRoute
   '/learning-spaces/': typeof LearningSpacesIndexRoute
@@ -91,6 +98,7 @@ export interface FileRoutesByTo {
   '/library': typeof LibraryRoute
   '/privacy': typeof PrivacyRoute
   '/review': typeof ReviewRoute
+  '/concepts/$conceptId': typeof ConceptsConceptIdRoute
   '/learning-spaces/$learningSpaceId': typeof LearningSpacesLearningSpaceIdRoute
   '/material/$materialId': typeof MaterialMaterialIdRoute
   '/learning-spaces': typeof LearningSpacesIndexRoute
@@ -104,6 +112,7 @@ export interface FileRoutesById {
   '/library': typeof LibraryRoute
   '/privacy': typeof PrivacyRoute
   '/review': typeof ReviewRoute
+  '/concepts/$conceptId': typeof ConceptsConceptIdRoute
   '/learning-spaces/$learningSpaceId': typeof LearningSpacesLearningSpaceIdRoute
   '/material/$materialId': typeof MaterialMaterialIdRoute
   '/learning-spaces/': typeof LearningSpacesIndexRoute
@@ -118,6 +127,7 @@ export interface FileRouteTypes {
     | '/library'
     | '/privacy'
     | '/review'
+    | '/concepts/$conceptId'
     | '/learning-spaces/$learningSpaceId'
     | '/material/$materialId'
     | '/learning-spaces/'
@@ -129,6 +139,7 @@ export interface FileRouteTypes {
     | '/library'
     | '/privacy'
     | '/review'
+    | '/concepts/$conceptId'
     | '/learning-spaces/$learningSpaceId'
     | '/material/$materialId'
     | '/learning-spaces'
@@ -141,6 +152,7 @@ export interface FileRouteTypes {
     | '/library'
     | '/privacy'
     | '/review'
+    | '/concepts/$conceptId'
     | '/learning-spaces/$learningSpaceId'
     | '/material/$materialId'
     | '/learning-spaces/'
@@ -154,6 +166,7 @@ export interface RootRouteChildren {
   LibraryRoute: typeof LibraryRoute
   PrivacyRoute: typeof PrivacyRoute
   ReviewRoute: typeof ReviewRoute
+  ConceptsConceptIdRoute: typeof ConceptsConceptIdRoute
   MaterialMaterialIdRoute: typeof MaterialMaterialIdRoute
 }
 
@@ -208,6 +221,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReviewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/concepts/$conceptId': {
+      id: '/concepts/$conceptId'
+      path: '/concepts/$conceptId'
+      fullPath: '/concepts/$conceptId'
+      preLoaderRoute: typeof ConceptsConceptIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/learning-spaces/': {
       id: '/learning-spaces/'
       path: '/'
@@ -254,6 +274,7 @@ const rootRouteChildren: RootRouteChildren = {
   LibraryRoute: LibraryRoute,
   PrivacyRoute: PrivacyRoute,
   ReviewRoute: ReviewRoute,
+  ConceptsConceptIdRoute: ConceptsConceptIdRoute,
   MaterialMaterialIdRoute: MaterialMaterialIdRoute,
 }
 export const routeTree = rootRouteImport

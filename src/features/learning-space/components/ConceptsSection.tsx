@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from '@tanstack/react-router'
 import { Lightbulb, Link2, Plus, Trash2 } from 'lucide-react'
 
 import type { Concept, Material } from '#/features/learning-space/domain/learningSpace'
@@ -100,7 +101,13 @@ export function ConceptsSection({
                     </div>
 
                     <h3 className="truncate text-sm font-semibold text-(--ink)">
-                      {concept.name}
+                      <Link
+                        to="/concepts/$conceptId"
+                        params={{ conceptId: concept.id }}
+                        className="hover:text-(--blue)"
+                      >
+                        {concept.name}
+                      </Link>
                     </h3>
                   </div>
 
