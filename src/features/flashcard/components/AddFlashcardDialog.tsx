@@ -1,5 +1,4 @@
-import { useState } from 'react'
-import { useTransition } from 'react'
+import { useState, useTransition  } from 'react'
 import { Plus } from 'lucide-react'
 
 import type { Concept, Material } from '#/features/learning-space/domain/learningSpace'
@@ -30,8 +29,8 @@ export function AddFlashcardDialog({
   onCreated,
   onClose,
 }: AddFlashcardDialogProps) {
-  const [conceptId, setConceptId] = useState(
-    flashcard?.conceptId ?? concepts[0]?.id ?? '',
+  const [conceptId, setConceptId] = useState<string>(() =>
+    flashcard?.conceptId ?? (concepts.length > 0 ? concepts[0].id : ''),
   )
   const [front, setFront] = useState(flashcard?.front ?? '')
   const [back, setBack] = useState(flashcard?.back ?? '')

@@ -64,7 +64,7 @@ export function FlashcardReviewOverlay({
 
   const total = flashcards.length
   const finished = index >= total
-  const current = flashcards[index]
+  const current: Flashcard | undefined = flashcards[index]
 
   const advance = useCallback(() => {
     setRevealed(false)
@@ -74,7 +74,7 @@ export function FlashcardReviewOverlay({
 
   const handleGrade = useCallback(
     async (grade: Grade) => {
-      if (!current || busy) {
+      if (busy || finished) {
         return
       }
 
@@ -95,7 +95,7 @@ export function FlashcardReviewOverlay({
         setBusy(false)
       }
     },
-    [current, busy, advance],
+    [current, busy, advance, finished],
   )
 
   const handleReveal = useCallback(() => {
