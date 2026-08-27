@@ -3,40 +3,13 @@ import { useRef, useState } from 'react'
 import type { BrainTrainerItem } from '#/features/brain-trainer/domain/brainTrainer'
 import { submitBrainTrainerAnswer } from '#/features/brain-trainer/application/brainTrainer'
 import type { SubmitBrainTrainerAnswerInput } from '#/features/brain-trainer/application/brainTrainer'
+import { GRADE_BUTTONS } from '#/shared/ui/gradeButtons'
 
 type BrainTrainerOverlayProps = {
   items: BrainTrainerItem[]
   onCancel: () => void
   onComplete: (summary: { answered: number; strong: number }) => void
 }
-
-const GRADE_BUTTONS: Array<{ grade: number; label: string; className: string }> =
-  [
-    {
-      grade: 0,
-      label: 'Again',
-      className:
-        'bg-red-600 text-white hover:bg-red-500 focus-visible:ring-red-400',
-    },
-    {
-      grade: 1,
-      label: 'Hard',
-      className:
-        'bg-amber-500 text-white hover:bg-amber-400 focus-visible:ring-amber-400',
-    },
-    {
-      grade: 2,
-      label: 'Good',
-      className:
-        'bg-(--blue) text-white hover:opacity-90 focus-visible:ring-(--blue)',
-    },
-    {
-      grade: 3,
-      label: 'Easy',
-      className:
-        'bg-emerald-600 text-white hover:bg-emerald-500 focus-visible:ring-emerald-400',
-    },
-  ]
 
 export function BrainTrainerOverlay({
   items,

@@ -4,6 +4,7 @@ import { CheckCircle2, Eye, X } from 'lucide-react'
 import type { Flashcard } from '#/features/flashcard/domain/flashcard'
 import type { Grade } from '#/features/review/domain/sm2'
 import { gradeFlashcard } from '#/features/flashcard/application/flashcard'
+import { GRADE_BUTTONS } from '#/shared/ui/gradeButtons'
 
 type FlashcardReviewOverlayProps = {
   flashcards: Flashcard[]
@@ -12,42 +13,6 @@ type FlashcardReviewOverlayProps = {
   title?: string
   onClose: () => void
 }
-
-const GRADE_BUTTONS: Array<{
-  grade: Grade
-  label: string
-  key: string
-  className: string
-}> = [
-  {
-    grade: 0,
-    label: 'Again',
-    key: '1',
-    className:
-      'bg-red-600 text-white hover:bg-red-500 focus-visible:ring-red-400',
-  },
-  {
-    grade: 1,
-    label: 'Hard',
-    key: '2',
-    className:
-      'bg-amber-500 text-white hover:bg-amber-400 focus-visible:ring-amber-400',
-  },
-  {
-    grade: 2,
-    label: 'Good',
-    key: '3',
-    className:
-      'bg-(--blue) text-white hover:opacity-90 focus-visible:ring-(--blue)',
-  },
-  {
-    grade: 3,
-    label: 'Easy',
-    key: '4',
-    className:
-      'bg-emerald-600 text-white hover:bg-emerald-500 focus-visible:ring-emerald-400',
-  },
-]
 
 export function FlashcardReviewOverlay({
   flashcards,
