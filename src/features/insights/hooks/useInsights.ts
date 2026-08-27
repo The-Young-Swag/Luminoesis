@@ -5,12 +5,14 @@ import {
 
 import {
   actionablePattern,
-  retentionByTopic,
+  retentionByConcept,
   sessionLengthVsPerf,
 } from '#/features/insights/domain/analytics'
 
 import { cardRepository } from '#/features/library/repositories/cardRepository'
+import { conceptRepository } from '#/features/learning-space/repositories/conceptRepository'
 import { sessionRepository } from '#/features/review/repositories/sessionRepository'
+import { reviewEventRepository } from '#/features/review/repositories/reviewEventRepository'
 
 type InsightsData = {
   cards: Awaited<
@@ -19,7 +21,7 @@ type InsightsData = {
   sessions: Awaited<
     ReturnType<typeof sessionRepository.findAll>
   >
-  retention: ReturnType<typeof retentionByTopic>
+  retention: ReturnType<typeof retentionByConcept>
   lengthPerf: ReturnType<typeof sessionLengthVsPerf>
   pattern: ReturnType<typeof actionablePattern>
 }
@@ -33,18 +35,24 @@ export function useInsights() {
 
     async function loadInsights() {
       try {
-        const [cards, sessions] =
-          await Promise.all([
-            cardRepository.findAll(),
-            sessionRepository.findAll(),
-          ])
+        const [
+          cards,
+          sessions,
+          concepts,
+          reviewEvents,
+        ] = await Promise.all([
+          cardRepository.findAll(),
+          sessionRepository.findAll(),
+          conceptRepository.findAll(),
+          reviewEventRepository.findAll(),
+        ])
 
         const nextData: InsightsData = {
           cards,
           sessions,
-          retention: retentionByTopic(
-            cards,
-            sessions,
+          retention: retentionByConcept(
+            reviewEvents,
+            concepts,
           ),
           lengthPerf:
             sessionLengthVsPerf(sessions),

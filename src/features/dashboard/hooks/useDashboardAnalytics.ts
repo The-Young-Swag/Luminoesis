@@ -2,21 +2,23 @@ import { useMemo } from 'react'
 
 import {
   actionablePattern,
-  retentionByTopic,
-  retentionPeriodComparison,
+  retentionByConcept,
+  retentionPeriodComparisonEvents,
   sessionSummaries,
 } from '#/features/insights/domain/analytics'
 import { classifyLearningState } from '#/features/learning-state/domain/classifyState'
 import { MIN_SAMPLES_FOR_BASELINE, peakWindow, zScore } from '#/features/learning-state/domain/baseline'
 
 import type { BaselineMap } from '#/features/learning-state/domain/baseline'
+import type { Concept } from '#/features/learning-space/domain/learningSpace'
+import type { ReviewEvent } from '#/features/review/domain/reviewEvent'
 import type { ReviewSession } from '#/features/review/domain/reviewSession'
 import type { SessionSignal } from '#/features/learning-state/domain/learningSignals'
 import type { Card } from '#/features/library/domain/card'
 
 export type RecentActivityItem = {
   id: string
-  cardFront: string
+  label: string
   timestamp: string
   grade: number
 }
@@ -42,6 +44,8 @@ type DashboardAnalyticsInput = {
   signals: SessionSignal[]
   baseline: BaselineMap
   hasBaseline: boolean
+  concepts: Concept[]
+  reviewEvents: ReviewEvent[]
 }
 
 const RECENT_SIGNAL_WINDOW = 12
@@ -49,7 +53,7 @@ const RECENT_ACTIVITY_LIMIT = 6
 const TOP_TOPIC_LIMIT = 6
 const RETENTION_COMPARISON_WINDOW_DAYS = 7
 const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000
-const DEFAULT_CARD_FRONT = 'Card'
+const DEFAULT_CONCEPT_LABEL = 'Concept'
 
 export function useDashboardAnalytics({
   cards,
@@ -57,6 +61,8 @@ export function useDashboardAnalytics({
   signals,
   baseline,
   hasBaseline,
+  concepts,
+  reviewEvents,
 }: DashboardAnalyticsInput) {
   const recentSignals = useMemo<RecentSignal[]>(
     () =>
@@ -97,7 +103,10 @@ export function useDashboardAnalytics({
 
   const newCards = useMemo(() => cards.filter((card) => card.repetitions === 0), [cards])
 
-  const retention = useMemo(() => retentionByTopic(cards, sessions), [cards, sessions])
+  const retention = useMemo(
+    () => retentionByConcept(reviewEvents, concepts),
+    [reviewEvents, concepts],
+  )
 
   const pattern = useMemo(() => actionablePattern(sessions, cards), [sessions, cards])
 
@@ -106,26 +115,31 @@ export function useDashboardAnalytics({
     [sessions],
   )
 
-  const recentActivity = useMemo<RecentActivityItem[]>(
-    () =>
-      [...sessions]
-        .sort((a, b) => b.timestamp.localeCompare(a.timestamp))
-        .slice(0, RECENT_ACTIVITY_LIMIT)
-        .map((session) => ({
-          id: session.id,
-          cardFront:
-            cards.find((card) => card.id === session.cardId)?.front ?? DEFAULT_CARD_FRONT,
-          timestamp: session.timestamp,
-          grade: session.grade,
-        })),
-    [sessions, cards],
-  )
+  const recentActivity = useMemo<RecentActivityItem[]>(() => {
+    const nameById = new Map(
+      concepts.map((concept) => [concept.id, concept.name]),
+    )
+
+    return [...reviewEvents]
+      .sort((a, b) => b.timestamp - a.timestamp)
+      .slice(0, RECENT_ACTIVITY_LIMIT)
+      .map((event) => ({
+        id: event.id,
+        label: nameById.get(event.conceptId) ?? DEFAULT_CONCEPT_LABEL,
+        timestamp: new Date(event.timestamp).toISOString(),
+        grade: event.grade,
+      }))
+  }, [reviewEvents, concepts])
 
   const summaries = useMemo(() => sessionSummaries(sessions), [sessions])
 
   const retentionComparison = useMemo(
-    () => retentionPeriodComparison(sessions, RETENTION_COMPARISON_WINDOW_DAYS),
-    [sessions],
+    () =>
+      retentionPeriodComparisonEvents(
+        reviewEvents,
+        RETENTION_COMPARISON_WINDOW_DAYS,
+      ),
+    [reviewEvents],
   )
 
   const studyMinutesThisWeek = useMemo(() => {
@@ -174,7 +188,7 @@ export function useDashboardAnalytics({
   const recallHint =
     retentionComparison.delta === null
       ? 'More history needed for delta'
-      : `${formatSignedPoints(retentionComparison.delta)} vs previous 7 days`
+      : `${formatSignedPoints(retentionComparison.delta)} vs last week`
 
   const calibrationProgress = useMemo(() => {
     const counts = Object.values(baseline).map((snapshot) => snapshot.sampleCount)
@@ -223,5 +237,5 @@ function computeDeviation(signal: DeviationSignal, baseline: BaselineMap): numbe
 
 function formatSignedPoints(delta: number): string {
   const points = Math.round(delta * 100)
-  return `${points >= 0 ? '+' : ''}${points} pts`
+  return `${points >= 0 ? '+' : ''}${points} points`
 }

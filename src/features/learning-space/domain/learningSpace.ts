@@ -56,6 +56,7 @@ export type Highlight = {
   id: HighlightId
   learningSpaceId: LearningSpaceId
   materialId: MaterialId
+  conceptId?: ConceptId
   text: string
   note?: string
   locator: MaterialLocator

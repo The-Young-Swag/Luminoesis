@@ -1,3 +1,7 @@
+import { History } from 'lucide-react'
+
+import { PanelHeader } from '#/features/dashboard/components/layout/PanelHeader'
+
 import type { RecentActivityItem } from '#/features/dashboard/hooks/useDashboardAnalytics'
 
 const GRADE_LABELS = [
@@ -30,15 +34,12 @@ export function RecentActivity({
 }: RecentActivityProps) {
   return (
     <div className="card-flat p-4 sm:p-5">
-      <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <h3 className="text-sm font-semibold">
-          Recent activity
-        </h3>
-
-        <span className="chip w-fit">
-          Feed
-        </span>
-      </div>
+      <PanelHeader
+        icon={<History size={14} />}
+        title="Recent activity"
+        description="Your latest review outcomes, newest first"
+        action={<span className="chip w-fit">Feed</span>}
+      />
 
       {items.length === 0 ? (
         <p className="text-sm leading-6 text-(--ink-soft)">
@@ -80,7 +81,7 @@ function ActivityRow({
 
       <div className="min-w-0 flex-1">
         <div className="wrap-break-word text-sm leading-5">
-          {item.cardFront}
+          {item.label}
         </div>
 
         <div className="mt-0.5 wrap-break-word text-xs leading-5 text-(--ink-faint)">

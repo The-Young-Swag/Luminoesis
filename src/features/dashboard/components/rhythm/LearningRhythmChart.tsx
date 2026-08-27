@@ -47,7 +47,7 @@ export function LearningRhythmChart({ data }: LearningRhythmChartProps) {
           axis: {
             ticks: {
               count: Y_TICK_COUNT,
-              format: (value) => `${Number(value).toFixed(1)}σ`,
+              format: (value) => `${Number(value).toFixed(1)}`,
             },
           },
         },
