@@ -188,7 +188,7 @@ export function useDashboardAnalytics({
   const recallHint =
     retentionComparison.delta === null
       ? 'More history needed for delta'
-      : `${formatSignedPoints(retentionComparison.delta)} vs previous 7 days`
+      : `${formatSignedPoints(retentionComparison.delta)} vs last week`
 
   const calibrationProgress = useMemo(() => {
     const counts = Object.values(baseline).map((snapshot) => snapshot.sampleCount)
@@ -237,5 +237,5 @@ function computeDeviation(signal: DeviationSignal, baseline: BaselineMap): numbe
 
 function formatSignedPoints(delta: number): string {
   const points = Math.round(delta * 100)
-  return `${points >= 0 ? '+' : ''}${points} pts`
+  return `${points >= 0 ? '+' : ''}${points} points`
 }

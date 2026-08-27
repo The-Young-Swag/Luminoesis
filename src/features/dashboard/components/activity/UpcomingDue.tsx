@@ -1,8 +1,11 @@
 import { Link } from '@tanstack/react-router'
 import {
+  CalendarClock,
   GraduationCap,
   Sparkles,
 } from 'lucide-react'
+
+import { PanelHeader } from '#/features/dashboard/components/layout/PanelHeader'
 
 import type { Card } from '#/features/library/domain/card'
 
@@ -22,15 +25,12 @@ export function UpcomingDue({
 
   return (
     <div className="card-flat flex flex-col p-4 sm:p-5">
-      <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <h3 className="text-sm font-semibold">
-          Upcoming & overdue
-        </h3>
-
-        <span className="chip w-fit">
-          Queue
-        </span>
-      </div>
+      <PanelHeader
+        icon={<CalendarClock size={14} />}
+        title="Upcoming & overdue"
+        description="Cards waiting for a review, soonest due first"
+        action={<span className="chip w-fit">Queue</span>}
+      />
 
       <div className="space-y-1">
         {visibleCards.map((card) => (

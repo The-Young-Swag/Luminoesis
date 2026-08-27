@@ -29,13 +29,14 @@ export function SnapshotStats({
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <StatCard icon={<Clock3 size={16} />} label="Study time" value={`${studyMinutesThisWeek}m`} hint="Last 7 days" />
-        <StatCard icon={<Layers size={16} />} label="Reviews" value={String(recentReviewCount)} hint="Last 7 days" />
-        <StatCard icon={<TrendingUp size={16} />} label="Recall" value={recallValue} hint={recallHint} />
+        <StatCard icon={<Layers size={16} />} label="Reviews" value={String(recentReviewCount)} hint="Last 7 days" to="/review" />
+        <StatCard icon={<TrendingUp size={16} />} label="Recall" value={recallValue} hint={recallHint} to="/insights" />
         <StatCard
           icon={<Activity size={16} />}
           label="Due"
           value={String(dueTodayCount)}
           hint={dueTodayCount > 0 ? gainFrameDue(dueTodayCount) : 'Nothing waiting'}
+          to="/review"
         />
       </div>
     </section>
