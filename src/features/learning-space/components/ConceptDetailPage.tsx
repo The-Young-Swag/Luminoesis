@@ -12,7 +12,7 @@ export function ConceptDetailPage({ conceptId }: ConceptDetailPageProps) {
 
   if (!ready) {
     return (
-      <main className="mx-auto w-full max-w-5xl px-4 py-16 text-center text-(--ink-soft)">
+      <main className="mx-auto w-full max-w-5xl px-4 py-20 text-center text-(--ink-soft)">
         Loading concept…
       </main>
     )
@@ -20,9 +20,9 @@ export function ConceptDetailPage({ conceptId }: ConceptDetailPageProps) {
 
   if (!concept) {
     return (
-      <main className="mx-auto w-full max-w-5xl px-4 py-16 text-center text-(--ink-soft)">
+      <main className="mx-auto w-full max-w-5xl px-4 py-20 text-center text-(--ink-soft)">
         <p>This concept could not be found.</p>
-        <Link to="/learning-spaces" className="link mt-3 inline-block">
+        <Link to="/learning-spaces" className="link mt-4 inline-block">
           Back to Learning Spaces
         </Link>
       </main>
@@ -34,8 +34,8 @@ export function ConceptDetailPage({ conceptId }: ConceptDetailPageProps) {
   )
 
   return (
-    <main className="mx-auto w-full max-w-5xl px-4 py-8">
-      <nav className="flex flex-wrap items-center gap-2 text-sm text-(--ink-soft)">
+    <main className="mx-auto w-full max-w-5xl px-4 py-12 lg:py-16">
+      <nav className="flex flex-wrap items-center gap-2.5 text-sm text-(--ink-soft)">
         <Link to="/learning-spaces" className="link">
           Learning Spaces
         </Link>
@@ -51,10 +51,10 @@ export function ConceptDetailPage({ conceptId }: ConceptDetailPageProps) {
         )}
       </nav>
 
-      <header className="mt-4">
-        <h1 className="display text-3xl text-(--ink)">{concept.name}</h1>
+      <header className="mt-6">
+        <h1 className="display text-4xl text-(--ink)">{concept.name}</h1>
         {concept.description && (
-          <p className="mt-2 max-w-2xl leading-7 text-(--ink-soft)">
+          <p className="mt-3 max-w-2xl text-[17px] leading-relaxed text-(--ink-soft)">
             {concept.description}
           </p>
         )}
@@ -64,7 +64,7 @@ export function ConceptDetailPage({ conceptId }: ConceptDetailPageProps) {
         {linkedMaterials.length === 0 ? (
           <Empty>No linked materials yet.</Empty>
         ) : (
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2.5">
             {linkedMaterials.map((material) => (
               <Link
                 key={material.id}
@@ -83,9 +83,9 @@ export function ConceptDetailPage({ conceptId }: ConceptDetailPageProps) {
         {highlights.length === 0 ? (
           <Empty>No highlights linked to this concept yet.</Empty>
         ) : (
-          <ul className="space-y-2">
+          <ul className="space-y-3">
             {highlights.map((highlight) => (
-              <li key={highlight.id} className="card-flat p-4 text-sm leading-6 text-(--ink)">
+              <li key={highlight.id} className="card-flat p-5 text-sm leading-relaxed text-(--ink)">
                 {highlight.text}
               </li>
             ))}
@@ -97,11 +97,11 @@ export function ConceptDetailPage({ conceptId }: ConceptDetailPageProps) {
         {flashcards.length === 0 ? (
           <Empty>No flashcards for this concept yet.</Empty>
         ) : (
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2">
             {flashcards.map((flashcard) => (
-              <div key={flashcard.id} className="card-flat p-4">
+              <div key={flashcard.id} className="card-flat p-5">
                 <p className="text-sm font-medium text-(--ink)">{flashcard.front}</p>
-                <p className="mt-2 text-sm leading-6 text-(--ink-soft)">
+                <p className="mt-2.5 text-sm leading-relaxed text-(--ink-soft)">
                   {flashcard.back}
                 </p>
               </div>
@@ -114,9 +114,9 @@ export function ConceptDetailPage({ conceptId }: ConceptDetailPageProps) {
         {questions.length === 0 ? (
           <Empty>No quiz questions for this concept yet.</Empty>
         ) : (
-          <ul className="space-y-2">
+          <ul className="space-y-3">
             {questions.map((question) => (
-              <li key={question.id} className="card-flat p-4 text-sm leading-6 text-(--ink)">
+              <li key={question.id} className="card-flat p-5 text-sm leading-relaxed text-(--ink)">
                 {question.prompt}
               </li>
             ))}
@@ -124,7 +124,7 @@ export function ConceptDetailPage({ conceptId }: ConceptDetailPageProps) {
         )}
       </Section>
 
-      <div className="mt-8">
+      <div className="mt-12">
         <Link to="/review" className="btn-primary">
           Train this concept
         </Link>
@@ -143,8 +143,8 @@ function Section({
   children: React.ReactNode
 }) {
   return (
-    <section className="mt-10">
-      <div className="mb-3 flex items-baseline gap-2">
+    <section className="mt-12">
+      <div className="mb-4 flex items-baseline gap-2.5">
         <h2 className="display text-xl text-(--ink)">{title}</h2>
         <span className="text-sm text-(--ink-soft)">{count}</span>
       </div>
@@ -155,7 +155,7 @@ function Section({
 
 function Empty({ children }: { children: React.ReactNode }) {
   return (
-    <p className="rounded-xl border border-dashed border-(--line) px-4 py-6 text-center text-sm text-(--ink-soft)">
+    <p className="rounded-2xl border border-dashed border-(--line) px-5 py-8 text-center text-sm text-(--ink-soft)">
       {children}
     </p>
   )

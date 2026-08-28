@@ -80,24 +80,24 @@ export function AddConceptDialog({
       onClick={onClose}
     >
       <div
-        className="glass-surface glass-specular rise max-h-[90vh] w-full max-w-lg overflow-auto rounded-[20px] p-6"
+        className="glass-surface glass-specular rise max-h-[90vh] w-full max-w-xl overflow-auto rounded-[22px] p-8"
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="flex items-start gap-3">
-          <span className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-full bg-(--ink) text-(--surface)">
-            <Lightbulb size={16} aria-hidden="true" />
+        <div className="flex items-start gap-4">
+          <span className="mt-0.5 grid h-10 w-10 shrink-0 place-items-center rounded-full bg-(--ink) text-(--surface)">
+            <Lightbulb size={17} aria-hidden="true" />
           </span>
 
           <div>
-            <h3 className="text-[17px] font-semibold">Add concept</h3>
+            <h3 className="text-lg font-semibold">Add concept</h3>
 
-            <p className="mt-1 text-sm text-(--ink-soft)">
+            <p className="mt-1.5 text-sm text-(--ink-soft)">
               Capture a key idea from this Learning Space.
             </p>
           </div>
         </div>
 
-        <div className="mt-5 grid gap-4">
+        <div className="mt-7 grid gap-5">
           <label className="text-sm">
             <span className="font-medium">Name</span>
 
@@ -108,7 +108,7 @@ export function AddConceptDialog({
                 setError(null)
               }}
               autoFocus
-              className="mt-1.5 w-full rounded-full border border-(--line) bg-(--surface) px-3.5 py-2.5 text-sm outline-none focus:border-(--blue) focus:ring-2 focus:ring-(--blue)/20"
+              className="mt-2 w-full rounded-full border border-(--line) bg-(--surface) px-4 py-3 text-sm outline-none focus:border-(--blue) focus:ring-2 focus:ring-(--blue)/20"
               placeholder="e.g. Cardiac output"
             />
           </label>
@@ -126,7 +126,7 @@ export function AddConceptDialog({
               value={description}
               onChange={(event) => setDescription(event.target.value)}
               rows={3}
-              className="mt-1.5 w-full rounded-xl border border-(--line) bg-(--surface) p-3 text-[15px] outline-none focus:border-(--blue) focus:ring-2 focus:ring-(--blue)/20"
+              className="mt-2 w-full rounded-xl border border-(--line) bg-(--surface) p-4 text-[15px] leading-relaxed outline-none focus:border-(--blue) focus:ring-2 focus:ring-(--blue)/20"
               placeholder="What does this concept mean?"
             />
           </label>
@@ -141,14 +141,14 @@ export function AddConceptDialog({
             </span>
 
             {canLinkMaterials ? (
-              <div className="mt-1.5 max-h-44 space-y-1 overflow-y-auto rounded-xl border border-(--line) p-2">
+              <div className="mt-2 max-h-48 space-y-1 overflow-y-auto rounded-xl border border-(--line) p-2.5">
                 {materials.map((material) => {
                   const checked = selectedMaterials.has(material.id)
 
                   return (
                     <label
                       key={material.id}
-                      className="flex cursor-pointer items-center gap-3 rounded-md px-2 py-1.5 transition hover:bg-(--surface-muted)"
+                      className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 transition hover:bg-(--surface-muted)"
                     >
                       <input
                         type="checkbox"
@@ -165,7 +165,7 @@ export function AddConceptDialog({
                 })}
               </div>
             ) : (
-              <p className="mt-1.5 rounded-xl border border-(--line) px-3 py-3 text-sm text-(--ink-soft)">
+              <p className="mt-2 rounded-xl border border-(--line) px-4 py-4 text-sm text-(--ink-soft)">
                 Add material first to link this concept to its sources.
               </p>
             )}
@@ -173,12 +173,12 @@ export function AddConceptDialog({
         </div>
 
         {error && (
-          <p className="mt-4 text-sm text-red-600 dark:text-red-400">
+          <p className="mt-5 text-sm text-red-600 dark:text-red-400">
             {error}
           </p>
         )}
 
-        <div className="mt-6 flex justify-end gap-2">
+        <div className="mt-8 flex justify-end gap-3">
           <button
             type="button"
             onClick={onClose}

@@ -101,7 +101,7 @@ export function AddMaterialDialog({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-(--scrim) p-4"
+      className="glass-scrim fixed inset-0 z-50 flex items-center justify-center p-4"
       role="presentation"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) {
@@ -110,12 +110,12 @@ export function AddMaterialDialog({
       }}
     >
       <div
-        className="w-full max-w-lg rounded-2xl border border-(--line) bg-(--surface) p-6 shadow-2xl"
+        className="glass-surface glass-specular rise w-full max-w-xl rounded-[22px] p-8"
         role="dialog"
         aria-modal="true"
         aria-labelledby="add-material-title"
       >
-        <div className="mb-6 flex items-start justify-between gap-4">
+        <div className="mb-7 flex items-start justify-between gap-4">
           <div>
             <h2
               id="add-material-title"
@@ -124,7 +124,7 @@ export function AddMaterialDialog({
               Add material
             </h2>
 
-            <p className="mt-1 text-sm text-(--ink-faint)">
+            <p className="mt-1.5 text-sm text-(--ink-faint)">
               Add a file to this Learning Space.
             </p>
           </div>
@@ -140,11 +140,11 @@ export function AddMaterialDialog({
         </div>
 
         <label
-          className="flex cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-(--line-strong) px-6 py-10 text-center transition hover:border-(--ink-faint)"
+          className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-(--line-strong) px-8 py-14 text-center transition hover:border-(--ink-faint)"
         >
           <Upload
-            size={24}
-            className="mb-3 text-(--ink-faint)"
+            size={26}
+            className="mb-4 text-(--ink-faint)"
             aria-hidden="true"
           />
 
@@ -152,7 +152,7 @@ export function AddMaterialDialog({
             {file ? file.name : 'Choose a file'}
           </span>
 
-          <span className="mt-1 text-xs text-(--ink-faint)">
+          <span className="mt-1.5 text-xs text-(--ink-faint)">
             PDF, image, PPTX, TXT, or Markdown
           </span>
 
@@ -169,12 +169,12 @@ export function AddMaterialDialog({
         </label>
 
         {error && (
-          <p className="mt-3 text-sm text-(--destructive)">
+          <p className="mt-4 text-sm text-destructive">
             {error}
           </p>
         )}
 
-        <div className="mt-6 flex justify-end gap-3">
+        <div className="mt-8 flex justify-end gap-3">
           <button
             type="button"
             onClick={onClose}
