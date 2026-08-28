@@ -27,38 +27,18 @@ type SelectionBubbleProps = {
   onDismiss: () => void
 }
 
-const ACTIONS = [
-  {
-    key: 'ask',
-    label: 'Ask Tutor',
-    icon: MessageCircle,
-    run: 'onAskTutor',
-  },
-  {
-    key: 'highlight',
-    label: 'Highlight',
-    icon: Highlighter,
-    run: 'onCreateHighlight',
-  },
-  {
-    key: 'concept',
-    label: 'Concept',
-    icon: Lightbulb,
-    run: 'onCreateConcept',
-  },
-  {
-    key: 'flashcard',
-    label: 'Flashcard',
-    icon: NotebookPen,
-    run: 'onCreateFlashcard',
-  },
-  {
-    key: 'quiz',
-    label: 'Quiz',
-    icon: HelpCircle,
-    run: 'onCreateQuiz',
-  },
+const PRIMARY_ACTIONS = [
+  { key: 'ask', label: 'Ask Tutor', icon: MessageCircle, run: 'onAskTutor' },
+  { key: 'highlight', label: 'Highlight', icon: Highlighter, run: 'onCreateHighlight' },
+  { key: 'concept', label: 'Concept', icon: Lightbulb, run: 'onCreateConcept' },
 ] as const
+
+const SECONDARY_ACTIONS = [
+  { key: 'flashcard', label: 'Flashcard', icon: NotebookPen, run: 'onCreateFlashcard' },
+  { key: 'quiz', label: 'Quiz', icon: HelpCircle, run: 'onCreateQuiz' },
+] as const
+
+const EDGE_MARGIN = 150
 
 export function SelectionBubble({
   selection,
@@ -85,10 +65,10 @@ export function SelectionBubble({
     return () => document.removeEventListener('mousedown', onPointerDown)
   }, [onDismiss])
 
-  const above = rect.top > 64
+  const above = rect.top > 76
   const left = Math.min(
-    Math.max(rect.left + rect.width / 2, 130),
-    (typeof window !== 'undefined' ? window.innerWidth : 1024) - 130,
+    Math.max(rect.left + rect.width / 2, EDGE_MARGIN),
+    (typeof window !== 'undefined' ? window.innerWidth : 1024) - EDGE_MARGIN,
   )
 
   const style: React.CSSProperties = {
@@ -96,8 +76,8 @@ export function SelectionBubble({
     top: above ? rect.top : rect.bottom,
     left,
     transform: above
-      ? 'translate(-50%, calc(-100% - 8px))'
-      : 'translate(-50%, 8px)',
+      ? 'translate(-50%, calc(-100% - 12px))'
+      : 'translate(-50%, 12px)',
     zIndex: 60,
   }
 
@@ -114,11 +94,34 @@ export function SelectionBubble({
       ref={ref}
       role="toolbar"
       aria-label="Selection actions"
-      className="flex items-center gap-0.5 rounded-full border border-(--line) bg-(--surface) p-1 shadow-2xl"
+      className="rise flex items-center gap-1 rounded-2xl border border-(--glass-border) bg-(--glass-bg-strong) p-1.5 shadow-2xl backdrop-blur-xl"
       style={style}
       onMouseDown={(event) => event.preventDefault()}
     >
-      {ACTIONS.map((action) => {
+      {PRIMARY_ACTIONS.map((action, index) => {
+        const Icon = action.icon
+        const isPrimary = index === 0
+
+        return (
+          <button
+            key={action.key}
+            type="button"
+            onClick={() => handlers[action.run](text)}
+            className={
+              isPrimary
+                ? 'flex items-center gap-2 rounded-xl px-3.5 py-2.5 text-[13px] font-medium text-(--blue) transition hover:bg-(--blue)/12'
+                : 'flex items-center gap-2 rounded-xl px-3.5 py-2.5 text-[13px] font-medium text-(--ink-soft) transition hover:bg-(--surface-muted) hover:text-(--ink)'
+            }
+          >
+            <Icon size={16} aria-hidden="true" />
+            {action.label}
+          </button>
+        )
+      })}
+
+      <div className="mx-1 h-5 w-px shrink-0 bg-(--glass-border)" aria-hidden="true" />
+
+      {SECONDARY_ACTIONS.map((action) => {
         const Icon = action.icon
 
         return (
@@ -126,9 +129,9 @@ export function SelectionBubble({
             key={action.key}
             type="button"
             onClick={() => handlers[action.run](text)}
-            className="flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-xs font-medium text-(--ink-soft) transition hover:bg-(--surface-muted) hover:text-(--ink)"
+            className="flex items-center gap-2 rounded-xl px-3.5 py-2.5 text-[13px] font-medium text-(--ink-soft) transition hover:bg-(--surface-muted) hover:text-(--ink)"
           >
-            <Icon size={14} aria-hidden="true" />
+            <Icon size={16} aria-hidden="true" />
             {action.label}
           </button>
         )
