@@ -24,10 +24,12 @@ export type TutorPanelHandle = {
 type TutorPanelProps = {
   materialTitle: string
   context?: string
+  /** Optional control (e.g. a collapse button) rendered in the header, next to the Preview chip. */
+  headerAction?: React.ReactNode
 }
 
 export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
-  function TutorPanelImpl({ materialTitle, context }, ref) {
+  function TutorPanelImpl({ materialTitle, context, headerAction }, ref) {
     const [messages, setMessages] = useState<TutorMessage[]>(() => [
       {
         id: 'intro',
@@ -84,7 +86,11 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
               Ask Tutor
             </p>
           </div>
-          <span className="chip">Preview</span>
+
+          <div className="flex shrink-0 items-center gap-2">
+            <span className="chip">Preview</span>
+            {headerAction}
+          </div>
         </header>
 
         <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 pb-4">
@@ -131,27 +137,25 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
 function TutorMessageBubble({ message }: { message: TutorMessage }) {
   const isUser = message.role === 'user'
 
-  return (
-    <div className={cx('flex items-end gap-2', isUser ? 'justify-end' : 'justify-start')}>
-      {!isUser && (
-        <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-(--surface-muted) text-(--blue)">
-          <Sparkles size={12} aria-hidden="true" />
-        </span>
-      )}
+  if (isUser) {
+    return (
+      <div className="flex justify-end">
+        <p className="max-w-[85%] rounded-2xl rounded-br-md bg-(--blue) px-4 py-2.5 text-[13.5px] leading-relaxed text-white">
+          {message.text}
+        </p>
+      </div>
+    )
+  }
 
-      <p
-        className={
-          isUser
-            ? 'max-w-[85%] rounded-2xl rounded-br-md bg-(--blue) px-4 py-2.5 text-[13.5px] leading-relaxed text-white'
-            : 'max-w-[92%] rounded-2xl rounded-bl-md bg-(--surface-muted) px-4 py-2.5 text-[13.5px] leading-relaxed text-(--ink)'
-        }
-      >
+  return (
+    <div className="flex items-start gap-2.5">
+      <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-(--surface-muted) text-(--blue)">
+        <Sparkles size={12} aria-hidden="true" />
+      </span>
+
+      <p className="max-w-[92%] pt-0.5 text-[13.5px] leading-relaxed text-(--ink-soft)">
         {message.text}
       </p>
     </div>
   )
-}
-
-function cx(...classes: Array<string | false | undefined>): string {
-  return classes.filter(Boolean).join(' ')
 }

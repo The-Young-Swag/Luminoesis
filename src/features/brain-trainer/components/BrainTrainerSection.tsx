@@ -1,8 +1,11 @@
 import { useMemo, useState } from 'react'
+import { Zap } from 'lucide-react'
 
 import type { Concept } from '#/features/learning-space/domain/learningSpace'
 import { useBrainTrainer } from '#/features/brain-trainer/hooks/useBrainTrainer'
 import { BrainTrainerOverlay } from '#/features/brain-trainer/components/BrainTrainerOverlay'
+import { SectionHeader } from '#/shared/components/ui/SectionHeader'
+import { EmptyState } from '#/shared/components/ui/EmptyState'
 
 type BrainTrainerSectionProps = {
   concepts: Concept[]
@@ -11,10 +14,7 @@ type BrainTrainerSectionProps = {
 type Phase = 'idle' | 'running' | 'done'
 
 export function BrainTrainerSection({ concepts }: BrainTrainerSectionProps) {
-  const conceptIds = useMemo(
-    () => concepts.map((concept) => concept.id),
-    [concepts],
-  )
+  const conceptIds = useMemo(() => concepts.map((concept) => concept.id), [concepts])
   const { items } = useBrainTrainer(conceptIds)
 
   const [phase, setPhase] = useState<Phase>('idle')
@@ -37,39 +37,50 @@ export function BrainTrainerSection({ concepts }: BrainTrainerSectionProps) {
   }
 
   return (
-    <section className="card-flat mt-8 p-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-lg font-semibold text-(--ink)">Brain Trainer</h2>
-          <p className="mt-1 text-sm text-(--ink-soft)">
-            A mixed recall drill of due flashcards and quiz questions across this
-            space.
+    <section id="brain-trainer" className="scroll-mt-24">
+      <SectionHeader
+        icon={Zap}
+        title="Brain Trainer"
+        description="A mixed recall drill of due flashcards and quiz questions across this space."
+        action={
+          <button
+            type="button"
+            onClick={start}
+            disabled={items.length === 0}
+            className="btn-primary disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Start drill
+          </button>
+        }
+      />
+
+      {items.length === 0 ? (
+        <EmptyState
+          icon={Zap}
+          title="Nothing to drill yet"
+          description="Once you have due flashcards or quiz questions, they'll show up here as a mixed recall drill."
+        />
+      ) : phase === 'done' ? (
+        <div className="card-flat p-6">
+          <p className="text-sm leading-6 text-(--ink-soft)">
+            Drill complete —{' '}
+            <span className="font-medium text-(--ink)">
+              {summary.strong}/{summary.answered}
+            </span>{' '}
+            answered with confidence. Reinforcing {conceptIds.length} concept
+            {conceptIds.length === 1 ? '' : 's'}.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={start}
-          disabled={items.length === 0}
-          className="btn-primary px-4 py-2"
-        >
-          Start drill
-        </button>
-      </div>
-
-      {phase === 'done' ? (
-        <p className="mt-4 text-sm text-(--ink-soft)">
-          Drill complete — {summary.strong}/{summary.answered} answered with
-          confidence. Reinforcing {conceptIds.length} concept
-          {conceptIds.length === 1 ? '' : 's'}.
-        </p>
-      ) : null}
+      ) : (
+        <div className="card-flat p-6">
+          <p className="text-sm leading-6 text-(--ink-soft)">
+            {items.length} item{items.length === 1 ? '' : 's'} ready for a quick recall pass.
+          </p>
+        </div>
+      )}
 
       {phase === 'running' ? (
-        <BrainTrainerOverlay
-          items={items}
-          onCancel={reset}
-          onComplete={complete}
-        />
+        <BrainTrainerOverlay items={items} onCancel={reset} onComplete={complete} />
       ) : null}
     </section>
   )

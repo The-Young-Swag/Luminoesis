@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from 'react'
+import { ClipboardCheck, ClipboardList, Plus, Trash2 } from 'lucide-react'
 
 import type { Concept } from '#/features/learning-space/domain/learningSpace'
 import { useQuestions } from '#/features/quiz/hooks/useQuestions'
@@ -9,6 +10,8 @@ import type {
   SubmitQuizResult,
 } from '#/features/quiz/application/quiz'
 import { deleteQuestion } from '#/features/quiz/application/question'
+import { SectionHeader } from '#/shared/components/ui/SectionHeader'
+import { EmptyState } from '#/shared/components/ui/EmptyState'
 import { QuizSetupDialog } from '#/features/quiz/components/QuizSetupDialog'
 import { QuizRunner } from '#/features/quiz/components/QuizRunner'
 import { QuizResults } from '#/features/quiz/components/QuizResults'
@@ -22,10 +25,7 @@ type QuizSectionProps = {
 type Phase = 'idle' | 'setup' | 'running' | 'results'
 
 export function QuizSection({ learningSpaceId, concepts }: QuizSectionProps) {
-  const conceptIds = useMemo(
-    () => concepts.map((concept) => concept.id),
-    [concepts],
-  )
+  const conceptIds = useMemo(() => concepts.map((concept) => concept.id), [concepts])
   const { questions } = useQuestions(conceptIds)
   const { attempts } = useQuizAttempts(learningSpaceId)
 
@@ -75,99 +75,126 @@ export function QuizSection({ learningSpaceId, concepts }: QuizSectionProps) {
     setResult(null)
   }
 
+  const hasConcepts = concepts.length > 0
   const hasQuestions = questions.length > 0
 
   return (
-    <section className="card-flat mt-8 p-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-lg font-semibold text-(--ink)">Practice</h2>
-          <p className="mt-1 text-sm text-(--ink-soft)">
-            {hasQuestions
-              ? `${questions.length} question${questions.length === 1 ? '' : 's'} in this space.`
-              : 'Add questions to concepts to start practicing.'}
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={startSetup}
-          disabled={concepts.length === 0 || !hasQuestions}
-          className="btn-primary px-4 py-2"
-        >
-          Start quiz
-        </button>
-      </div>
-
-      {attempts.length > 0 ? (
-        <ul className="mt-4 divide-y divide-(--line)">
-          {attempts.slice(0, 5).map((attempt) => (
-            <li
-              key={attempt.id}
-              className="flex items-center justify-between py-2 text-sm"
-            >
-              <span className="text-(--ink-soft)">
-                {new Date(attempt.completedAt).toLocaleDateString()}
-              </span>
-              <span className="font-medium text-(--ink)">
-                {attempt.correctCount}/{attempt.totalQuestions}
-              </span>
-            </li>
-          ))}
-        </ul>
-      ) : null}
-
-      <div className="mt-6">
-        <div className="flex items-center justify-between">
-          <h3 className="kicker text-(--ink-faint)">Questions</h3>
+    <section id="practice" className="scroll-mt-24">
+      <SectionHeader
+        icon={ClipboardCheck}
+        title="Practice"
+        description={
+          hasQuestions
+            ? `${questions.length} question${questions.length === 1 ? '' : 's'} in this space.`
+            : 'Add questions to concepts to start practicing.'
+        }
+        action={
           <button
             type="button"
-            onClick={() => setShowAddQuestion(true)}
-            disabled={concepts.length === 0}
-            className="btn-ghost px-3 py-1 text-sm"
+            onClick={startSetup}
+            disabled={!hasConcepts || !hasQuestions}
+            className="btn-primary disabled:cursor-not-allowed disabled:opacity-50"
           >
-            Add question
+            Start quiz
           </button>
-        </div>
+        }
+      />
 
-        {questions.length > 0 ? (
-          <ul className="mt-3 space-y-2">
-            {questions.map((question) => (
-              <li
-                key={question.id}
-                className="card-flat flex items-center justify-between p-3"
-              >
-                <div className="min-w-0">
-                  <p className="truncate text-sm text-(--ink)">
-                    {question.prompt}
-                  </p>
-                  <span className="chip mt-1">
-                    {conceptTitleById.get(question.conceptId) ?? 'Concept'}
-                  </span>
-                </div>
+      {!hasConcepts ? (
+        <EmptyState
+          icon={ClipboardList}
+          title="Concepts come first"
+          description="Practice questions are tied to concepts. Add a concept to this Learning Space before writing questions."
+        />
+      ) : (
+        <>
+          {attempts.length > 0 && (
+            <div className="card-flat mb-6 p-6">
+              <h3 className="mono-label text-(--ink-faint)">Recent attempts</h3>
+
+              <ul className="mt-4 divide-y divide-(--line)">
+                {attempts.slice(0, 5).map((attempt) => (
+                  <li
+                    key={attempt.id}
+                    className="flex items-center justify-between py-3 text-sm first:pt-0 last:pb-0"
+                  >
+                    <span className="text-(--ink-soft)">
+                      {new Date(attempt.completedAt).toLocaleDateString()}
+                    </span>
+                    <span className="font-medium text-(--ink)">
+                      {attempt.correctCount}/{attempt.totalQuestions}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          <div className="mb-4 flex items-center justify-between gap-4">
+            <h3 className="mono-label text-(--ink-faint)">Questions</h3>
+
+            <button
+              type="button"
+              onClick={() => setShowAddQuestion(true)}
+              className="btn-ghost inline-flex items-center gap-2"
+            >
+              <Plus size={16} aria-hidden="true" />
+              Add question
+            </button>
+          </div>
+
+          {questions.length > 0 ? (
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {questions.map((question) => (
+                <article
+                  key={question.id}
+                  className="card-flat group flex flex-col p-6 transition hover:-translate-y-0.5 hover:border-(--blue)/30"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <p className="line-clamp-3 text-sm leading-6 text-(--ink)">
+                      {question.prompt}
+                    </p>
+
+                    <button
+                      type="button"
+                      onClick={() => deleteQuestion(question.id)}
+                      aria-label="Delete question"
+                      className="shrink-0 rounded-lg p-1.5 text-(--ink-faint) opacity-0 transition group-hover:opacity-100 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/40"
+                    >
+                      <Trash2 size={14} aria-hidden="true" />
+                    </button>
+                  </div>
+
+                  <div className="mt-4 flex-1 border-t border-(--line) pt-4">
+                    <span className="chip">
+                      {conceptTitleById.get(question.conceptId) ?? 'Concept'}
+                    </span>
+                  </div>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <EmptyState
+              icon={ClipboardList}
+              title="No questions yet"
+              description="Write a few questions for your concepts, then start a quiz to test your recall."
+              action={
                 <button
                   type="button"
-                  onClick={() => deleteQuestion(question.id)}
-                  className="btn-ghost px-2 py-1 text-sm"
-                  aria-label="Delete question"
+                  onClick={() => setShowAddQuestion(true)}
+                  className="btn-primary"
                 >
-                  Delete
+                  <Plus size={16} aria-hidden="true" />
+                  Add question
                 </button>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="mt-3 text-sm text-(--ink-soft)">
-            No questions yet.
-          </p>
-        )}
-      </div>
+              }
+            />
+          )}
+        </>
+      )}
 
       {phase === 'setup' ? (
-        <QuizSetupDialog
-          concepts={concepts}
-          onStart={beginQuiz}
-          onClose={reset}
-        />
+        <QuizSetupDialog concepts={concepts} onStart={beginQuiz} onClose={reset} />
       ) : null}
 
       {phase === 'running' && session.length > 0 ? (
@@ -180,11 +207,7 @@ export function QuizSection({ learningSpaceId, concepts }: QuizSectionProps) {
       ) : null}
 
       {phase === 'results' && result ? (
-        <QuizResults
-          result={result}
-          conceptTitleById={conceptTitleById}
-          onClose={reset}
-        />
+        <QuizResults result={result} conceptTitleById={conceptTitleById} onClose={reset} />
       ) : null}
 
       {showAddQuestion ? (
