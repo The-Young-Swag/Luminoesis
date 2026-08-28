@@ -373,7 +373,7 @@ export function MaterialViewerPage({ materialId }: { materialId: string }) {
       />
 
       <div
-        className="grid overflow-hidden rounded-3xl border border-(--line) bg-(--surface) shadow-sm transition-[grid-template-columns] duration-300 ease-out lg:h-[calc(100vh-13rem)] lg:min-h-160 lg:grid-cols-[var(--rail-w)_minmax(0,1fr)_var(--panel-w)]"
+        className="relative grid overflow-hidden rounded-2xl border border-(--line)/70 bg-(--surface)/70 shadow-[0_24px_60px_-32px_rgba(15,23,42,0.25)] backdrop-blur-2xl backdrop-saturate-150 transition-[grid-template-columns] duration-300 ease-out lg:h-[calc(100vh-13rem)] lg:min-h-160 lg:grid-cols-[var(--rail-w)_minmax(0,1fr)_var(--panel-w)]"
         style={
           {
             '--rail-w': leftCollapsed ? '56px' : '260px',
@@ -387,8 +387,8 @@ export function MaterialViewerPage({ materialId }: { materialId: string }) {
           onToggleCollapsed={() => setLeftCollapsed(!leftCollapsed)}
         />
 
-        <section className="relative min-h-0 overflow-y-auto border-t border-(--line) lg:border-t-0 lg:border-x">
-          <div className="mx-auto max-w-180 px-6 py-10 sm:px-10 lg:px-14 lg:py-14">
+        <section className="relative min-h-0 overflow-y-auto border-t border-(--line)/70 bg-(--surface)/92 lg:border-t-0 lg:border-x">
+        <div className="mx-auto max-w-180 p-4 lg:p-6">
             {paneMode === 'read' && (
               <ReadPane
                 readerRef={readerRef}
@@ -424,7 +424,7 @@ export function MaterialViewerPage({ materialId }: { materialId: string }) {
           )}
         </section>
 
-        <aside className="flex min-h-0 flex-col border-t border-(--line) lg:border-t-0">
+        <aside className="flex min-h-0 flex-col border-t border-(--line)/70 lg:border-t-0">
           {rightCollapsed ? (
             <CollapsedEdge
               label="Tutor & Concepts"
@@ -433,17 +433,22 @@ export function MaterialViewerPage({ materialId }: { materialId: string }) {
             />
           ) : (
             <>
-              <PanelControlBar
-                onCollapse={() => setRightCollapsed(true)}
-                collapseIcon={PanelRightClose}
-                label="Hide tutor panel"
-              />
-
-              <div className="min-h-0 flex-[1.4] border-b border-(--line)">
+              <div className="min-h-0 flex-[1.4] border-b border-(--line)/70">
                 <TutorPanel
                   ref={tutorRef}
                   materialTitle={material.title}
                   context={tutorContext}
+                  headerAction={
+                    <button
+                      type="button"
+                      onClick={() => setRightCollapsed(true)}
+                      aria-label="Hide tutor panel"
+                      title="Hide tutor panel"
+                      className="-mr-1.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg text-(--ink-faint) transition hover:bg-(--surface-muted)/70 hover:text-(--ink)"
+                    >
+                      <PanelRightClose size={14} aria-hidden="true" />
+                    </button>
+                  }
                 />
               </div>
 
@@ -649,40 +654,45 @@ function WorkspaceRail({
   }
 
   return (
-    <aside className="flex flex-col overflow-y-auto">
-      <PanelControlBar
-        onCollapse={onToggleCollapsed}
-        collapseIcon={PanelLeftClose}
-        label="Hide source panel"
-      />
+    <aside className="flex flex-col gap-8 overflow-y-auto bg-(--surface)/40 px-6 py-6">
+      <div>
+        <div className="mb-3 flex items-center gap-3">
+          <button
+            type="button"
+            onClick={onToggleCollapsed}
+            aria-label="Hide source panel"
+            title="Hide source panel"
+            className="-mr-1.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg text-(--ink-faint) transition hover:bg-(--surface-muted)/70 hover:text-(--ink)"
+          >
+            <PanelLeftClose size={14} aria-hidden="true" />
+          </button>
 
-      <div className="flex flex-1 flex-col gap-8 px-6 pb-8">
-        <div>
-          <p className="mono-label mb-4 text-(--ink-faint)">Source</p>
-          <dl className="space-y-4 text-sm">
-            <div>
-              <dt className="mono-label text-[10.5px] text-(--ink-faint)">File</dt>
-              <dd className="mt-1 truncate text-(--ink)">{material.source.fileName}</dd>
-            </div>
-            <div>
-              <dt className="mono-label text-[10.5px] text-(--ink-faint)">Size</dt>
-              <dd className="mt-1 text-(--ink)">{formatBytes(material.source.sizeBytes)}</dd>
-            </div>
-            <div>
-              <dt className="mono-label text-[10.5px] text-(--ink-faint)">Added</dt>
-              <dd className="mt-1 text-(--ink)">
-                {new Date(material.createdAt).toLocaleDateString()}
-              </dd>
-            </div>
-          </dl>
+          <span className="h-4 w-px bg-(--ink-faint)/30" aria-hidden="true" />
+
+          <p className="mono-label text-(--ink-faint)">Source</p>
         </div>
 
-        <div>
-          <p className="mono-label mb-4 text-(--ink-faint)">Contents</p>
-          <p className="text-sm leading-relaxed text-(--ink-faint)">
-            Sections aren't extracted for this material yet.
-          </p>
-        </div>
+        <dl className="divide-y divide-(--line)/70 text-sm">
+          <div className="flex items-center justify-between gap-4 py-3 first:pt-0">
+            <dt className="text-(--ink-faint)">File</dt>
+            <dd className="truncate text-right text-(--ink)">{material.source.fileName}</dd>
+          </div>
+          <div className="flex items-center justify-between gap-4 py-3">
+            <dt className="text-(--ink-faint)">Size</dt>
+            <dd className="text-(--ink)">{formatBytes(material.source.sizeBytes)}</dd>
+          </div>
+          <div className="flex items-center justify-between gap-4 py-3 last:pb-0">
+            <dt className="text-(--ink-faint)">Added</dt>
+            <dd className="text-(--ink)">{new Date(material.createdAt).toLocaleDateString()}</dd>
+          </div>
+        </dl>
+      </div>
+
+      <div>
+        <p className="mono-label mb-3 text-(--ink-faint)">Contents</p>
+        <p className="text-sm leading-relaxed text-(--ink-faint)">
+          Sections aren't extracted for this material yet.
+        </p>
       </div>
     </aside>
   )
@@ -691,31 +701,6 @@ function WorkspaceRail({
 // ---------------------------------------------------------------------------
 // Shared collapse affordances for the side panels
 // ---------------------------------------------------------------------------
-
-/** Thin header row shown above an expanded side panel, holding its collapse trigger. */
-function PanelControlBar({
-  onCollapse,
-  collapseIcon: Icon,
-  label,
-}: {
-  onCollapse: () => void
-  collapseIcon: LucideIcon
-  label: string
-}) {
-  return (
-    <div className="flex h-11 shrink-0 items-center justify-end border-b border-(--line) px-2">
-      <button
-        type="button"
-        onClick={onCollapse}
-        aria-label={label}
-        title={label}
-        className="grid h-7 w-7 place-items-center rounded-lg text-(--ink-faint) transition hover:bg-(--surface-muted) hover:text-(--ink)"
-      >
-        <Icon size={15} aria-hidden="true" />
-      </button>
-    </div>
-  )
-}
 
 /**
  * A narrow strip shown in place of a collapsed side panel. Lays out
@@ -733,13 +718,13 @@ function CollapsedEdge({
   onExpand: () => void
 }) {
   return (
-    <div className="flex h-12 w-full shrink-0 items-center justify-center border-t border-(--line) lg:h-full lg:w-full lg:flex-col lg:justify-start lg:border-t-0 lg:py-3">
+    <div className="flex h-12 w-full shrink-0 items-center justify-center border-t border-(--line)/70 bg-(--surface)/40 lg:h-full lg:w-full lg:flex-col lg:justify-start lg:border-t-0 lg:py-3">
       <button
         type="button"
         onClick={onExpand}
         aria-label={`Show ${label}`}
         title={`Show ${label}`}
-        className="grid h-9 w-9 place-items-center rounded-xl text-(--ink-faint) transition hover:bg-(--surface-muted) hover:text-(--ink)"
+        className="grid h-9 w-9 place-items-center rounded-xl text-(--ink-faint) transition hover:bg-(--surface-muted)/70 hover:text-(--ink)"
       >
         <Icon size={17} aria-hidden="true" />
       </button>
@@ -753,7 +738,7 @@ function CollapsedEdge({
 
 function ConceptsPanel({ concepts }: { concepts: Concept[] }) {
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col bg-(--surface)/40">
       <div className="shrink-0 px-5 pt-5 pb-3">
         <p className="mono-label text-(--ink-faint)">Concepts</p>
       </div>
@@ -769,7 +754,7 @@ function ConceptsPanel({ concepts }: { concepts: Concept[] }) {
               <Link
                 to="/concepts/$conceptId"
                 params={{ conceptId: concept.id }}
-                className="flex items-center gap-3 rounded-xl px-3 py-2.5 transition hover:bg-(--surface-muted)"
+                className="flex items-center gap-3 rounded-xl px-3 py-2.5 transition hover:bg-(--surface-muted)/70"
               >
                 <span
                   className="h-2 w-2 shrink-0 rounded-full bg-(--blue)"
@@ -818,7 +803,7 @@ function ReadPane({
 }: ReadPaneProps) {
   return (
     <div>
-      <div className="mb-8 flex items-center justify-between gap-3 border-b border-(--line) pb-5">
+      <div className="mt-0 mb-4 flex items-center justify-between gap-3 border-b border-(--line) pb-3">
         <p className="mono-label text-(--ink-faint)">Full text</p>
 
         {!editing && (

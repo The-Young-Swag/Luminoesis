@@ -76,7 +76,7 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
     const canSend = useMemo(() => draft.trim().length > 0, [draft])
 
     return (
-      <div className="flex h-full min-h-0 flex-col">
+      <div className="flex h-full min-h-0 flex-col bg-(--surface)/40">
         <header className="flex shrink-0 items-center justify-between gap-3 px-5 py-4">
           <div className="flex items-center gap-2.5">
             <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-(--blue)/12 text-(--blue)">
@@ -99,15 +99,15 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
           ))}
         </div>
 
-        <div className="shrink-0 border-t border-(--line) p-4">
+        <div className="shrink-0 border-t border-(--line)/70 p-4">
           {context && (
-            <div className="mb-3 rounded-xl border border-(--line) bg-(--surface-muted) px-3.5 py-2.5 text-xs text-(--ink-soft)">
+            <div className="mb-3 rounded-xl border border-(--line)/70 bg-(--surface-muted)/70 px-3.5 py-2.5 text-xs text-(--ink-soft)">
               <span className="font-medium text-(--ink)">From your selection: </span>
               <span className="line-clamp-2">{context}</span>
             </div>
           )}
 
-          <div className="flex items-end gap-2 rounded-2xl border border-(--line) bg-(--surface) p-2 pl-3.5 transition focus-within:border-(--blue) focus-within:ring-2 focus-within:ring-(--blue)/15">
+          <div className="flex items-end gap-2 rounded-2xl border border-(--line)/80 bg-(--surface) p-2 pl-3.5 shadow-sm transition focus-within:border-(--blue) focus-within:ring-2 focus-within:ring-(--blue)/15">
             <textarea
               ref={textareaRef}
               value={draft}
