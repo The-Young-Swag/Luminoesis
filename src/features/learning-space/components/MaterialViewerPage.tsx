@@ -281,6 +281,10 @@ export function MaterialViewerPage({ materialId }: { materialId: string }) {
     [clearSelection, setRightCollapsed],
   )
 
+  const handleTutorContextConsumed = useCallback(() => {
+    setTutorContext(undefined)
+  }, [])
+
   const handleCreateConcept = useCallback((text: string) => {
     setPendingText(text)
     setShowConcept(true)
@@ -529,15 +533,15 @@ export function MaterialViewerPage({ materialId }: { materialId: string }) {
                 <span className="w-6" aria-hidden="true" />
               </div>
               <div className="flex min-h-0 flex-1 flex-col">
-                <TutorPanel
-                  ref={tutorRef}
-                  materialTitle={material.title}
-                  materialId={material.id}
-                  learningSpaceId={material.learningSpaceId}
-                  context={tutorContext}
-                  onContextConsumed={() => setTutorContext(undefined)}
-                  hideHeader
-                />
+              <TutorPanel
+                ref={tutorRef}
+                materialTitle={material.title}
+                materialId={material.id}
+                learningSpaceId={material.learningSpaceId}
+                context={tutorContext}
+                onContextConsumed={handleTutorContextConsumed}
+                hideHeader
+              />
               </div>
             </div>
           )}

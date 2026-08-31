@@ -1,52 +1,34 @@
+/**
+ * Lazy on-device pipeline — cached after first load.
+ *
+ * Model: Xenova/LaMini-Flan-T5-77M
+ *
+ * The local provider is intentionally small and self-contained:
+ * it receives the already-built TutorContext and turns it into a
+ * focused prompt for the on-device model.
+ */
 import type {
   TutorProvider,
   TutorRequest,
   TutorResponse,
 } from '../domain/tutor'
 
-/**
- * Lazy on-device pipeline cached after the first successful load.
- *
- * The model runs through Transformers.js and WebAssembly, so the Tutor
- * does not send the learning context to an external AI provider.
- */
-const MODEL_ID = 'Xenova/LaMini-Flan-T5-77M'
-
-const MODEL_LOAD_TIMEOUT_MS = 15_000
-const INFERENCE_TIMEOUT_MS = 30_000
-
-type TextGenerationResult = {
-  generated_text: string
-}
-
-type TextGenerationOptions = {
-  max_new_tokens: number
-  temperature: number
-}
-
-type TextGenerator = (
-  input: string,
-  options: TextGenerationOptions,
-) => Promise<TextGenerationResult[]>
-
-let cachedPipeline: TextGenerator | null = null
+let cachedPipeline: unknown = null
 let pipelineLoadFailed = false
 
-function withTimeout<T>(
-  promise: Promise<T>,
-  timeoutMs: number,
-  operation: string,
-): Promise<T> {
-  const timeout = new Promise<never>((_, reject) => {
-    setTimeout(() => {
-      reject(new Error(`${operation} timed out after ${timeoutMs}ms`))
-    }, timeoutMs)
-  })
+const MODEL_LOAD_TIMEOUT_MS = 30000
+const INFERENCE_TIMEOUT_MS = 30000
 
-  return Promise.race([promise, timeout])
+function timeoutPromise<T>(ms: number, label: string): Promise<T> {
+  return new Promise((_, reject) => {
+    setTimeout(
+      () => reject(new Error(`${label} timed out after ${ms}ms`)),
+      ms,
+    )
+  })
 }
 
-async function loadLocalPipeline(): Promise<TextGenerator | null> {
+async function getLocalPipeline(): Promise<unknown | null> {
   if (cachedPipeline) {
     return cachedPipeline
   }
@@ -56,34 +38,33 @@ async function loadLocalPipeline(): Promise<TextGenerator | null> {
   }
 
   try {
-    const { pipeline } = await import('@huggingface/transformers')
+    const pipelinePromise = (async () => {
+      const { pipeline } = await import('@huggingface/transformers')
 
-    const pipelinePromise = pipeline(
-      'text2text-generation',
-      MODEL_ID,
-      {
-        dtype: 'q8',
-        device: 'wasm',
-      },
-    )
+      return pipeline(
+        'text2text-generation',
+        'Xenova/LaMini-Flan-T5-77M',
+        {
+          dtype: 'q8',
+          device: 'wasm',
+        },
+      )
+    })()
 
-    const pipelineInstance = await withTimeout(
-      pipelinePromise as Promise<TextGenerator>,
-      MODEL_LOAD_TIMEOUT_MS,
-      'Local model load',
-    )
+    const pipe = await Promise.race([
+      pipelinePromise,
+      timeoutPromise(MODEL_LOAD_TIMEOUT_MS, 'Model load'),
+    ])
 
-    cachedPipeline = pipelineInstance
-
-    return pipelineInstance
+    cachedPipeline = pipe
+    return pipe
   } catch (error) {
-    pipelineLoadFailed = true
-
     console.warn(
-      '[tutor] Local model load failed or timed out.',
+      '[tutor] local model load failed/timed out, falling back to rule-based',
       error,
     )
 
+    pipelineLoadFailed = true
     return null
   }
 }
@@ -96,67 +77,87 @@ export class LocalTutorProvider implements TutorProvider {
   }
 
   async respond(request: TutorRequest): Promise<TutorResponse> {
-    const {
-      prompt,
-      selectedText,
-      material,
-      concepts,
-      weakSpots,
-    } = request.context
+    const { context } = request
+    const { prompt, selectedText, material, concepts, weakSpots } = context
 
-    const pipeline = await loadLocalPipeline()
+    const pipe = await getLocalPipeline()
 
-    if (pipeline) {
+    if (pipe) {
       try {
-        const contextParts: string[] = []
-
-        if (material?.excerpt) {
-          contextParts.push(
-            `Context: ${material.excerpt.slice(0, 800)}`,
-          )
-        }
+        /*
+         * Keep the learner's question near the beginning of the prompt.
+         * The local model is small, so the question must not be pushed behind
+         * large amounts of document context.
+         *
+         * When text is selected, that selection is the primary evidence.
+         * The broader material is supporting context only.
+         */
+        const promptParts = [
+          'You are a study tutor.',
+          `Learner question: ${prompt}`,
+        ]
 
         if (selectedText) {
-          contextParts.push(`Selected: ${selectedText}`)
-        }
-
-        if (concepts.length > 0) {
-          const conceptNames = concepts
-            .slice(0, 3)
-            .map((concept) => concept.name)
-            .join(', ')
-
-          contextParts.push(`Concepts: ${conceptNames}`)
-        }
-
-        if (weakSpots.length > 0) {
-          contextParts.push(
-            `Weak spot: ${weakSpots[0].conceptName}`,
+          promptParts.push(
+            `Selected passage to explain:\n${selectedText}`,
           )
         }
 
-        const input = [
-          ...contextParts,
-          `Question: ${prompt}`,
-          'Answer:',
-        ].join('\n')
+        if (material?.excerpt && !selectedText) {
+          promptParts.push(
+            `Material context:\n${material.excerpt.slice(0, 1200)}`,
+          )
+        }
 
-        const output = await withTimeout(
-          pipeline(input, {
-            max_new_tokens: 120,
-            temperature: 0.7,
-          }),
-          INFERENCE_TIMEOUT_MS,
-          'Local inference',
+        if (concepts.length > 0 && !selectedText) {
+          promptParts.push(
+            `Related concepts: ${concepts
+              .slice(0, 3)
+              .map((concept) => concept.name)
+              .join(', ')}`,
+          )
+        }
+
+        if (weakSpots.length > 0 && !selectedText) {
+          promptParts.push(
+            `Relevant review weakness: ${weakSpots[0].conceptName}`,
+          )
+        }
+
+        promptParts.push(
+          selectedText
+            ? 'Explain the selected passage clearly and directly. Use the passage as the primary source.'
+            : 'Answer using the provided material context.',
+          'Answer:',
         )
 
-        const generatedText = output[0]?.generated_text?.trim()
+        const input = promptParts.join('\n\n')
 
-        if (generatedText && generatedText.length > 10) {
+        const generator = pipe as unknown as (
+          input: string,
+          options?: unknown,
+        ) => Promise<Array<{ generated_text: string }>>
+
+        const inferencePromise = generator(input, {
+          max_new_tokens: 120,
+          temperature: 0.7,
+        })
+
+        const output = await Promise.race<
+        Array<{ generated_text: string }>
+      >([
+        inferencePromise,
+        timeoutPromise<Array<{ generated_text: string }>>(
+          INFERENCE_TIMEOUT_MS,
+          'Inference',
+        ),
+      ])
+      
+      const generated = output[0]?.generated_text?.trim()
+
+        if (generated && generated.length > 10) {
           return {
-            text: `${generatedText}
-
-— Local model · Generated on-device via ${MODEL_ID}. No data sent externally.`,
+            text: `${generated}\n\n— Local model · Generated on-device via Xenova/LaMini-Flan-T5-77M (Apache 2.0). No data sent externally.`,
             provider: 'local',
             citation: material
               ? {
@@ -170,85 +171,72 @@ export class LocalTutorProvider implements TutorProvider {
         }
       } catch (error) {
         console.warn(
-          '[tutor] Local inference failed or timed out.',
+          '[tutor] local inference failed/timed out, falling back',
           error,
         )
       }
     }
 
-    return createGroundedPreview(request)
-  }
-}
+    /*
+     * Honest degraded mode.
+     *
+     * This does not pretend to be generated AI. It preserves useful
+     * grounded context when the local model cannot complete inference.
+     */
+    const parts: string[] = []
 
-function createGroundedPreview(
-  request: TutorRequest,
-): TutorResponse {
-  const {
-    prompt,
-    selectedText,
-    material,
-    concepts,
-    weakSpots,
-  } = request.context
+    if (selectedText) {
+      parts.push(`You highlighted: “${selectedText}”`)
+    }
 
-  const parts: string[] = []
+    if (material?.excerpt) {
+      const excerptPreview = material.excerpt
+        .slice(0, 220)
+        .replace(/\s+/g, ' ')
+        .trim()
 
-  if (selectedText) {
-    parts.push(`You highlighted: “${selectedText}”`)
-  }
+      if (excerptPreview) {
+        parts.push(`From “${material.title}”: ${excerptPreview}…`)
+      }
+    }
 
-  if (material?.excerpt) {
-    const excerptPreview = material.excerpt
-      .slice(0, 220)
-      .replace(/\s+/g, ' ')
-      .trim()
+    if (weakSpots.length > 0) {
+      const weakest = weakSpots[0]
 
-    if (excerptPreview) {
       parts.push(
-        `From “${material.title}”: ${excerptPreview}…`,
+        `Your review history shows “${weakest.conceptName}” could use reinforcement (${Math.round(
+          weakest.rate * 100,
+        )}% recall, ${weakest.total} reviews).`,
       )
     }
-  }
 
-  if (weakSpots.length > 0) {
-    const weakestConcept = weakSpots[0]
+    if (concepts.length > 0 && !selectedText) {
+      const names = concepts
+        .slice(0, 3)
+        .map((concept) => concept.name)
+        .join(', ')
 
-    parts.push(
-      `Your review history shows “${weakestConcept.conceptName}” could use reinforcement (${Math.round(
-        weakestConcept.rate * 100,
-      )}% recall, ${weakestConcept.total} reviews).`,
-    )
-  }
+      parts.push(`Linked concepts here: ${names}.`)
+    }
 
-  if (concepts.length > 0 && !selectedText) {
-    const conceptNames = concepts
-      .slice(0, 3)
-      .map((concept) => concept.name)
-      .join(', ')
+    const body =
+      parts.length > 0 ? parts.join(' ') : `You asked: “${prompt}”`
 
-    parts.push(`Linked concepts here: ${conceptNames}.`)
-  }
-
-  const body =
-    parts.length > 0
-      ? parts.join(' ')
-      : `You asked: “${prompt}”`
-
-  return {
-    text: [
-      body,
-      '',
-      '— Local preview · This answer was built on-device from your material, selection, and review history. No data was sent externally.',
-    ].join('\n'),
-    provider: 'local',
-    citation: material
-      ? {
-          materialId: material.id,
-          materialTitle: material.title,
-          excerpt:
-            selectedText ?? material.excerpt.slice(0, 120),
-        }
-      : undefined,
+    return {
+      text: [
+        body,
+        '',
+        '— Local preview · The on-device model was unavailable or timed out. No data was sent externally.',
+      ].join('\n'),
+      provider: 'local',
+      citation: material
+        ? {
+            materialId: material.id,
+            materialTitle: material.title,
+            excerpt: selectedText ?? material.excerpt.slice(0, 120),
+          }
+        : undefined,
+    }
   }
 }
 

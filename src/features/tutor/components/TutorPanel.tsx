@@ -6,11 +6,8 @@ import {
   useRef,
   useState,
 } from 'react'
-
 import { CornerDownLeft, Info, Sparkles } from 'lucide-react'
-
 import { tutorService } from '#/features/tutor/application/tutorService'
-
 import type { TutorMessage } from '#/features/tutor/domain/tutor'
 
 type TutorPanelProps = {
@@ -44,13 +41,12 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
       {
         id: 'intro',
         role: 'assistant',
-        text: `This is the AI Tutor for "${materialTitle}". Ask about the material — answers are grounded in your concepts and review history. Local AI works offline.`,
+        text: `This is the AI Tutor for "${materialTitle}". Ask about the material — answers are grounded in your concepts and review history. Local AI works offline. Gemini online fallback — Coming soon.`,
       },
     ])
 
     const [draft, setDraft] = useState('')
     const [sending, setSending] = useState(false)
-
     const textareaRef = useRef<HTMLTextAreaElement>(null)
 
     useImperativeHandle(
@@ -63,27 +59,27 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
 
     const send = useCallback(async () => {
       const text = draft.trim()
-    
+
       if (!text || sending) {
         return
       }
-    
+
       const selectedText = context
-    
+
       const userMessage: TutorMessage = {
         id: `u-${Date.now()}`,
         role: 'user',
         text,
       }
-    
+
       setMessages((previousMessages) => [
         ...previousMessages,
         userMessage,
       ])
-    
+
       setDraft('')
       setSending(true)
-    
+
       try {
         const response = await tutorService.ask({
           materialId,
@@ -91,9 +87,9 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
           selectedText,
           learningSpaceId,
           prompt: text,
-          localTimeoutMs: 15000,
+          localTimeoutMs: 60000,
         })
-    
+
         const assistantMessage: TutorMessage = {
           id: `a-${Date.now()}`,
           role: 'assistant',
@@ -101,19 +97,17 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
           provider: response.provider,
           citation: response.citation,
         }
-    
+
         setMessages((previousMessages) => [
           ...previousMessages,
           assistantMessage,
         ])
-    
-        // The selected context has now been successfully consumed
-        // by the Tutor request, so it can be removed from the composer.
+
         onContextConsumed?.()
       } catch (error) {
         const message =
           error instanceof Error ? error.message : 'Tutor failed.'
-    
+
         setMessages((previousMessages) => [
           ...previousMessages,
           {
@@ -178,36 +172,18 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
           </header>
         )}
 
-        <div className="shrink-0 px-4 pt-4">
-          <div className="flex gap-3 rounded-xl bg-(--surface-muted)/60 px-4 py-3.5">
-            <Info
-              size={15}
-              className="mt-0.5 shrink-0 text-(--ink-faint)"
-              aria-hidden="true"
-            />
-
-            <div className="min-w-0">
-              <p className="text-[12.5px] font-medium text-(--ink)">
-                Local AI is active
-              </p>
-
-              <p className="mt-1 text-[12px] leading-relaxed text-(--ink-soft)">
-                Your Tutor runs on-device. Gemini online fallback — Coming
-                soon.
-              </p>
-            </div>
-          </div>
-        </div>
-
         <div
-          className="sidebar-scroll min-h-0 flex-1 space-y-5 overflow-y-auto px-6 pb-5 pt-5"
+          className="sidebar-scroll min-h-0 flex-1 space-y-5 overflow-y-auto px-6 pb-5"
           role="log"
           aria-live="polite"
           aria-relevant="additions"
           aria-label="Tutor conversation"
         >
           {messages.map((message) => (
-            <TutorMessageBubble key={message.id} message={message} />
+            <TutorMessageBubble
+              key={message.id}
+              message={message}
+            />
           ))}
 
           {sending && (
@@ -230,11 +206,22 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
 
         <div className="shrink-0 border-t border-(--glass-border) p-5">
           {context && (
-            <div className="mb-3 rounded-xl bg-(--surface-muted)/60 px-4 py-3 text-xs leading-relaxed text-(--ink-soft)">
-              <span className="font-medium text-(--ink)">
-                From your selection:{' '}
-              </span>
-              <span className="line-clamp-2">{context}</span>
+            <div className="mb-3 flex gap-3 rounded-xl bg-(--surface-muted)/60 px-4 py-3.5">
+              <Info
+                size={15}
+                className="mt-0.5 shrink-0 text-(--ink-faint)"
+                aria-hidden="true"
+              />
+
+              <div className="min-w-0">
+                <p className="text-[12.5px] font-medium text-(--ink)">
+                  From your selection
+                </p>
+
+                <p className="mt-1 line-clamp-2 text-[12px] leading-relaxed text-(--ink-soft)">
+                  {context}
+                </p>
+              </div>
             </div>
           )}
 
