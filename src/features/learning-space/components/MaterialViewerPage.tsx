@@ -376,19 +376,20 @@ export function MaterialViewerPage({ materialId }: { materialId: string }) {
         className="relative grid overflow-hidden rounded-2xl border border-(--line)/70 bg-(--surface)/70 shadow-[0_24px_60px_-32px_rgba(15,23,42,0.25)] backdrop-blur-2xl backdrop-saturate-150 transition-[grid-template-columns] duration-300 ease-out lg:h-[calc(100vh-13rem)] lg:min-h-160 lg:grid-cols-[var(--rail-w)_minmax(0,1fr)_var(--panel-w)]"
         style={
           {
-            '--rail-w': leftCollapsed ? '56px' : '260px',
-            '--panel-w': rightCollapsed ? '56px' : '380px',
+            '--rail-w': leftCollapsed ? '56px' : '220px',
+            '--panel-w': rightCollapsed ? '56px' : '340px',
           } as React.CSSProperties
         }
       >
         <WorkspaceRail
           material={material}
+          content={content}
           collapsed={leftCollapsed}
           onToggleCollapsed={() => setLeftCollapsed(!leftCollapsed)}
         />
 
         <section className="relative min-h-0 overflow-y-auto border-t border-(--line)/70 bg-(--surface)/92 lg:border-t-0 lg:border-x">
-        <div className="mx-auto max-w-180 p-4 lg:p-6">
+        <div className="mx-auto max-w-[640px] px-4 py-6 lg:px-16 lg:py-14">
             {paneMode === 'read' && (
               <ReadPane
                 readerRef={readerRef}
@@ -632,11 +633,12 @@ function ModeTabs({ mode, onChange }: { mode: Mode; onChange: (mode: Mode) => vo
 }
 
 // ---------------------------------------------------------------------------
-// Left rail — source metadata + sections
+// Left rail — source metadata + sections (mirrors mockup's Contents rail)
 // ---------------------------------------------------------------------------
 
 function WorkspaceRail({
   material,
+  content,
   collapsed,
   onToggleCollapsed,
 }: {
@@ -644,6 +646,7 @@ function WorkspaceRail({
     source: { fileName: string; sizeBytes: number }
     createdAt: number
   }
+  content: MaterialContent | undefined
   collapsed: boolean
   onToggleCollapsed: () => void
 }) {
@@ -653,35 +656,39 @@ function WorkspaceRail({
     )
   }
 
+  const headings =
+    content?.blocks.filter((block) => block.type === 'heading') ?? []
+  const hasContents = headings.length > 0
+
   return (
-    <aside className="flex flex-col gap-8 overflow-y-auto bg-(--surface)/40 px-6 py-6">
+    <aside className="flex flex-col gap-8 overflow-y-auto bg-(--surface)/40 px-3.5 py-[22px]">
       <div>
-        <div className="mb-3 flex items-center gap-3">
+        <div className="mb-3 flex items-center gap-3 px-2">
           <button
             type="button"
             onClick={onToggleCollapsed}
             aria-label="Hide source panel"
             title="Hide source panel"
-            className="-mr-1.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg text-(--ink-faint) transition hover:bg-(--surface-muted)/70 hover:text-(--ink)"
+            className="-ml-1 grid h-7 w-7 shrink-0 place-items-center rounded-lg text-(--ink-faint) transition hover:bg-(--surface-muted)/70 hover:text-(--ink)"
           >
             <PanelLeftClose size={14} aria-hidden="true" />
           </button>
 
           <span className="h-4 w-px bg-(--ink-faint)/30" aria-hidden="true" />
 
-          <p className="mono-label text-(--ink-faint)">Source</p>
+          <p className="mono-label text-[11px] tracking-[0.08em] text-(--ink-faint)">Source</p>
         </div>
 
-        <dl className="divide-y divide-(--line)/70 text-sm">
-          <div className="flex items-center justify-between gap-4 py-3 first:pt-0">
+        <dl className="divide-y divide-(--line)/70 px-2 text-[13.5px]">
+          <div className="flex items-center justify-between gap-4 py-2.5 first:pt-0">
             <dt className="text-(--ink-faint)">File</dt>
-            <dd className="truncate text-right text-(--ink)">{material.source.fileName}</dd>
+            <dd className="max-w-[130px] truncate text-right text-(--ink)">{material.source.fileName}</dd>
           </div>
-          <div className="flex items-center justify-between gap-4 py-3">
+          <div className="flex items-center justify-between gap-4 py-2.5">
             <dt className="text-(--ink-faint)">Size</dt>
             <dd className="text-(--ink)">{formatBytes(material.source.sizeBytes)}</dd>
           </div>
-          <div className="flex items-center justify-between gap-4 py-3 last:pb-0">
+          <div className="flex items-center justify-between gap-4 py-2.5 last:pb-0">
             <dt className="text-(--ink-faint)">Added</dt>
             <dd className="text-(--ink)">{new Date(material.createdAt).toLocaleDateString()}</dd>
           </div>
@@ -689,10 +696,37 @@ function WorkspaceRail({
       </div>
 
       <div>
-        <p className="mono-label mb-3 text-(--ink-faint)">Contents</p>
-        <p className="text-sm leading-relaxed text-(--ink-faint)">
-          Sections aren't extracted for this material yet.
-        </p>
+        <p className="mono-label mb-3 px-2 text-[11px] tracking-[0.08em] text-(--ink-faint)">Contents</p>
+        {hasContents ? (
+          <nav aria-label="Material contents" className="space-y-1">
+            {headings.map((heading, index) => {
+              const isCurrent = index === 0
+              return (
+                <div
+                  key={heading.id}
+                  className={
+                    isCurrent
+                      ? 'relative rounded-[7px] bg-(--blue)/10 px-2 py-[7px] text-[13px] font-medium text-(--ink)'
+                      : 'rounded-[7px] px-2 py-[7px] text-[13px] text-(--ink-soft)'
+                  }
+                >
+                  {isCurrent && (
+                    <span
+                      className="absolute top-[6px] bottom-[6px] left-[-14px] w-0.5 rounded-full bg-(--blue)"
+                      aria-hidden="true"
+                    />
+                  )}
+                  <span className="line-clamp-2 leading-snug">{heading.text}</span>
+                </div>
+              )
+            })}
+          </nav>
+        ) : (
+          <p className="px-2 text-[13px] leading-relaxed text-(--ink-faint)">
+            Sections appear here when headings are present. Add content with lines starting in
+            &ldquo;# &rdquo; to build an outline.
+          </p>
+        )}
       </div>
     </aside>
   )
@@ -734,38 +768,96 @@ function CollapsedEdge({
 
 // ---------------------------------------------------------------------------
 // Concepts panel — persistent sidebar counterpart to the tutor
+// Mirrors mockup's clarity dots + state + Review action for weak spots.
+// Mastery is derived from ReviewEvents when available; otherwise shows
+// "Concept forming" — never faked.
 // ---------------------------------------------------------------------------
 
+function masteryState(total: number, rate: number): {
+  label: string
+  dotClass: string
+  showReview: boolean
+} {
+  if (total === 0) {
+    return {
+      label: 'Concept forming',
+      dotClass: 'bg-[#8891A8] shadow-[0_0_0_3px_rgba(137,145,168,0.14)]',
+      showReview: false,
+    }
+  }
+  if (total < 3 && rate < 0.6) {
+    return {
+      label: 'Uncertain',
+      dotClass: 'bg-[#E1636B] shadow-[0_0_0_3px_rgba(225,99,107,0.13)]',
+      showReview: true,
+    }
+  }
+  if (rate < 0.5) {
+    return {
+      label: 'Uncertain',
+      dotClass: 'bg-[#E1636B] shadow-[0_0_0_3px_rgba(225,99,107,0.13)]',
+      showReview: true,
+    }
+  }
+  if (rate < 0.82) {
+    return {
+      label: 'Partial',
+      dotClass: 'bg-[#8891A8] shadow-[0_0_0_3px_rgba(137,145,168,0.14)]',
+      showReview: false,
+    }
+  }
+  return {
+    label: 'Mastered',
+    dotClass: 'bg-[#E8B54A] shadow-[0_0_0_3px_rgba(232,181,74,0.14)]',
+    showReview: false,
+  }
+}
+
 function ConceptsPanel({ concepts }: { concepts: Concept[] }) {
+  // Concepts in the viewer currently have no inline mastery fetch — when
+  // ReviewEvents exist they surface via Dashboard/Insights. Until a live
+  // concept-mastery subscription is added here, show the honest "Concept
+  // forming" state rather than fabricating Weak/Mastered.
   return (
     <div className="flex h-full flex-col bg-(--surface)/40">
-      <div className="shrink-0 px-5 pt-5 pb-3">
-        <p className="mono-label text-(--ink-faint)">Concepts</p>
+      <div className="shrink-0 px-[18px] pt-4 pb-3">
+        <p className="mono-label text-[11px] tracking-[0.06em] text-(--ink-faint)">Concepts</p>
       </div>
 
       {concepts.length === 0 ? (
-        <p className="px-5 pb-5 text-sm leading-relaxed text-(--ink-faint)">
-          No concepts linked yet. Select text and choose "Concept" to start one.
+        <p className="px-[18px] pb-5 text-[13.5px] leading-relaxed text-(--ink-faint)">
+          No concepts linked yet. Select text and choose &ldquo;Concept&rdquo; to start one.
         </p>
       ) : (
-        <ul className="space-y-1 overflow-y-auto px-2 pb-4">
-          {concepts.map((concept) => (
-            <li key={concept.id}>
-              <Link
-                to="/concepts/$conceptId"
-                params={{ conceptId: concept.id }}
-                className="flex items-center gap-3 rounded-xl px-3 py-2.5 transition hover:bg-(--surface-muted)/70"
-              >
+        <ul className="space-y-0 overflow-y-auto px-1 pb-4">
+          {concepts.map((concept) => {
+            const state = masteryState(0, 0)
+            return (
+              <li key={concept.id} className="flex items-center gap-2.5 px-[18px] py-[9px]">
                 <span
-                  className="h-2 w-2 shrink-0 rounded-full bg-(--blue)"
+                  className={`h-2 w-2 shrink-0 rounded-full ${state.dotClass}`}
                   aria-hidden="true"
                 />
-                <span className="min-w-0 flex-1 truncate text-[13.5px] font-medium text-(--ink)">
-                  {concept.name}
+                <span className="min-w-0 flex-1">
+                  <Link
+                    to="/concepts/$conceptId"
+                    params={{ conceptId: concept.id }}
+                    className="block truncate text-[13.5px] font-medium text-(--ink) hover:text-(--blue)"
+                  >
+                    {concept.name}
+                  </Link>
+                  <span className="font-mono text-[10.5px] tracking-[0.03em] text-(--ink-faint) uppercase">
+                    {state.label}
+                  </span>
                 </span>
-              </Link>
-            </li>
-          ))}
+                {state.showReview && (
+                  <span className="shrink-0 rounded-[7px] border border-[rgba(225,99,107,0.2)] bg-[rgba(225,99,107,0.13)] px-[9px] py-1 text-[11.5px] font-medium text-[#E1636B]">
+                    Review
+                  </span>
+                )}
+              </li>
+            )
+          })}
         </ul>
       )}
     </div>
@@ -801,13 +893,16 @@ function ReadPane({
   onCancelEditing,
   onSave,
 }: ReadPaneProps) {
+  const firstHeading = content?.blocks.find((block) => block.type === 'heading')?.text
+  const eyebrow = firstHeading ? firstHeading : hasContent ? 'Reading' : 'Full text'
+
   return (
     <div>
-      <div className="mt-0 mb-4 flex items-center justify-between gap-3 border-b border-(--line) pb-3">
-        <p className="mono-label text-(--ink-faint)">Full text</p>
+      <div className="mb-4 flex items-center justify-between gap-3 border-b border-(--line) pb-3">
+        <p className="font-mono text-[11.5px] tracking-[0.06em] text-(--ink-faint) uppercase">{eyebrow}</p>
 
         {!editing && (
-          <button type="button" onClick={onStartEditing} className="btn-ghost shrink-0">
+          <button type="button" onClick={onStartEditing} className="btn-ghost shrink-0 text-[13px]">
             {hasContent ? 'Edit content' : 'Add content'}
           </button>
         )}
@@ -843,17 +938,20 @@ function ReadPane({
           </div>
         </div>
       ) : content && content.blocks.length > 0 ? (
-        <article id="reader-content" ref={readerRef} className="space-y-6">
+        <article id="reader-content" ref={readerRef} className="space-y-5">
           {content.blocks.map((block) =>
             block.type === 'heading' ? (
-              <h3
+              <h1
                 key={block.id}
-                className="display pt-4 text-2xl leading-snug font-semibold text-(--ink) first:pt-0"
+                className="display pt-2 text-[29px] leading-[1.25] font-semibold tracking-[-0.01em] text-(--ink) first:pt-0"
               >
                 {block.text}
-              </h3>
+              </h1>
             ) : (
-              <p key={block.id} className="text-[17px] leading-[1.85] text-(--ink-soft)">
+              <p
+                key={block.id}
+                className="font-display text-[17px] leading-[1.75] font-normal text-[#3A423E] dark:text-(--ink-soft)"
+              >
                 {block.text}
               </p>
             ),
@@ -868,7 +966,7 @@ function ReadPane({
           <div className="max-w-sm">
             <p className="text-sm font-medium text-(--ink)">No readable content yet</p>
             <p className="mt-1.5 text-sm leading-relaxed text-(--ink-soft)">
-              Add the material's text here, or it will be filled automatically when
+              Add the material&apos;s text here, or it will be filled automatically when
               extraction is available.
             </p>
           </div>
