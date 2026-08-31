@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Upload, X } from 'lucide-react'
 
 import { createMaterial } from '../application/createMaterial'
+import { processMaterialExtraction } from '../application/materialExtraction'
 
 type AddMaterialDialogProps = {
   learningSpaceId: string
@@ -78,7 +79,7 @@ export function AddMaterialDialog({
     setError(null)
 
     try {
-      await createMaterial({
+      const material = await createMaterial({
         learningSpaceId,
         title: titleFromFileName(file.name),
         type,
@@ -89,6 +90,20 @@ export function AddMaterialDialog({
           sizeBytes: file.size,
         },
       })
+
+      // Real extraction — never fabricate. For text/markdown this is instant;
+      // for pdf/image it uses pdfjs-dist / tesseract.js and may take a moment.
+      try {
+        await processMaterialExtraction(file, material)
+      } catch (extractionError) {
+        const message =
+          extractionError instanceof Error ? extractionError.message : String(extractionError)
+        setError(message)
+        // Material already created; keep it so user can add content manually.
+        // Refresh list so the new material appears with its final status.
+        onCreated()
+        return
+      }
 
       onCreated()
       onClose()
