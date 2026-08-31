@@ -80,12 +80,20 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
         text,
         selectedText,
       }
-
+      
+      const conversationHistory = messages
+        .filter((message) => message.id !== 'intro')
+        .map((message) => ({
+          role: message.role,
+          text: message.text,
+          selectedText: message.selectedText,
+        }))
+      
       setMessages((previousMessages) => [
         ...previousMessages,
         userMessage,
       ])
-
+      
       setDraft('')
       setSending(true)
 
@@ -96,6 +104,7 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
           selectedText,
           learningSpaceId,
           prompt: text,
+          conversationHistory,
           localTimeoutMs: 60000,
         })
 
@@ -273,19 +282,19 @@ function TutorMessageBubble({
   if (isUser) {
     return (
       <div className="flex justify-end">
-        <div className="flex max-w-[88%] flex-col items-end gap-2">
+        <div className="max-w-[82%] space-y-1.5">
           {message.selectedText && (
-            <div className="w-full rounded-xl bg-(--surface-muted)/50 px-3.5 py-2.5 text-left">
-              <p className="mb-1 text-[11px] font-medium text-(--ink-faint)">
+            <div className="rounded-xl bg-(--glass-bg-strong)/60 px-3.5 py-2.5 text-xs leading-relaxed text-(--ink-soft)">
+              <p className="mb-1 font-medium text-(--ink-faint)">
                 Selected passage
               </p>
-
-              <p className="line-clamp-3 text-[12px] leading-relaxed text-(--ink-soft)">
+  
+              <p className="line-clamp-3">
                 {message.selectedText}
               </p>
             </div>
           )}
-
+  
           <p className="rounded-[13px_13px_4px_13px] border border-(--blue)/25 bg-(--blue)/12 px-3.5 py-2.5 text-[13.5px] leading-normal text-(--ink) shadow-sm">
             {message.text}
           </p>

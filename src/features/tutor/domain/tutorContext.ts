@@ -1,11 +1,19 @@
-import type { TutorContext } from './tutor'
-import { truncate, MAX_CONTEXT_CHARS, MAX_SELECTED_TEXT_CHARS } from './tutor'
+import type {
+  TutorContext,
+  TutorConversationMessage,
+} from './tutor'
+
+import {
+  truncate,
+  MAX_CONTEXT_CHARS,
+  MAX_SELECTED_TEXT_CHARS,
+  MAX_CONVERSATION_MESSAGES,
+} from './tutor'
 import { materialContentRepository } from '#/features/learning-space/repositories/materialContentRepository'
 import { conceptRepository } from '#/features/learning-space/repositories/conceptRepository'
 import { highlightRepository } from '#/features/learning-space/repositories/highlightRepository'
 import { reviewEventRepository } from '#/features/review/repositories/reviewEventRepository'
 import { retentionByConcept } from '#/features/insights/domain/analytics'
-
 /**
  * Builds a provider-independent learning context.
  *
@@ -20,12 +28,20 @@ export type BuildTutorContextInput = {
   selectedText?: string
   learningSpaceId: string
   prompt: string
+  conversationHistory?: TutorConversationMessage[]
 }
 
 export async function buildTutorContext(
   input: BuildTutorContextInput,
 ): Promise<TutorContext> {
-  const { materialId, materialTitle, selectedText, learningSpaceId, prompt } = input
+  const {
+    materialId,
+    materialTitle,
+    selectedText,
+    learningSpaceId,
+    prompt,
+    conversationHistory = [],
+  } = input
 
   const [materialContent, concepts, highlights, reviewEvents] = await Promise.all([
     materialId ? materialContentRepository.findByMaterialId(materialId) : Promise.resolve(undefined),
@@ -73,6 +89,19 @@ export async function buildTutorContext(
       timestamp: event.timestamp,
     }))
 
+
+    const recentConversation = conversationHistory
+  .slice(-MAX_CONVERSATION_MESSAGES)
+  .map((message) => ({
+    role: message.role,
+    text: truncate(message.text.trim(), 500),
+    selectedText: message.selectedText
+      ? truncate(message.selectedText.trim(), MAX_SELECTED_TEXT_CHARS)
+      : undefined,
+  }))
+
+
+
   return {
     material: materialId && materialTitle
       ? {
@@ -82,19 +111,27 @@ export async function buildTutorContext(
           source: materialContent?.source ?? 'user',
         }
       : undefined,
+  
     selectedText: truncatedSelected,
+  
     concepts: concepts.map((concept) => ({
       id: concept.id,
       name: concept.name,
       description: concept.description,
     })),
+  
     highlights: highlights.slice(0, 6).map((highlight) => ({
       id: highlight.id,
       text: truncate(highlight.text, 200),
       note: highlight.note,
     })),
+  
     reviewHistory,
+  
     weakSpots,
+  
+    conversationHistory: recentConversation,
+  
     prompt: prompt.trim(),
   }
 }

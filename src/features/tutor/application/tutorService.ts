@@ -1,4 +1,10 @@
-import type { TutorContext, TutorRequest, TutorResponse, TutorProvider } from '../domain/tutor'
+import type {
+  TutorContext,
+  TutorRequest,
+  TutorResponse,
+  TutorProvider,
+  TutorConversationMessage,
+} from '../domain/tutor'
 import { buildTutorContext } from '../domain/tutorContext'
 import { localTutorProvider } from '../providers/localTutorProvider'
 
@@ -17,7 +23,7 @@ export type TutorServiceOptions = {
   selectedText?: string
   learningSpaceId: string
   prompt: string
-  /** Timeout for local provider in ms (default: 20000). */
+  conversationHistory?: TutorConversationMessage[]
   localTimeoutMs?: number
 }
 
@@ -35,6 +41,7 @@ export class TutorService {
       selectedText: options.selectedText,
       learningSpaceId: options.learningSpaceId,
       prompt: options.prompt,
+      conversationHistory: options.conversationHistory,
     })
 
     const request: TutorRequest = { context }
