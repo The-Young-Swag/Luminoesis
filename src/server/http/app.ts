@@ -4,6 +4,7 @@ import { requestLogger } from './middleware/requestLogger.js'
 import { errorHandler } from './middleware/errorHandler.js'
 import { syncRouter } from './routes/sync.js'
 import { kvRouter } from './routes/kv.js'
+import { tutorRouter } from './routes/tutor.js'
 import { DB_PATH_VALUE } from '../infrastructure/database/client.js'
 
 // Express 5 layered app — boring, correct (Guide §21, §27)
@@ -16,7 +17,7 @@ export function createApp() {
   app.use(requestLogger)
 
   // 2. Security / CORS
-  app.use(cors())
+  app.use(cors({ origin: true, credentials: true }))
 
   // 3. Body parser (with limit — never trust client payload size)
   app.use(express.json({ limit: '5mb' }))
@@ -28,6 +29,7 @@ export function createApp() {
 
   app.use('/sync', syncRouter)
   app.use('/kv', kvRouter)
+  app.use('/tutor', tutorRouter)
 
   app.get('/', (_req, res) => {
     res.type('html').send(`

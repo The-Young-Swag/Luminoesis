@@ -21,6 +21,11 @@ db.exec(`
     value TEXT NOT NULL,
     updated_at TEXT NOT NULL
   );
+  CREATE TABLE IF NOT EXISTS tutor_uploads (
+    fingerprint TEXT PRIMARY KEY,
+    count INTEGER NOT NULL,
+    updated_at TEXT NOT NULL
+  );
 `)
 
 export const DB_PATH_VALUE = DB_PATH
