@@ -47,7 +47,7 @@ async function extractPdfFile(file: File): Promise<string> {
   // Configure worker for browser. The `?url` import is handled by Vite.
   // Fallback: try legacy worker path.
   try {
-    const workerUrl = (await import('pdfjs-dist/build/pdf.worker.mjs?url')).default as string
+    const workerUrl = (await import('pdfjs-dist/build/pdf.worker.mjs?url')).default 
     const maybePdfjs = pdfjs as unknown as { GlobalWorkerOptions?: { workerSrc?: string } }
     if (maybePdfjs.GlobalWorkerOptions) {
       maybePdfjs.GlobalWorkerOptions.workerSrc = workerUrl
@@ -89,7 +89,7 @@ async function extractImageFile(file: File): Promise<string> {
     const url = URL.createObjectURL(blob)
     try {
       const ret = await worker.recognize(url)
-      return ret.data.text ?? ''
+      return ret.data.text
     } finally {
       URL.revokeObjectURL(url)
     }

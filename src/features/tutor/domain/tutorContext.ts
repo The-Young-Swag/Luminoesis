@@ -52,7 +52,7 @@ export async function buildTutorContext(
     .sort((a, b) => a.rate - b.rate)
     .slice(0, 3)
     .map((item) => {
-      const concept = concepts.find((concept) => concept.name === item.topic)
+      const concept = concepts.find((candidate) => candidate.name === item.topic)
       return {
         conceptId: concept?.id ?? item.topic,
         conceptName: item.topic,

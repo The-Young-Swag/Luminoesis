@@ -86,7 +86,16 @@ function RootDocument({
               {children}
             </main>
 
-            <Footer />
+            {/*
+              Full-height, self-scrolling pages (e.g. the Material Viewer)
+              set data-hide-footer="1" on <html> for as long as they're
+              mounted. This arbitrary variant hides the footer for exactly
+              that window without the root layout needing to special-case
+              any specific route.
+            */}
+            <div className="[html[data-hide-footer='1']_&]:hidden">
+              <Footer />
+            </div>
           </div>
         </div>
 

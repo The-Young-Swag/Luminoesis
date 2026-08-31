@@ -80,8 +80,8 @@ export type TutorProviderId = 'local' | 'gemini'
 export interface TutorProvider {
   readonly id: TutorProviderId
   /** Whether this provider can handle a request in the current environment. */
-  isAvailable(): boolean | Promise<boolean>
-  respond(request: TutorRequest): Promise<TutorResponse>
+  isAvailable: () => boolean | Promise<boolean>
+  respond: (request: TutorRequest) => Promise<TutorResponse>
 }
 
 export const MAX_CONTEXT_CHARS = 4000

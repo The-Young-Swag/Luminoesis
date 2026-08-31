@@ -416,7 +416,7 @@ function DesktopSidebar({
 
   return (
     <aside
-      style={{ width: collapsed ? '64px' : '280px' } as React.CSSProperties}
+    style={{ width: collapsed ? '64px' : '280px' }}
       className={cx(
         'sidebar-shell fixed inset-y-0 left-0 z-50 hidden lg:flex flex-col overflow-hidden border-r border-(--line)/60 bg-(--surface)/90 backdrop-blur-xl transition-[width] duration-300 ease-out',
         focusMode && 'focus-sidebar',
@@ -561,7 +561,7 @@ function SidebarNavLink({
         onClick={onNavigate}
         aria-label={item.label}
         title={item.label}
-        className="grid h-10 w-10 place-items-center rounded-xl text-(--ink-soft) transition hover:bg-(--sidebar-accent) hover:text-(--ink) data-[status=active]:bg-(--sidebar-primary) data-[status=active]:text-white"
+        className="grid h-10 w-10 place-items-center rounded-xl text-(--ink-soft) transition hover:bg-sidebar-accent hover:text-(--ink) data-[status=active]:bg-sidebar-primary data-[status=active]:text-white"
         activeProps={{
           className:
             'grid h-10 w-10 place-items-center rounded-xl bg-(--sidebar-primary) text-white shadow-sm',

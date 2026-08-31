@@ -26,8 +26,6 @@ const DEFAULT_LOCAL_TIMEOUT_MS = 20000
 export class TutorService {
   constructor(
     private readonly localProvider: TutorProvider = localTutorProvider,
-    // Gemini fetch is preserved but frozen for future release
-    private readonly geminiFetch?: (request: TutorRequest) => Promise<TutorResponse>,
   ) {}
 
   async ask(options: TutorServiceOptions): Promise<TutorResponse> {
@@ -55,9 +53,12 @@ export class TutorService {
     try {
       // Race local provider against timeout
       const localPromise = this.localProvider.respond(request)
-      const timeoutPromise = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('Local provider timed out')), timeoutMs)
-      )
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(
+          () => reject(new Error('Local provider timed out')),
+          timeoutMs,
+        )
+      })
       return await Promise.race([localPromise, timeoutPromise])
     } catch (error) {
       console.warn('[tutor] local provider failed/timed out', error)
@@ -90,7 +91,7 @@ export async function fetchGeminiTutor(request: TutorRequest): Promise<TutorResp
       selectedText: request.context.selectedText,
       materialId: request.context.material?.id,
       materialTitle: request.context.material?.title,
-      excerpt: request.context.material?.excerpt?.slice(0, 4000),
+      excerpt: request.context.material?.excerpt.slice(0, 4000),
       concepts: request.context.concepts.slice(0, 8),
       weakSpots: request.context.weakSpots,
     }),

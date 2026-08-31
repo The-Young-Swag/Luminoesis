@@ -18,11 +18,9 @@ import {
   PanelRightClose,
   PanelRightOpen,
   Sparkles,
-  Settings,
-  UserCircle,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
-
+import type { ConceptMastery } from '../hooks/useConceptsMastery'
 import type { Concept } from '#/features/learning-space/domain/learningSpace'
 import type {
   MaterialContent,
@@ -36,25 +34,18 @@ import { useMaterialContent } from '../hooks/useMaterialContent'
 import { useConceptsMastery } from '../hooks/useConceptsMastery'
 import { saveMaterialContent } from '#/features/learning-space/application/saveMaterialContent'
 import { createHighlight } from '#/features/learning-space/application/createHighlight'
-import { TutorPanel } from './TutorPanel'
-import type { TutorPanelHandle } from './TutorPanel'
+import { TutorPanel } from '../../tutor/components/TutorPanel'
+import type { TutorPanelHandle } from '../../tutor/components/TutorPanel'
 import { SelectionBubble } from './SelectionBubble'
 import type { ReaderSelection } from './SelectionBubble'
 import { AddConceptDialog } from './AddConceptDialog'
 import { AddFlashcardDialog } from '#/features/flashcard/components/AddFlashcardDialog'
 import { AddQuestionDialog } from '#/features/quiz/components/AddQuestionDialog'
 
-/** Joins truthy class names — keeps conditional className lists readable. */
 function cx(...classes: Array<string | false | undefined>): string {
   return classes.filter(Boolean).join(' ')
 }
 
-/**
- * A boolean that survives reloads via localStorage, without fighting SSR.
- * The first render (server and client) always uses `initial`; once mounted,
- * it syncs from storage. This avoids hydration mismatches at the cost of a
- * harmless one-frame flash if the stored preference differs from the default.
- */
 function usePersistentBoolean(
   key: string,
   initial: boolean,
@@ -140,12 +131,6 @@ function formatBytes(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
-const STATUS_LABELS: Record<string, string> = {
-  pending: 'Awaiting processing',
-  processing: 'Processing',
-  ready: 'Ready',
-  failed: 'Could not process',
-}
 
 export function MaterialViewerPage({ materialId }: { materialId: string }) {
   const { material, ready } = useMaterial(materialId)
@@ -161,14 +146,9 @@ export function MaterialViewerPage({ materialId }: { materialId: string }) {
   const [showFlashcard, setShowFlashcard] = useState(false)
   const [showQuiz, setShowQuiz] = useState(false)
   const [pendingText, setPendingText] = useState<string | undefined>()
-  const readerRef = useRef<HTMLElement>(null)
+  const readerRef = useRef<HTMLDivElement>(null)
   const tutorRef = useRef<TutorPanelHandle>(null)
 
-  // `mode` drives which top tab is highlighted; `paneMode` drives what the
-  // center reading pane shows. They're split so that selecting "Ask" simply
-  // brings focus to the always-visible tutor in the sidebar rather than
-  // replacing the reading surface — matching how the tutor stays put
-  // alongside whatever you're doing in the mockup.
   const [mode, setMode] = useState<Mode>('read')
   const [paneMode, setPaneMode] = useState<PaneMode>('read')
 
@@ -177,14 +157,29 @@ export function MaterialViewerPage({ materialId }: { materialId: string }) {
   const [saving, setSaving] = useState(false)
 
   const [leftCollapsed, setLeftCollapsed] = usePersistentBoolean(
-    'material-viewer:rail-collapsed',
+    'material-viewer:left-collapsed',
     false,
   )
   const [rightCollapsed, setRightCollapsed] = usePersistentBoolean(
-    'material-viewer:panel-collapsed',
+    'material-viewer:right-collapsed',
     false,
   )
   const focused = leftCollapsed && rightCollapsed
+
+  useEffect(() => {
+    const root = document.documentElement
+    const body = document.body
+    const previousRootOverflow = root.style.overflow
+    const previousBodyOverflow = body.style.overflow
+    root.setAttribute('data-hide-footer', '1')
+    root.style.overflow = 'hidden'
+    body.style.overflow = 'hidden'
+    return () => {
+      root.removeAttribute('data-hide-footer')
+      root.style.overflow = previousRootOverflow
+      body.style.overflow = previousBodyOverflow
+    }
+  }, [])
 
   const toggleFocusMode = useCallback(() => {
     const next = !focused
@@ -244,7 +239,6 @@ export function MaterialViewerPage({ materialId }: { materialId: string }) {
 
       if (next === 'ask') {
         setRightCollapsed(false)
-        // Wait a tick for the panel to expand before focusing it.
         requestAnimationFrame(() => tutorRef.current?.focusInput())
         return
       }
@@ -331,7 +325,7 @@ export function MaterialViewerPage({ materialId }: { materialId: string }) {
 
   if (!ready) {
     return (
-      <div className="page-wrap flex min-h-[60vh] items-center justify-center py-10">
+      <div className="flex h-screen items-center justify-center">
         <p className="mono-label text-(--ink-faint)">Loading material…</p>
       </div>
     )
@@ -339,7 +333,7 @@ export function MaterialViewerPage({ materialId }: { materialId: string }) {
 
   if (!material) {
     return (
-      <div className="page-wrap flex min-h-[60vh] flex-col items-center justify-center gap-4 py-10 text-center">
+      <div className="flex h-screen flex-col items-center justify-center gap-4 text-center">
         <p className="mono-label text-destructive">Material not found</p>
         <Link to="/learning-spaces" className="btn-ghost">
           Back to Learning Spaces
@@ -348,21 +342,17 @@ export function MaterialViewerPage({ materialId }: { materialId: string }) {
     )
   }
 
-  const leftWidth = leftCollapsed ? 60 : 266
-  const rightWidth = rightCollapsed ? 60 : 360
-  const readerMax = leftCollapsed && rightCollapsed ? 860 : leftCollapsed ? 790 : rightCollapsed ? 830 : 680
-
-  const { masteryById } = useConceptsMastery(associatedConcepts)
+  const readerMax = focused ? 1080 : 900
 
   return (
-    <div className="page-wrap--wide flex flex-col h-screen overflow-hidden">
+    <div className="flex h-screen flex-col overflow-hidden">
       {/* ================= Top bar ================= */}
-      <header className="h-14 shrink-0 flex items-center justify-between px-5 border-b border-(--line)/60 bg-(--surface)/90 bg-white/[0.015] backdrop-blur-md">
+      <header className="h-14 shrink-0 flex items-center justify-between px-5 border-b border-(--glass-border) bg-(--glass-bg-strong) backdrop-blur-xl">
         <div className="flex items-center gap-2 text-[13.5px] text-(--ink-faint)">
           <Link
             to="/learning-spaces/$learningSpaceId"
             params={{ learningSpaceId: material.learningSpaceId }}
-            className="hidden items-center gap-2 text-(--ink-faint) hover:text-(--ink) lg:flex"
+            className="hidden items-center gap-2 hover:text-(--ink) lg:flex"
             aria-label="Back to space"
           >
             <ArrowLeft size={16} aria-hidden="true" />
@@ -385,9 +375,7 @@ export function MaterialViewerPage({ materialId }: { materialId: string }) {
           <ModeTabs mode={mode} onChange={handleModeChange} />
         </div>
 
-        <div className="flex items-center gap-2">
-          <span className="chip hidden lg:inline-flex">{material.type.toUpperCase()}</span>
-          <span className="chip chip-live hidden lg:inline-flex">{STATUS_LABELS[material.extractionStatus] ?? material.extractionStatus}</span>
+        <div className="flex items-center gap-3.5">
           <button
             type="button"
             onClick={toggleFocusMode}
@@ -402,7 +390,6 @@ export function MaterialViewerPage({ materialId }: { materialId: string }) {
           >
             {focused ? <Minimize2 size={14} aria-hidden="true" /> : <Maximize2 size={14} aria-hidden="true" />}
           </button>
-          <span className="hidden h-6 w-px bg-(--line) lg:block" aria-hidden="true" />
           <span className="grid h-7 w-7 place-items-center rounded-full bg-(--racing) text-white shadow-sm">
             <span className="h-2.5 w-2.5 rounded-full bg-(--emerald)" aria-hidden="true" />
           </span>
@@ -410,215 +397,150 @@ export function MaterialViewerPage({ materialId }: { materialId: string }) {
       </header>
 
       {/* Mobile modes */}
-      <div className="flex justify-center lg:hidden">
+      <div className="justify-center lg:hidden">
         <ModeTabs mode={mode} onChange={handleModeChange} />
       </div>
 
       {/* ================= Workspace ================= */}
-      <div className="flex-1 flex min-h-0 overflow-hidden">
-        <div className="flex-1 flex min-h-0 overflow-hidden rounded-2xl border border-(--line)/60 bg-(--surface)/80 shadow-[0_8px_32px_-12px_rgba(15,23,42,0.08)] backdrop-blur-xl lg:h-[calc(100vh-9rem)] lg:min-h-[640px]">
-          {/* Left: Study guide */}
-          <div
-            id="leftPanel"
-            style={{ width: leftCollapsed ? 60 : 266 }}
-            className="hidden shrink-0 flex-col overflow-hidden border-r border-(--line)/60 bg-(--surface)/40 backdrop-blur-sm transition-[width] duration-300 ease-out lg:flex"
-          >
-            {leftCollapsed ? (
-              <div className="flex h-full w-[60px] flex-col items-center gap-1 pt-3">
-                <button
-                  type="button"
-                  onClick={() => setLeftCollapsed(false)}
-                  aria-label="Expand study guide"
-                  className="mb-2 grid h-8 w-8 place-items-center rounded-md text-(--ink-faint) hover:bg-(--surface-muted) hover:text-(--ink)"
-                >
-                  <PanelLeftOpen size={16} aria-hidden="true" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setLeftCollapsed(false)}
-                  title="Contents"
-                  aria-label="Show contents"
-                  className="grid h-8 w-8 place-items-center rounded-md text-(--ink-soft) hover:bg-(--surface-muted) hover:text-(--ink)"
-                >
-                  <List size={18} aria-hidden="true" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setLeftCollapsed(false)}
-                  title="Concepts"
-                  aria-label="Show concepts"
-                  className="grid h-8 w-8 place-items-center rounded-md text-(--ink-soft) hover:bg-(--surface-muted) hover:text-(--ink)"
-                >
-                  <Lightbulb size={18} aria-hidden="true" />
-                </button>
-              </div>
-            ) : (
-              <div className="flex h-full min-h-0 flex-col">
-                <div className="flex h-12 shrink-0 items-center justify-between border-b border-(--line)/60 px-4">
-                  <span className="text-[13px] font-semibold text-(--ink)">Study guide</span>
-                  <button
-                    type="button"
-                    onClick={() => setLeftCollapsed(true)}
-                    aria-label="Collapse study guide"
-                    className="grid h-6 w-6 place-items-center rounded-md text-(--ink-faint) hover:bg-(--surface-muted) hover:text-(--ink)"
-                  >
-                    <PanelLeftClose size={14} aria-hidden="true" />
-                  </button>
-                </div>
-                <div className="flex-1 min-h-0 overflow-y-auto">
-                  <details className="group border-b border-(--line)/60" open>
-                    <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-2.5 select-none [&::-webkit-details-marker]:hidden">
-                      <span className="text-[13px] font-semibold text-(--ink)">Contents</span>
-                      <ChevronRight size={12} className="text-(--ink-faint) transition-transform duration-200 group-open:rotate-90" aria-hidden="true" />
-                    </summary>
-                    <div className="px-3.5 pb-3">
-                      <ContentsList content={content} />
-                    </div>
-                  </details>
-                  <details className="group" open>
-                    <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-2.5 select-none [&::-webkit-details-marker]:hidden">
-                      <span className="text-[13px] font-semibold text-(--ink)">Concepts</span>
-                      <ChevronRight size={12} className="text-(--ink-faint) transition-transform duration-200 group-open:rotate-90" aria-hidden="true" />
-                    </summary>
-                    <div className="pb-2">
-                      <LeftConceptsList concepts={associatedConcepts} masteryById={masteryById} />
-                    </div>
-                  </details>
-                  <div className="px-4 py-3">
-                    <dl className="space-y-2 text-xs">
-                      <div className="flex justify-between gap-2">
-                        <dt className="text-(--ink-faint)">File</dt>
-                        <dd className="max-w-[140px] truncate text-right text-(--ink)">{material.source.fileName}</dd>
-                      </div>
-                      <div className="flex justify-between gap-2">
-                        <dt className="text-(--ink-faint)">Size</dt>
-                        <dd className="text-(--ink)">{formatBytes(material.source.sizeBytes)}</dd>
-                      </div>
-                      <div className="flex justify-between gap-2">
-                        <dt className="text-(--ink-faint)">Added</dt>
-                        <dd className="text-(--ink)">{new Date(material.createdAt).toLocaleDateString()}</dd>
-                      </div>
-                    </dl>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Center: Reader */}
-          <div className="flex min-w-0 flex-1 flex-col overflow-hidden bg-(--surface)">
-            {/* Mobile left/right toggles when collapsed */}
-            <div className="flex items-center justify-between border-b border-(--line)/60 bg-(--surface)/50 px-3 py-2 lg:hidden">
+      <div className="flex-1 flex min-h-0">
+        {/* Left: Study Guide */}
+        <div
+          id="leftPanel"
+          style={{ width: leftCollapsed ? 60 : 266 }}
+          className="hidden min-w-0 shrink-0 overflow-hidden border-r border-(--glass-border) bg-[color-mix(in_oklab,var(--surface)_38%,transparent)] backdrop-blur-xl backdrop-saturate-150 dark:bg-[color-mix(in_oklab,var(--surface)_30%,transparent)] lg:flex transition-[width] duration-300 ease-out"
+        >
+          {leftCollapsed ? (
+            <div className="flex h-full w-15 flex-col items-center gap-1 pt-3">
               <button
                 type="button"
-                onClick={() => setLeftCollapsed(!leftCollapsed)}
-                className="rounded-lg px-3 py-1.5 text-xs font-medium text-(--ink-soft) hover:bg-(--surface-muted) hover:text-(--ink)"
+                onClick={() => setLeftCollapsed(false)}
+                aria-label="Expand study guide"
+                className="mb-2 grid h-8 w-8 place-items-center rounded-md text-(--ink-faint) hover:bg-(--surface-muted) hover:text-(--ink)"
               >
-                {leftCollapsed ? 'Show guide' : 'Hide guide'}
+                <PanelLeftOpen size={16} aria-hidden="true" />
               </button>
               <button
                 type="button"
-                onClick={() => setRightCollapsed(!rightCollapsed)}
-                className="rounded-lg px-3 py-1.5 text-xs font-medium text-(--ink-soft) hover:bg-(--surface-muted) hover:text-(--ink)"
+                onClick={() => setLeftCollapsed(false)}
+                title="Contents"
+                className="grid h-8 w-8 place-items-center rounded-md text-(--ink-soft) hover:bg-(--surface-muted) hover:text-(--ink)"
               >
-                {rightCollapsed ? 'Show tutor' : 'Hide tutor'}
+                <List size={18} aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setLeftCollapsed(false)}
+                title="Concepts"
+                className="grid h-8 w-8 place-items-center rounded-md text-(--ink-soft) hover:bg-(--surface-muted) hover:text-(--ink)"
+              >
+                <Lightbulb size={18} aria-hidden="true" />
               </button>
             </div>
-            <div className="relative min-h-0 flex-1 overflow-y-auto">
-              <div
-                id="readerContent"
-                style={{ maxWidth: readerMax }}
-                className="mx-auto px-6 py-8 transition-[max-width] duration-300 ease-out lg:px-16 lg:pt-14 lg:pb-24"
+          ) : (
+            <StudyGuide
+              content={content}
+              material={material}
+              concepts={associatedConcepts}
+              masteryById={masteryById}
+              onCollapse={() => setLeftCollapsed(true)}
+            />
+          )}
+        </div>
+
+        {/* Center: Reader */}
+        <div className="sidebar-scroll min-w-0 flex-1 overflow-y-auto">
+          <div
+            ref={readerRef}
+            className="relative mx-auto w-full px-6 py-8 lg:px-16 lg:pb-24 lg:pt-14"
+            style={{ maxWidth: readerMax }}
+          >
+            {paneMode === 'read' && (
+              <ReadPane
+                content={content}
+                hasContent={hasContent}
+                editing={editing}
+                draft={draft}
+                saving={saving}
+                onDraftChange={setDraft}
+                onStartEditing={startEditing}
+                onCancelEditing={() => setEditing(false)}
+                onSave={() => void saveContent()}
+              />
+            )}
+
+            {paneMode === 'explore' && (
+              <ExplorePane concepts={associatedConcepts} />
+            )}
+
+            {paneMode === 'review' && (
+              <ReviewPane learningSpaceId={material.learningSpaceId} />
+            )}
+
+            {selection && (
+              <SelectionBubble
+                selection={selection}
+                onAskTutor={handleAskTutor}
+                onCreateHighlight={(text) => void handleCreateHighlight(text)}
+                onCreateConcept={handleCreateConcept}
+                onCreateFlashcard={handleCreateFlashcard}
+                onCreateQuiz={handleCreateQuiz}
+                onDismiss={clearSelection}
+              />
+            )}
+          </div>
+        </div>
+
+        {/* Right: Ask Tutor */}
+        <div
+          id="rightPanel"
+          style={{ width: rightCollapsed ? 60 : 360 }}
+          className="hidden shrink-0 overflow-hidden border-l border-(--glass-border) bg-[color-mix(in_oklab,var(--surface)_38%,transparent)] backdrop-blur-xl backdrop-saturate-150 dark:bg-[color-mix(in_oklab,var(--surface)_30%,transparent)] lg:flex lg:flex-col lg:min-h-0 transition-[width] duration-300 ease-out"
+        >
+          {rightCollapsed ? (
+            <div className="flex h-full w-15 flex-col items-center gap-1 pt-3">
+              <button
+                type="button"
+                onClick={() => setRightCollapsed(false)}
+                aria-label="Expand tutor"
+                className="mb-2 grid h-8 w-8 place-items-center rounded-md text-(--ink-faint) hover:bg-(--surface-muted) hover:text-(--ink)"
               >
-                {paneMode === 'read' && (
-                  <ReadPane
-                    readerRef={readerRef}
-                    content={content}
-                    hasContent={hasContent}
-                    editing={editing}
-                    draft={draft}
-                    saving={saving}
-                    onDraftChange={setDraft}
-                    onStartEditing={startEditing}
-                    onCancelEditing={() => setEditing(false)}
-                    onSave={() => void saveContent()}
-                  />
-                )}
-
-                {paneMode === 'explore' && <ExplorePane concepts={associatedConcepts} />}
-
-                {paneMode === 'review' && (
-                  <ReviewPane learningSpaceId={material.learningSpaceId} />
-                )}
+                <PanelRightOpen size={16} aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                title="Ask tutor"
+                className="grid h-8 w-8 place-items-center rounded-md bg-(--blue)/10 text-(--blue) hover:bg-(--blue)/15"
+              >
+                <MessageCircle size={18} aria-hidden="true" />
+              </button>
+            </div>
+          ) : (
+            <div className="flex h-full min-h-0 flex-col">
+              <div className="flex h-12 shrink-0 items-center justify-between border-b border-(--glass-border) px-4">
+                <button
+                  type="button"
+                  onClick={() => setRightCollapsed(true)}
+                  aria-label="Collapse tutor"
+                  className="grid h-6 w-6 place-items-center rounded-md text-(--ink-faint) hover:bg-(--surface-muted) hover:text-(--ink)"
+                >
+                  <PanelRightClose size={14} aria-hidden="true" />
+                </button>
+                <span className="text-[13px] font-semibold text-(--ink)">Ask tutor</span>
+                <span className="w-6" aria-hidden="true" />
               </div>
-
-              {selection && (
-                <SelectionBubble
-                  selection={selection}
-                  onAskTutor={handleAskTutor}
-                  onCreateHighlight={(text) => void handleCreateHighlight(text)}
-                  onCreateConcept={handleCreateConcept}
-                  onCreateFlashcard={handleCreateFlashcard}
-                  onCreateQuiz={handleCreateQuiz}
-                  onDismiss={clearSelection}
+              <div className="flex min-h-0 flex-1 flex-col">
+                <TutorPanel
+                  ref={tutorRef}
+                  materialTitle={material.title}
+                  materialId={material.id}
+                  learningSpaceId={material.learningSpaceId}
+                  context={tutorContext}
+                  onContextConsumed={() => setTutorContext(undefined)}
+                  hideHeader
                 />
-              )}
+              </div>
             </div>
-          </div>
-
-          {/* Right: Ask Tutor */}
-          <div
-            id="rightPanel"
-            style={{ width: rightWidth }}
-            className="hidden shrink-0 flex-col overflow-hidden border-l border-(--line)/60 bg-(--surface)/40 backdrop-blur-sm transition-[width] duration-300 ease-out lg:flex"
-          >
-            {rightCollapsed ? (
-              <div className="flex h-full w-[60px] flex-col items-center gap-1 pt-3">
-                <button
-                  type="button"
-                  onClick={() => setRightCollapsed(false)}
-                  aria-label="Expand tutor"
-                  className="mb-2 grid h-8 w-8 place-items-center rounded-md text-(--ink-faint) hover:bg-(--surface-muted) hover:text-(--ink)"
-                >
-                  <PanelRightOpen size={16} aria-hidden="true" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setRightCollapsed(false)}
-                  title="Ask tutor"
-                  aria-label="Show tutor"
-                  className="grid h-8 w-8 place-items-center rounded-md bg-(--blue)/10 text-(--blue) hover:bg-(--blue)/15"
-                >
-                  <MessageCircle size={18} aria-hidden="true" />
-                </button>
-              </div>
-            ) : (
-              <div className="flex h-full min-h-0 flex-col">
-                <div className="flex h-12 shrink-0 items-center justify-between border-b border-(--line)/60 px-4">
-                  <button
-                    type="button"
-                    onClick={() => setRightCollapsed(true)}
-                    aria-label="Collapse tutor"
-                    className="grid h-6 w-6 place-items-center rounded-md text-(--ink-faint) hover:bg-(--surface-muted) hover:text-(--ink)"
-                  >
-                    <PanelRightClose size={14} aria-hidden="true" />
-                  </button>
-                  <span className="text-[13px] font-semibold text-(--ink)">Ask tutor</span>
-                  <span className="w-6" aria-hidden="true" />
-                </div>
-                <div className="flex min-h-0 flex-1 flex-col">
-                  <TutorPanel
-                    ref={tutorRef}
-                    materialTitle={material.title}
-                    materialId={material.id}
-                    learningSpaceId={material.learningSpaceId}
-                    context={tutorContext}
-                    hideHeader
-                  />
-                </div>
-              </div>
-            )}
-          </div>
+          )}
         </div>
       </div>
 
@@ -653,6 +575,441 @@ export function MaterialViewerPage({ materialId }: { materialId: string }) {
           onClose={() => setShowQuiz(false)}
         />
       )}
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Mode switcher
+// ---------------------------------------------------------------------------
+
+function ModeTabs({ mode, onChange }: { mode: Mode; onChange: (mode: Mode) => void }) {
+  return (
+    <div
+      role="tablist"
+      aria-label="Material view"
+      className="inline-flex items-center gap-1 rounded-xl border border-(--glass-border) bg-(--glass-bg) p-1 backdrop-blur-sm"
+    >
+      {MODES.map((tab) => {
+        const TabIcon = tab.icon
+        const active = mode === tab.id
+
+        return (
+          <button
+            key={tab.id}
+            type="button"
+            role="tab"
+            aria-selected={active}
+            onClick={() => onChange(tab.id)}
+            className={cx(
+              'flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-[13px] font-medium transition-all',
+              active
+                ? 'bg-(--surface) text-(--ink) shadow-sm'
+                : 'text-(--ink-faint) hover:text-(--ink)',
+            )}
+          >
+            <TabIcon size={14} aria-hidden="true" />
+            {tab.label}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Study Guide — Contents and Concepts (matches mockup)
+// ---------------------------------------------------------------------------
+
+function StudyGuide({
+  content,
+  material,
+  concepts,
+  masteryById,
+  onCollapse,
+}: {
+  content: MaterialContent | undefined
+  material: { source: { fileName: string; sizeBytes: number }; createdAt: number }
+  concepts: Concept[]
+  masteryById: Map<string, ConceptMastery>
+  onCollapse: () => void
+}) {
+  const headings = content?.blocks.filter((block) => block.type === 'heading') ?? []
+
+  const [contentsOpen, setContentsOpen] = useState(true)
+  const [conceptsOpen, setConceptsOpen] = useState(true)
+
+  return (
+    <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col">
+      <div className="flex h-12 shrink-0 items-center justify-between border-b border-(--glass-border) px-4">
+        <span className="text-[13px] font-semibold text-(--ink)">
+          Study guide
+        </span>
+
+        <button
+          type="button"
+          onClick={onCollapse}
+          aria-label="Collapse study guide"
+          className="grid h-6 w-6 place-items-center rounded-md text-(--ink-faint) hover:bg-(--surface-muted) hover:text-(--ink)"
+        >
+          <PanelLeftClose size={14} aria-hidden="true" />
+        </button>
+      </div>
+
+      <div className="sidebar-scroll flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto">
+        {/* Contents */}
+        <section className="shrink-0 border-b border-(--glass-border)">
+          <button
+            type="button"
+            onClick={() => setContentsOpen((open) => !open)}
+            aria-expanded={contentsOpen}
+            className="flex w-full items-center justify-between px-4 py-2.5 text-left select-none"
+          >
+            <span className="text-[13px] font-medium text-(--ink)">
+              Contents
+            </span>
+
+            <ChevronRight
+              size={12}
+              className={cx(
+                'shrink-0 text-(--ink-faint) transition-transform duration-200',
+                contentsOpen && 'rotate-90',
+              )}
+              aria-hidden="true"
+            />
+          </button>
+
+          {contentsOpen && (
+            <div className="min-w-0 px-3.5 pb-3">
+              {headings.length > 0 ? (
+                <div className="flex min-w-0 flex-col gap-0.5">
+                  {headings.map((heading, index) => (
+                    <div
+                      key={heading.id}
+                      className={
+                        index === 0
+                          ? 'relative ml-3.5 min-w-0 cursor-pointer rounded-md bg-(--blue)/10 px-2 py-1.5 text-[13px] font-medium text-(--ink) before:absolute before:-left-3.5 before:top-1.5 before:bottom-1.5 before:w-0.5 before:rounded-full before:bg-(--blue)'
+                          : 'ml-3.5 min-w-0 cursor-pointer rounded-md px-2 py-1.5 text-[13px] text-(--ink-soft) hover:text-(--ink)'
+                      }
+                    >
+                      <span className="block line-clamp-2 leading-snug">
+                        {heading.text}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="px-2 text-[13px] text-(--ink-faint)">
+                  Sections appear here when headings are present.
+                </p>
+              )}
+            </div>
+          )}
+        </section>
+
+        {/* Concepts */}
+        <section className="shrink-0">
+          <button
+            type="button"
+            onClick={() => setConceptsOpen((open) => !open)}
+            aria-expanded={conceptsOpen}
+            className="flex w-full items-center justify-between px-4 py-2.5 text-left select-none"
+          >
+            <span className="text-[13px] font-medium text-(--ink)">
+              Concepts
+            </span>
+
+            <ChevronRight
+              size={12}
+              className={cx(
+                'shrink-0 text-(--ink-faint) transition-transform duration-200',
+                conceptsOpen && 'rotate-90',
+              )}
+              aria-hidden="true"
+            />
+          </button>
+
+          {conceptsOpen && (
+            <div className="min-w-0 pb-2">
+              {concepts.length === 0 ? (
+                <p className="px-4 text-[13px] text-(--ink-faint)">
+                  No concepts linked yet.
+                </p>
+              ) : (
+                <div className="flex min-w-0 flex-col">
+                  {concepts.map((concept) => {
+                    const state = masteryById.get(concept.id) ?? {
+                      label: 'Concept forming',
+                      dotClass:
+                        'bg-[#8891A8] shadow-[0_0_0_3px_rgba(137,145,168,0.14)]',
+                      showReview: false,
+                    }
+
+                    return (
+                      <div
+                        key={concept.id}
+                        className="flex min-w-0 items-center gap-2.5 px-4 py-2"
+                      >
+                        <span
+                          className={`h-2 w-2 shrink-0 rounded-full ${state.dotClass}`}
+                          aria-hidden="true"
+                        />
+
+                        <div className="min-w-0 flex-1">
+                          <Link
+                            to="/concepts/$conceptId"
+                            params={{ conceptId: concept.id }}
+                            className="block truncate text-[13.5px] font-medium text-(--ink) hover:text-(--blue)"
+                          >
+                            {concept.name}
+                          </Link>
+
+                          <span className="block truncate font-mono text-[10.5px] uppercase tracking-wide text-(--ink-faint)">
+                            {state.label}
+                          </span>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+        </section>
+      </div>
+
+      {/* Source info */}
+      <div className="shrink-0 border-t border-(--glass-border) px-4 py-3">
+        <dl className="space-y-2 text-xs">
+          <div className="flex justify-between gap-2">
+            <dt className="text-(--ink-faint)">File</dt>
+            <dd className="max-w-35 truncate text-right text-(--ink)">
+              {material.source.fileName}
+            </dd>
+          </div>
+
+          <div className="flex justify-between gap-2">
+            <dt className="text-(--ink-faint)">Size</dt>
+            <dd className="text-(--ink)">
+              {formatBytes(material.source.sizeBytes)}
+            </dd>
+          </div>
+
+          <div className="flex justify-between gap-2">
+            <dt className="text-(--ink-faint)">Added</dt>
+            <dd className="text-(--ink)">
+              {new Date(material.createdAt).toLocaleDateString()}
+            </dd>
+          </div>
+        </dl>
+      </div>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Read pane
+// ---------------------------------------------------------------------------
+
+type ReadPaneProps = {
+  content: MaterialContent | undefined
+  hasContent: boolean
+  editing: boolean
+  draft: string
+  saving: boolean
+  onDraftChange: (value: string) => void
+  onStartEditing: () => void
+  onCancelEditing: () => void
+  onSave: () => void
+}
+
+function ReadPane({
+  content,
+  hasContent,
+  editing,
+  draft,
+  saving,
+  onDraftChange,
+  onStartEditing,
+  onCancelEditing,
+  onSave,
+}: ReadPaneProps) {
+  const firstHeading = content?.blocks.find((block) => block.type === 'heading')?.text
+  const eyebrow = firstHeading ? firstHeading : hasContent ? 'Reading' : 'Full text'
+
+  return (
+    <div>
+      <div className="mb-4 flex items-center justify-between gap-3 border-b border-(--line) pb-3">
+        <p className="font-mono text-[11.5px] tracking-[0.06em] text-(--ink-faint) uppercase">{eyebrow}</p>
+
+        {!editing && (
+          <button type="button" onClick={onStartEditing} className="btn-ghost shrink-0 text-[13px]">
+            {hasContent ? 'Edit content' : 'Add content'}
+          </button>
+        )}
+      </div>
+
+      {editing ? (
+        <div>
+          <textarea
+            value={draft}
+            onChange={(event) => onDraftChange(event.target.value)}
+            rows={16}
+            placeholder="Paste or write the material's readable text here. Lines starting with '# ' become headings."
+            className="min-h-88 w-full resize-y rounded-xl border border-(--line) bg-(--surface) p-4 text-[15px] leading-relaxed text-(--ink) outline-none transition focus:border-(--blue) focus:ring-2 focus:ring-(--blue)/15"
+          />
+
+          <div className="mt-4 flex justify-end gap-3">
+            <button
+              type="button"
+              onClick={onCancelEditing}
+              disabled={saving}
+              className="btn-ghost disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={onSave}
+              disabled={saving || draft.trim().length === 0}
+              className="btn-primary disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {saving ? 'Saving…' : 'Save content'}
+            </button>
+          </div>
+        </div>
+      ) : content && content.blocks.length > 0 ? (
+        <article id="reader-content" className="space-y-5">
+          {content.blocks.map((block) =>
+            block.type === 'heading' ? (
+              <h1
+                key={block.id}
+                className="font-display text-[34px] leading-[1.2] font-semibold tracking-tight text-(--ink)"
+              >
+                {block.text}
+              </h1>
+            ) : (
+              <p
+                key={block.id}
+                className="font-display text-[18.5px] leading-[1.9] text-(--ink-soft)"
+              >
+                {block.text}
+              </p>
+            ),
+          )}
+        </article>
+      ) : (
+        <div className="flex flex-col items-center gap-4 rounded-2xl border border-dashed border-(--line-strong) bg-(--surface-muted) px-8 py-16 text-center">
+          <span className="grid h-14 w-14 place-items-center rounded-2xl bg-(--surface) text-(--ink-faint)">
+            <FileText size={24} aria-hidden="true" />
+          </span>
+
+          <div className="max-w-sm">
+            <p className="text-sm font-medium text-(--ink)">No readable content yet</p>
+            <p className="mt-1.5 text-sm leading-relaxed text-(--ink-soft)">
+              Add the material&apos;s text here, or it will be filled automatically when
+              extraction is available.
+            </p>
+          </div>
+
+          <button type="button" onClick={onStartEditing} className="btn-primary mt-1">
+            Add content
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Explore pane
+// ---------------------------------------------------------------------------
+
+function ExplorePane({ concepts }: { concepts: Concept[] }) {
+  return (
+    <div>
+      <p className="mono-label mb-6 border-b border-(--line) pb-5 text-(--ink-faint)">
+        Concepts from this material
+      </p>
+
+      {concepts.length === 0 ? (
+        <p className="text-sm leading-relaxed text-(--ink-faint)">
+          No concepts are linked to this material yet.
+        </p>
+      ) : (
+        <ul className="space-y-3">
+          {concepts.map((concept) => (
+            <li
+              key={concept.id}
+              className="feed-row rounded-2xl border border-(--line) bg-(--surface) p-5"
+            >
+              <p className="font-medium text-(--ink)">
+                <Link
+                  to="/concepts/$conceptId"
+                  params={{ conceptId: concept.id }}
+                  className="hover:text-(--blue)"
+                >
+                  {concept.name}
+                </Link>
+              </p>
+
+              {concept.description && (
+                <p className="mt-2 text-sm leading-relaxed text-(--ink-soft)">
+                  {concept.description}
+                </p>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Review pane
+// ---------------------------------------------------------------------------
+
+const REVIEW_LINKS = [
+  { to: '/review', label: 'Start review', icon: ClipboardCheck },
+  { to: '/flashcards', label: 'Flashcards', icon: NotebookPen },
+] as const
+
+function ReviewPane({ learningSpaceId }: { learningSpaceId: string }) {
+  return (
+    <div>
+      <p className="mono-label mb-3 border-b border-(--line) pb-5 text-(--ink-faint)">
+        Review &amp; practice
+      </p>
+      <p className="mt-4 text-sm leading-relaxed text-(--ink-soft)">
+        Tie review to this material's concepts.
+      </p>
+
+      <div className="mt-6 grid gap-4 sm:grid-cols-3">
+        {REVIEW_LINKS.map(({ to, label, icon: LinkIcon }) => (
+          <Link
+            key={to}
+            to={to}
+            className="card-flat flex flex-col gap-3 p-6 transition hover:-translate-y-0.5 hover:border-(--blue) hover:shadow-md"
+          >
+            <span className="grid h-11 w-11 place-items-center rounded-xl bg-(--surface-muted) text-(--blue)">
+              <LinkIcon size={19} aria-hidden="true" />
+            </span>
+            <span className="font-medium text-(--ink)">{label}</span>
+          </Link>
+        ))}
+
+        <Link
+          to="/learning-spaces/$learningSpaceId"
+          params={{ learningSpaceId }}
+          className="card-flat flex flex-col gap-3 p-6 transition hover:-translate-y-0.5 hover:border-(--blue) hover:shadow-md"
+        >
+          <span className="grid h-11 w-11 place-items-center rounded-xl bg-(--surface-muted) text-(--blue)">
+            <Layers size={19} aria-hidden="true" />
+          </span>
+          <span className="font-medium text-(--ink)">Quiz</span>
+        </Link>
+      </div>
     </div>
   )
 }
