@@ -32,6 +32,7 @@ import { useLearningSpaceDetail } from '#/features/learning-space/hooks/useLearn
 import { useConcepts } from '#/features/learning-space/hooks/useConcepts'
 import { useMaterials } from '../hooks/useMaterials'
 import { useMaterialContent } from '../hooks/useMaterialContent'
+import { useConceptsMastery } from '../hooks/useConceptsMastery'
 import { saveMaterialContent } from '#/features/learning-space/application/saveMaterialContent'
 import { createHighlight } from '#/features/learning-space/application/createHighlight'
 import { TutorPanel } from './TutorPanel'
@@ -245,6 +246,8 @@ export function MaterialViewerPage({ materialId }: { materialId: string }) {
     return concepts.filter((concept) => concept.materialIds.includes(material.id))
   }, [concepts, material])
 
+  const { masteryById } = useConceptsMastery(associatedConcepts)
+
   const handleModeChange = useCallback(
     (next: Mode) => {
       setMode(next)
@@ -456,7 +459,7 @@ export function MaterialViewerPage({ materialId }: { materialId: string }) {
               </div>
 
               <div className="min-h-0 flex-1 overflow-y-auto">
-                <ConceptsPanel concepts={associatedConcepts} />
+                <ConceptsPanel concepts={associatedConcepts} masteryById={masteryById} />
               </div>
             </>
           )}
@@ -771,55 +774,16 @@ function CollapsedEdge({
 // ---------------------------------------------------------------------------
 // Concepts panel — persistent sidebar counterpart to the tutor
 // Mirrors mockup's clarity dots + state + Review action for weak spots.
-// Mastery is derived from ReviewEvents when available; otherwise shows
-// "Concept forming" — never faked.
+// Mastery is derived from live ReviewEvents via useConceptsMastery.
 // ---------------------------------------------------------------------------
 
-function masteryState(total: number, rate: number): {
-  label: string
-  dotClass: string
-  showReview: boolean
-} {
-  if (total === 0) {
-    return {
-      label: 'Concept forming',
-      dotClass: 'bg-[#8891A8] shadow-[0_0_0_3px_rgba(137,145,168,0.14)]',
-      showReview: false,
-    }
-  }
-  if (total < 3 && rate < 0.6) {
-    return {
-      label: 'Uncertain',
-      dotClass: 'bg-[#E1636B] shadow-[0_0_0_3px_rgba(225,99,107,0.13)]',
-      showReview: true,
-    }
-  }
-  if (rate < 0.5) {
-    return {
-      label: 'Uncertain',
-      dotClass: 'bg-[#E1636B] shadow-[0_0_0_3px_rgba(225,99,107,0.13)]',
-      showReview: true,
-    }
-  }
-  if (rate < 0.82) {
-    return {
-      label: 'Partial',
-      dotClass: 'bg-[#8891A8] shadow-[0_0_0_3px_rgba(137,145,168,0.14)]',
-      showReview: false,
-    }
-  }
-  return {
-    label: 'Mastered',
-    dotClass: 'bg-[#E8B54A] shadow-[0_0_0_3px_rgba(232,181,74,0.14)]',
-    showReview: false,
-  }
-}
-
-function ConceptsPanel({ concepts }: { concepts: Concept[] }) {
-  // Concepts in the viewer currently have no inline mastery fetch — when
-  // ReviewEvents exist they surface via Dashboard/Insights. Until a live
-  // concept-mastery subscription is added here, show the honest "Concept
-  // forming" state rather than fabricating Weak/Mastered.
+function ConceptsPanel({
+  concepts,
+  masteryById,
+}: {
+  concepts: Concept[]
+  masteryById: Map<string, import('../hooks/useConceptsMastery').ConceptMastery>
+}) {
   return (
     <div className="flex h-full flex-col bg-(--surface)/40">
       <div className="shrink-0 px-[18px] pt-4 pb-3">
@@ -833,7 +797,11 @@ function ConceptsPanel({ concepts }: { concepts: Concept[] }) {
       ) : (
         <ul className="space-y-0 overflow-y-auto px-1 pb-4">
           {concepts.map((concept) => {
-            const state = masteryState(0, 0)
+            const state = masteryById.get(concept.id) ?? {
+              label: 'Concept forming' as const,
+              dotClass: 'bg-[#8891A8] shadow-[0_0_0_3px_rgba(137,145,168,0.14)]',
+              showReview: false,
+            }
             return (
               <li key={concept.id} className="flex items-center gap-2.5 px-[18px] py-[9px]">
                 <span
