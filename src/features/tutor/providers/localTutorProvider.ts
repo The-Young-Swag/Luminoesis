@@ -7,6 +7,7 @@
  * it receives the already-built TutorContext and turns it into a
  * focused prompt for the on-device model.
  */
+
 import type {
   TutorProvider,
   TutorRequest,
@@ -144,27 +145,27 @@ export class LocalTutorProvider implements TutorProvider {
         })
 
         const output = await Promise.race<
-        Array<{ generated_text: string }>
-      >([
-        inferencePromise,
-        timeoutPromise<Array<{ generated_text: string }>>(
-          INFERENCE_TIMEOUT_MS,
-          'Inference',
-        ),
-      ])
-      
-      const generated = output[0]?.generated_text?.trim()
+          Array<{ generated_text: string }>
+        >([
+          inferencePromise,
+          timeoutPromise<Array<{ generated_text: string }>>(
+            INFERENCE_TIMEOUT_MS,
+            'Inference',
+          ),
+        ])
+
+        const generated = output[0]?.generated_text?.trim()
 
         if (generated && generated.length > 10) {
           return {
-            text: `${generated}\n\n— Local model · Generated on-device via Xenova/LaMini-Flan-T5-77M (Apache 2.0). No data sent externally.`,
+            text: generated,
             provider: 'local',
+            execution: 'on-device',
             citation: material
               ? {
                   materialId: material.id,
                   materialTitle: material.title,
-                  excerpt:
-                    selectedText ?? material.excerpt.slice(0, 120),
+                  excerpt: selectedText ?? material.excerpt.slice(0, 120),
                 }
               : undefined,
           }
@@ -223,12 +224,9 @@ export class LocalTutorProvider implements TutorProvider {
       parts.length > 0 ? parts.join(' ') : `You asked: “${prompt}”`
 
     return {
-      text: [
-        body,
-        '',
-        '— Local preview · The on-device model was unavailable or timed out. No data was sent externally.',
-      ].join('\n'),
+      text: body,
       provider: 'local',
+      execution: 'fallback',
       citation: material
         ? {
             materialId: material.id,

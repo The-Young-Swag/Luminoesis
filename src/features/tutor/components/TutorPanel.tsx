@@ -6,7 +6,9 @@ import {
   useRef,
   useState,
 } from 'react'
+
 import { CornerDownLeft, Info, Sparkles } from 'lucide-react'
+
 import { tutorService } from '#/features/tutor/application/tutorService'
 import type { TutorMessage } from '#/features/tutor/domain/tutor'
 
@@ -64,12 +66,19 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
         return
       }
 
-      const selectedText = context
+      /*
+       * Snapshot the selection before the request begins.
+       *
+       * The parent consumes the selection after the request completes,
+       * so the submitted message must retain its own copy.
+       */
+      const selectedText = context?.trim() || undefined
 
       const userMessage: TutorMessage = {
         id: `u-${Date.now()}`,
         role: 'user',
         text,
+        selectedText,
       }
 
       setMessages((previousMessages) => [
@@ -95,6 +104,7 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
           role: 'assistant',
           text: response.text,
           provider: response.provider,
+          execution: response.execution,
           citation: response.citation,
         }
 
@@ -263,9 +273,23 @@ function TutorMessageBubble({
   if (isUser) {
     return (
       <div className="flex justify-end">
-        <p className="max-w-[82%] rounded-[13px_13px_4px_13px] border border-(--blue)/25 bg-(--blue)/12 px-3.5 py-2.5 text-[13.5px] leading-normal text-(--ink) shadow-sm">
-          {message.text}
-        </p>
+        <div className="flex max-w-[88%] flex-col items-end gap-2">
+          {message.selectedText && (
+            <div className="w-full rounded-xl bg-(--surface-muted)/50 px-3.5 py-2.5 text-left">
+              <p className="mb-1 text-[11px] font-medium text-(--ink-faint)">
+                Selected passage
+              </p>
+
+              <p className="line-clamp-3 text-[12px] leading-relaxed text-(--ink-soft)">
+                {message.selectedText}
+              </p>
+            </div>
+          )}
+
+          <p className="rounded-[13px_13px_4px_13px] border border-(--blue)/25 bg-(--blue)/12 px-3.5 py-2.5 text-[13.5px] leading-normal text-(--ink) shadow-sm">
+            {message.text}
+          </p>
+        </div>
       </div>
     )
   }
@@ -276,9 +300,25 @@ function TutorMessageBubble({
         <Sparkles size={12} aria-hidden="true" />
       </span>
 
-      <p className="max-w-[88%] rounded-[13px_13px_13px_4px] border border-(--glass-border) bg-(--glass-bg) px-3.5 py-2.5 text-[13.5px] leading-normal text-(--ink)">
-        {message.text}
-      </p>
+      <div className="min-w-0 max-w-[88%]">
+        <p className="rounded-[13px_13px_13px_4px] border border-(--glass-border) bg-(--glass-bg)/70 px-3.5 py-2.5 text-[13.5px] leading-normal text-(--ink) backdrop-blur-sm">
+          {message.text}
+        </p>
+
+        {message.provider === 'local' && (
+          <p className="mt-1.5 px-1 text-[10.5px] leading-relaxed text-(--ink-faint)">
+            {message.execution === 'on-device'
+              ? 'Local AI · Generated on-device · No data sent externally.'
+              : 'Local AI · On-device model unavailable · No data sent externally.'}
+          </p>
+        )}
+
+        {message.provider === 'gemini' && (
+          <p className="mt-1.5 px-1 text-[10.5px] leading-relaxed text-(--ink-faint)">
+            Gemini · Online AI
+          </p>
+        )}
+      </div>
     </div>
   )
 }
