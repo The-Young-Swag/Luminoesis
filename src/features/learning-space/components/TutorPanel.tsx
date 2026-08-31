@@ -135,10 +135,10 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
     const canSend = useMemo(() => draft.trim().length > 0 && !sending, [draft, sending])
 
     return (
-      <div className="flex h-full min-h-0 flex-col bg-(--surface)/40">
-        <header className="flex shrink-0 items-center justify-between gap-3 px-5 py-4">
+      <div className="flex h-full min-h-0 flex-col bg-transparent">
+        <header className="flex shrink-0 items-center justify-between gap-3 px-6 py-5">
           <div className="flex items-center gap-2.5">
-            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-(--blue)/12 text-(--blue)">
+            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-(--blue)/10 text-(--blue)">
               <Sparkles size={15} aria-hidden="true" />
             </span>
             <p className="font-mono text-[11px] font-semibold tracking-[0.08em] text-(--ink-faint) uppercase">
@@ -157,7 +157,7 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
           <div
             role="status"
             aria-live="polite"
-            className="mx-5 mb-3 flex gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2.5 text-xs leading-relaxed text-amber-900 dark:border-amber-900/30 dark:bg-amber-950/30 dark:text-amber-100"
+            className="mx-6 mb-4 flex gap-2.5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs leading-relaxed text-amber-900 dark:border-amber-900/30 dark:bg-amber-950/30 dark:text-amber-100"
           >
             <Info size={14} className="mt-0.5 shrink-0" aria-hidden="true" />
             <span>You&apos;ve used all {quota.limit} online Tutor uploads available for this demo. Local AI may still work, and all non-AI learning features continue working.</span>
@@ -166,7 +166,7 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
           <div
             role="status"
             aria-live="polite"
-            className="mx-5 mb-3 flex gap-2 rounded-xl border border-(--line)/70 bg-(--surface-muted)/70 px-3.5 py-2.5 text-xs leading-relaxed text-(--ink-soft)"
+            className="mx-6 mb-4 flex gap-2.5 rounded-xl border border-(--line)/60 bg-(--surface-muted)/60 px-4 py-3 text-xs leading-relaxed text-(--ink-soft)"
           >
             <Info size={14} className="mt-0.5 shrink-0 text-(--ink-faint)" aria-hidden="true" />
             <span>
@@ -176,7 +176,7 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
         )}
 
         <div
-          className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 pb-4"
+          className="min-h-0 flex-1 space-y-5 overflow-y-auto px-6 pb-5"
           role="log"
           aria-live="polite"
           aria-relevant="additions"
@@ -186,24 +186,24 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
             <TutorMessageBubble key={message.id} message={message} />
           ))}
           {sending && (
-            <div className="flex items-start gap-2.5" role="status" aria-live="polite" aria-label="Tutor is thinking">
+            <div className="flex items-start gap-3" role="status" aria-live="polite" aria-label="Tutor is thinking">
               <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-(--surface-muted) text-(--blue)">
                 <Sparkles size={12} aria-hidden="true" />
               </span>
-              <p className="pt-0.5 text-[13.5px] leading-relaxed text-(--ink-faint)">Thinking…</p>
+              <p className="pt-0.5 text-[14px] leading-relaxed text-(--ink-faint)">Thinking…</p>
             </div>
           )}
         </div>
 
-        <div className="shrink-0 border-t border-(--line)/70 p-4">
+        <div className="shrink-0 border-t border-(--line)/60 p-5">
           {context && (
-            <div className="mb-3 rounded-xl border border-(--line)/70 bg-(--surface-muted)/70 px-3.5 py-2.5 text-xs text-(--ink-soft)">
+            <div className="mb-3 rounded-xl border border-(--line)/60 bg-(--surface-muted)/60 px-4 py-3 text-xs leading-relaxed text-(--ink-soft)">
               <span className="font-medium text-(--ink)">From your selection: </span>
               <span className="line-clamp-2">{context}</span>
             </div>
           )}
 
-          <div className="flex items-end gap-2 rounded-2xl border border-(--line)/80 bg-(--surface) p-2 pl-3.5 shadow-sm transition focus-within:border-(--blue) focus-within:ring-2 focus-within:ring-(--blue)/15">
+          <div className="flex items-end gap-2 rounded-2xl border border-(--line)/70 bg-(--surface) p-3 pl-4 shadow-sm transition focus-within:border-(--blue) focus-within:ring-2 focus-within:ring-(--blue)/15">
             <textarea
               ref={textareaRef}
               value={draft}
@@ -212,7 +212,7 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
               rows={1}
               placeholder="Ask about this material…"
               aria-label="Ask Tutor about this material"
-              className="max-h-32 min-h-9 flex-1 resize-none bg-transparent py-1.5 text-sm leading-relaxed text-(--ink) outline-none placeholder:text-(--ink-faint)"
+              className="max-h-32 min-h-10 flex-1 resize-none bg-transparent py-2 text-[14px] leading-relaxed text-(--ink) outline-none placeholder:text-(--ink-faint)"
             />
 
             <button
@@ -220,7 +220,7 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
               onClick={send}
               disabled={!canSend}
               aria-label="Send message"
-              className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-(--blue)/12 text-(--blue) transition hover:bg-(--blue)/20 disabled:cursor-not-allowed disabled:opacity-40"
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-(--blue)/10 text-(--blue) transition hover:bg-(--blue)/15 disabled:cursor-not-allowed disabled:opacity-40"
             >
               <CornerDownLeft size={15} aria-hidden="true" />
             </button>
@@ -237,7 +237,7 @@ function TutorMessageBubble({ message }: { message: TutorMessage }) {
   if (isUser) {
     return (
       <div className="flex justify-end">
-        <p className="max-w-[85%] rounded-2xl rounded-br-md bg-(--blue) px-4 py-2.5 text-[13.5px] leading-relaxed text-white">
+        <p className="max-w-[82%] rounded-2xl rounded-br-md bg-(--blue) px-4 py-3 text-[14px] leading-relaxed text-white shadow-sm">
           {message.text}
         </p>
       </div>
@@ -245,12 +245,12 @@ function TutorMessageBubble({ message }: { message: TutorMessage }) {
   }
 
   return (
-    <div className="flex items-start gap-2.5">
+    <div className="flex items-start gap-3">
       <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-(--surface-muted) text-(--blue)">
         <Sparkles size={12} aria-hidden="true" />
       </span>
 
-      <p className="max-w-[92%] pt-0.5 text-[13.5px] leading-relaxed text-(--ink-soft)">
+      <p className="max-w-[88%] pt-0.5 text-[14px] leading-[1.6] text-(--ink-soft)">
         {message.text}
       </p>
     </div>

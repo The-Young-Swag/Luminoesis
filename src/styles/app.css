@@ -1068,6 +1068,17 @@ a:hover {
 }
 
 /* ==========================================================================
+   VIEWER GRID — 1 col mobile, 3 col desktop with CSS vars for collapse
+   ========================================================================== */
+
+@utility viewer-grid {
+  grid-template-columns: 1fr;
+  @media (width >= 64rem) {
+    grid-template-columns: var(--rail-w) minmax(0, 1fr) var(--panel-w);
+  }
+}
+
+/* ==========================================================================
    TAILWIND BASE
    ========================================================================== */
 

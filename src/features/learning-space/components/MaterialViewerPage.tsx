@@ -361,7 +361,7 @@ export function MaterialViewerPage({ materialId }: { materialId: string }) {
   const Icon = materialIcon(material.type)
 
   return (
-    <div className="page-wrap--wide flex flex-col gap-6 py-8 lg:py-10">
+    <div className="page-wrap--wide flex flex-col gap-5 py-6 lg:py-8">
       <WorkspaceTopbar
         icon={Icon}
         materialTitle={material.title}
@@ -376,11 +376,11 @@ export function MaterialViewerPage({ materialId }: { materialId: string }) {
       />
 
       <div
-        className="relative grid overflow-hidden rounded-2xl border border-(--line)/70 bg-(--surface)/70 shadow-[0_24px_60px_-32px_rgba(15,23,42,0.25)] backdrop-blur-2xl backdrop-saturate-150 transition-[grid-template-columns] duration-300 ease-out lg:h-[calc(100vh-13rem)] lg:min-h-160 lg:grid-cols-[var(--rail-w)_minmax(0,1fr)_var(--panel-w)]"
+        className="viewer-grid relative grid overflow-hidden rounded-2xl border border-(--line)/60 bg-(--surface)/80 shadow-[0_8px_32px_-12px_rgba(15,23,42,0.12)] backdrop-blur-xl transition-[grid-template-columns] duration-300 ease-out lg:h-[calc(100vh-9rem)] lg:min-h-[640px]"
         style={
           {
-            '--rail-w': leftCollapsed ? '56px' : '220px',
-            '--panel-w': rightCollapsed ? '56px' : '340px',
+            '--rail-w': leftCollapsed ? '0px' : '220px',
+            '--panel-w': rightCollapsed ? '0px' : '360px',
           } as React.CSSProperties
         }
       >
@@ -391,8 +391,30 @@ export function MaterialViewerPage({ materialId }: { materialId: string }) {
           onToggleCollapsed={() => setLeftCollapsed(!leftCollapsed)}
         />
 
-        <section className="relative min-h-0 overflow-y-auto border-t border-(--line)/70 bg-(--surface)/92 lg:border-t-0 lg:border-x">
-        <div className="mx-auto max-w-[640px] px-4 py-6 lg:px-16 lg:py-14">
+        <section className="relative min-h-0 overflow-y-auto border-t border-(--line)/60 bg-(--surface) lg:border-t-0 lg:border-x">
+          {leftCollapsed && (
+            <button
+              type="button"
+              onClick={() => setLeftCollapsed(false)}
+              aria-label="Show source panel"
+              title="Show source panel"
+              className="absolute left-3 top-3 z-10 hidden h-8 w-8 place-items-center rounded-lg border border-(--line) bg-(--surface)/90 text-(--ink-faint) shadow-sm backdrop-blur-md transition hover:text-(--ink) lg:grid"
+            >
+              <PanelLeftOpen size={14} aria-hidden="true" />
+            </button>
+          )}
+          {rightCollapsed && (
+            <button
+              type="button"
+              onClick={() => setRightCollapsed(false)}
+              aria-label="Show tutor panel"
+              title="Show tutor panel"
+              className="absolute right-3 top-3 z-10 hidden h-8 w-8 place-items-center rounded-lg border border-(--line) bg-(--surface)/90 text-(--ink-faint) shadow-sm backdrop-blur-md transition hover:text-(--ink) lg:grid"
+            >
+              <PanelRightOpen size={14} aria-hidden="true" />
+            </button>
+          )}
+        <div className={cx('mx-auto px-6 py-8 lg:px-12 lg:py-12', focused ? 'max-w-[720px]' : leftCollapsed || rightCollapsed ? 'max-w-[680px]' : 'max-w-[640px]')}>
             {paneMode === 'read' && (
               <ReadPane
                 readerRef={readerRef}
@@ -428,7 +450,7 @@ export function MaterialViewerPage({ materialId }: { materialId: string }) {
           )}
         </section>
 
-        <aside className="flex min-h-0 flex-col border-t border-(--line)/70 lg:border-t-0">
+        <aside className="flex min-h-0 flex-col border-t border-(--line)/60 bg-(--surface)/20 lg:border-t-0">
           {rightCollapsed ? (
             <CollapsedEdge
               label="Tutor & Concepts"
@@ -437,7 +459,7 @@ export function MaterialViewerPage({ materialId }: { materialId: string }) {
             />
           ) : (
             <>
-              <div className="min-h-0 flex-[1.4] border-b border-(--line)/70">
+              <div className="min-h-0 flex-[1.7] border-b border-(--line)/60 bg-(--surface)/30">
                 <TutorPanel
                   ref={tutorRef}
                   materialTitle={material.title}
@@ -531,7 +553,7 @@ function WorkspaceTopbar({
   onToggleFocus,
 }: WorkspaceTopbarProps) {
   return (
-    <header className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-(--line) bg-(--surface) px-5 py-4 lg:px-6">
+    <header className="flex min-h-14 flex-wrap items-center justify-between gap-4 rounded-xl border border-(--line)/60 bg-(--surface)/90 px-4 py-3 shadow-sm backdrop-blur-md lg:px-5">
       <div className="flex min-w-0 items-center gap-4">
         <Link
           to="/learning-spaces/$learningSpaceId"
@@ -608,7 +630,7 @@ function ModeTabs({ mode, onChange }: { mode: Mode; onChange: (mode: Mode) => vo
     <div
       role="tablist"
       aria-label="Material view"
-      className="inline-flex items-center gap-1 rounded-2xl bg-(--surface-muted) p-1.5"
+      className="inline-flex items-center gap-1 rounded-xl border border-(--line)/40 bg-(--surface-muted)/80 p-1 backdrop-blur-sm"
     >
       {MODES.map((tab) => {
         const TabIcon = tab.icon
@@ -622,13 +644,13 @@ function ModeTabs({ mode, onChange }: { mode: Mode; onChange: (mode: Mode) => vo
             aria-selected={active}
             onClick={() => onChange(tab.id)}
             className={cx(
-              'flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-all',
+              'flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-[13px] font-medium transition-all',
               active
                 ? 'bg-(--surface) text-(--ink) shadow-sm'
                 : 'text-(--ink-faint) hover:text-(--ink)',
             )}
           >
-            <TabIcon size={16} aria-hidden="true" />
+            <TabIcon size={14} aria-hidden="true" />
             {tab.label}
           </button>
         )
