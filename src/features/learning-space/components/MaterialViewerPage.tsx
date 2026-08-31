@@ -438,6 +438,8 @@ export function MaterialViewerPage({ materialId }: { materialId: string }) {
                 <TutorPanel
                   ref={tutorRef}
                   materialTitle={material.title}
+                  materialId={material.id}
+                  learningSpaceId={material.learningSpaceId}
                   context={tutorContext}
                   headerAction={
                     <button

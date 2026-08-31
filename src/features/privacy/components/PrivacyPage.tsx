@@ -329,6 +329,29 @@ export function PrivacyPage() {
       </div>
 
       <div className="card-flat mt-4 p-5">
+        <h3 className="text-sm font-semibold">AI Tutor &amp; your privacy</h3>
+
+        <p className="mt-1 text-sm leading-relaxed text-(--ink-soft)">
+          Luminoesis prefers on-device AI when available — it&apos;s private, offline,
+          and nothing leaves your device. If local AI can&apos;t run on your device,
+          you may use the online Tutor as a fallback. When you do, the selected
+          learning context (your question, highlighted text, and a short excerpt
+          from the material) is sent to the online provider to generate a
+          response.
+        </p>
+
+        <ul className="mt-3 list-inside list-disc space-y-1 text-sm text-(--ink-soft)">
+          <li>This demo allows up to 3 online material uploads per person. Local AI does not count toward this limit.</li>
+          <li>After 3, you&apos;ll see &ldquo;You&apos;ve used all 3 online Tutor uploads&rdquo; — local AI and all non-AI features keep working.</li>
+          <li>The app remains fully usable without online AI. Study, review, flashcards, quizzes and insights never require it.</li>
+        </ul>
+
+        <p className="mt-3 text-xs text-(--ink-faint)">
+          The 3-upload limit is enforced on the server. Because this demo has no login, the limit uses an anonymous browser cookie — it&apos;s a demo safeguard, not strong authentication.
+        </p>
+      </div>
+
+      <div className="card-flat mt-4 p-5">
         <h3 className="text-sm font-semibold">Works offline, costs nothing</h3>
 
         <p className="mt-1 text-sm text-(--ink-soft)">
