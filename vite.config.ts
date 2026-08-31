@@ -51,6 +51,17 @@ const config = defineConfig({
               expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 },
             },
           },
+          {
+            // Tutor quota is low-frequency and benefits from offline grace.
+            // NetworkFirst keeps the count fresh when online, stale cache when offline.
+            urlPattern: /\/tutor\/quota/i,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'tutor-quota',
+              expiration: { maxEntries: 5, maxAgeSeconds: 60 * 5 },
+              networkTimeoutSeconds: 3,
+            },
+          },
         ],
       },
     }),

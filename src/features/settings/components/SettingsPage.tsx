@@ -1,0 +1,122 @@
+import { useEffect, useState } from 'react'
+import { Link } from '@tanstack/react-router'
+import { Moon, Sun, ShieldCheck, Download, Trash2 } from 'lucide-react'
+
+import { useTheme } from '#/shared/hooks/useTheme'
+import { deleteAllData, exportAllData, loadPrivacyData, setAdaptiveOptIn } from '#/features/privacy/privacyService'
+
+function downloadJson(filename: string, data: unknown): void {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+  const anchor = document.createElement('a')
+  anchor.href = url
+  anchor.download = filename
+  anchor.click()
+  URL.revokeObjectURL(url)
+}
+
+export function SettingsPage() {
+  const { theme, toggleTheme } = useTheme()
+  const [optIn, setOptIn] = useState<boolean | null>(null)
+
+  useEffect(() => {
+    loadPrivacyData().then((data) => setOptIn(data.optIn)).catch(() => {})
+  }, [])
+
+  const handleOptIn = async (value: boolean) => {
+    await setAdaptiveOptIn(value)
+    setOptIn(value)
+  }
+
+  const handleExport = async () => {
+    const data = await exportAllData()
+    downloadJson('Luminoesis-export.json', data)
+  }
+
+  const handleDelete = async () => {
+    if (!confirm('Delete all on-device data? This cannot be undone.')) return
+    await deleteAllData()
+    location.reload()
+  }
+
+  const isDark = theme === 'dark'
+
+  return (
+    <div className="page-wrap max-w-220 py-8">
+      <p className="kicker">Settings</p>
+      <h1 className="display text-[28px]">Preferences</h1>
+      <p className="mt-1 text-sm text-(--ink-soft)">
+        Core learning works offline with no account. These controls stay on your device.
+      </p>
+
+      <div className="card-flat mt-6 p-5">
+        <h2 className="flex items-center gap-2 text-sm font-semibold">
+          {isDark ? <Moon size={16} aria-hidden="true" /> : <Sun size={16} aria-hidden="true" />} Appearance
+        </h2>
+        <p className="mt-1 text-xs text-(--ink-faint)">Switch between light and dark. Choice persists on this device.</p>
+        <button type="button" onClick={toggleTheme} className="btn-ghost mt-3">
+          Switch to {isDark ? 'light' : 'dark'} mode
+        </button>
+      </div>
+
+      <div className="card-flat mt-4 p-5">
+        <h2 className="text-sm font-semibold">Adaptive learning</h2>
+        <p className="mt-1 text-sm text-(--ink-soft)">
+          When enabled, Luminoesis measures timing only (how you type, not what you type) to build a private baseline.
+        </p>
+        <div className="mt-3 flex items-center gap-2">
+          <span
+            className={`rounded-full border px-2.5 py-1 text-xs ${
+              optIn ? 'border-(--emerald)/30 bg-(--emerald-muted) text-(--veridian-strong)' : 'border-(--line) bg-(--surface-muted) text-(--ink-faint)'
+            }`}
+          >
+            {optIn ? 'Opted in' : optIn === false ? 'Off' : 'Not asked'}
+          </span>
+          <div className="ml-auto flex gap-2">
+            <button type="button" className="btn-ghost text-xs" onClick={() => void handleOptIn(true)}>
+              Opt in
+            </button>
+            <button type="button" className="btn-ghost text-xs" onClick={() => void handleOptIn(false)}>
+              Opt out
+            </button>
+          </div>
+        </div>
+        <p className="mt-2 text-xs text-(--ink-faint)">
+          Opt out keeps full study functionality; it simply uses standard scheduling.
+        </p>
+      </div>
+
+      <div className="card-flat mt-4 p-5">
+        <h2 className="flex items-center gap-2 text-sm font-semibold">
+          <ShieldCheck size={16} aria-hidden="true" /> Privacy &amp; data
+        </h2>
+        <p className="mt-1 text-sm text-(--ink-soft)">
+          See exactly what is measured and what stays on device. Export or delete everything in one tap.
+        </p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <Link to="/privacy" className="btn-primary inline-flex items-center gap-2 no-underline">
+            <ShieldCheck size={16} aria-hidden="true" /> Open Privacy
+          </Link>
+          <button type="button" className="btn-ghost inline-flex items-center gap-2" onClick={() => void handleExport()}>
+            <Download size={16} aria-hidden="true" /> Export everything
+          </button>
+          <button
+            type="button"
+            className="btn-ghost inline-flex items-center gap-2 border-(--destructive)/30 text-destructive hover:bg-(--destructive)/10"
+            onClick={() => void handleDelete()}
+          >
+            <Trash2 size={16} aria-hidden="true" /> Delete all data
+          </button>
+        </div>
+      </div>
+
+      <div className="card-flat mt-4 p-5">
+        <h2 className="text-sm font-semibold">Sync (optional)</h2>
+        <p className="mt-1 text-sm text-(--ink-soft)">
+          Core study never needs sync. If you run the optional Express + SQLite backend on <code className="rounded bg-(--surface-muted) px-1 py-0.5 font-mono text-xs">:4901</code>, it caches
+          locally and syncs when reachable. No account required.
+        </p>
+      </div>
+    </div>
+  )
+}

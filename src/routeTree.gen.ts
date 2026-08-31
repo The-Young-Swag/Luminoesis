@@ -16,6 +16,7 @@ import { Route as LearningSpacesRouteImport } from './routes/learning-spaces'
 import { Route as LibraryRouteImport } from './routes/library'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ReviewRouteImport } from './routes/review'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ConceptsConceptIdRouteImport } from './routes/concepts.$conceptId'
 import { Route as LearningSpacesIndexRouteImport } from './routes/learning-spaces/index'
 import { Route as LearningSpacesLearningSpaceIdRouteImport } from './routes/learning-spaces.$learningSpaceId'
@@ -56,6 +57,11 @@ const ReviewRoute = ReviewRouteImport.update({
   path: '/review',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ConceptsConceptIdRoute = ConceptsConceptIdRouteImport.update({
   id: '/concepts/$conceptId',
   path: '/concepts/$conceptId',
@@ -86,6 +92,7 @@ export interface FileRoutesByFullPath {
   '/library': typeof LibraryRoute
   '/privacy': typeof PrivacyRoute
   '/review': typeof ReviewRoute
+  '/settings': typeof SettingsRoute
   '/concepts/$conceptId': typeof ConceptsConceptIdRoute
   '/learning-spaces/$learningSpaceId': typeof LearningSpacesLearningSpaceIdRoute
   '/material/$materialId': typeof MaterialMaterialIdRoute
@@ -98,6 +105,7 @@ export interface FileRoutesByTo {
   '/library': typeof LibraryRoute
   '/privacy': typeof PrivacyRoute
   '/review': typeof ReviewRoute
+  '/settings': typeof SettingsRoute
   '/concepts/$conceptId': typeof ConceptsConceptIdRoute
   '/learning-spaces/$learningSpaceId': typeof LearningSpacesLearningSpaceIdRoute
   '/material/$materialId': typeof MaterialMaterialIdRoute
@@ -112,6 +120,7 @@ export interface FileRoutesById {
   '/library': typeof LibraryRoute
   '/privacy': typeof PrivacyRoute
   '/review': typeof ReviewRoute
+  '/settings': typeof SettingsRoute
   '/concepts/$conceptId': typeof ConceptsConceptIdRoute
   '/learning-spaces/$learningSpaceId': typeof LearningSpacesLearningSpaceIdRoute
   '/material/$materialId': typeof MaterialMaterialIdRoute
@@ -127,6 +136,7 @@ export interface FileRouteTypes {
     | '/library'
     | '/privacy'
     | '/review'
+    | '/settings'
     | '/concepts/$conceptId'
     | '/learning-spaces/$learningSpaceId'
     | '/material/$materialId'
@@ -139,6 +149,7 @@ export interface FileRouteTypes {
     | '/library'
     | '/privacy'
     | '/review'
+    | '/settings'
     | '/concepts/$conceptId'
     | '/learning-spaces/$learningSpaceId'
     | '/material/$materialId'
@@ -152,6 +163,7 @@ export interface FileRouteTypes {
     | '/library'
     | '/privacy'
     | '/review'
+    | '/settings'
     | '/concepts/$conceptId'
     | '/learning-spaces/$learningSpaceId'
     | '/material/$materialId'
@@ -166,6 +178,7 @@ export interface RootRouteChildren {
   LibraryRoute: typeof LibraryRoute
   PrivacyRoute: typeof PrivacyRoute
   ReviewRoute: typeof ReviewRoute
+  SettingsRoute: typeof SettingsRoute
   ConceptsConceptIdRoute: typeof ConceptsConceptIdRoute
   MaterialMaterialIdRoute: typeof MaterialMaterialIdRoute
 }
@@ -221,6 +234,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReviewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/concepts/$conceptId': {
       id: '/concepts/$conceptId'
       path: '/concepts/$conceptId'
@@ -274,18 +294,10 @@ const rootRouteChildren: RootRouteChildren = {
   LibraryRoute: LibraryRoute,
   PrivacyRoute: PrivacyRoute,
   ReviewRoute: ReviewRoute,
+  SettingsRoute: SettingsRoute,
   ConceptsConceptIdRoute: ConceptsConceptIdRoute,
   MaterialMaterialIdRoute: MaterialMaterialIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}

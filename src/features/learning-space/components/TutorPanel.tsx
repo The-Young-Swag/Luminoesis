@@ -154,12 +154,20 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
         </header>
 
         {quota && quota.remaining <= 0 ? (
-          <div className="mx-5 mb-3 flex gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2.5 text-xs leading-relaxed text-amber-900 dark:border-amber-900/30 dark:bg-amber-950/30 dark:text-amber-100">
+          <div
+            role="status"
+            aria-live="polite"
+            className="mx-5 mb-3 flex gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2.5 text-xs leading-relaxed text-amber-900 dark:border-amber-900/30 dark:bg-amber-950/30 dark:text-amber-100"
+          >
             <Info size={14} className="mt-0.5 shrink-0" aria-hidden="true" />
             <span>You&apos;ve used all {quota.limit} online Tutor uploads available for this demo. Local AI may still work, and all non-AI learning features continue working.</span>
           </div>
         ) : (
-          <div className="mx-5 mb-3 flex gap-2 rounded-xl border border-(--line)/70 bg-(--surface-muted)/70 px-3.5 py-2.5 text-xs leading-relaxed text-(--ink-soft)">
+          <div
+            role="status"
+            aria-live="polite"
+            className="mx-5 mb-3 flex gap-2 rounded-xl border border-(--line)/70 bg-(--surface-muted)/70 px-3.5 py-2.5 text-xs leading-relaxed text-(--ink-soft)"
+          >
             <Info size={14} className="mt-0.5 shrink-0 text-(--ink-faint)" aria-hidden="true" />
             <span>
               Online Tutor uses Gemini when local AI isn&apos;t available. This demo allows up to {quota?.limit ?? 3} online material uploads. Selected learning context is sent to the online AI provider to generate a response.
@@ -167,12 +175,18 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
           </div>
         )}
 
-        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 pb-4">
+        <div
+          className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 pb-4"
+          role="log"
+          aria-live="polite"
+          aria-relevant="additions"
+          aria-label="Tutor conversation"
+        >
           {messages.map((message) => (
             <TutorMessageBubble key={message.id} message={message} />
           ))}
           {sending && (
-            <div className="flex items-start gap-2.5">
+            <div className="flex items-start gap-2.5" role="status" aria-live="polite" aria-label="Tutor is thinking">
               <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-(--surface-muted) text-(--blue)">
                 <Sparkles size={12} aria-hidden="true" />
               </span>
@@ -197,6 +211,7 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
               onKeyDown={handleKeyDown}
               rows={1}
               placeholder="Ask about this material…"
+              aria-label="Ask Tutor about this material"
               className="max-h-32 min-h-9 flex-1 resize-none bg-transparent py-1.5 text-sm leading-relaxed text-(--ink) outline-none placeholder:text-(--ink-faint)"
             />
 

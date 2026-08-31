@@ -8,6 +8,7 @@ import {
   Menu,
   Moon,
   MoreHorizontal,
+  Settings2,
   ShieldCheck,
   Sun,
   X,
@@ -70,6 +71,12 @@ const SECONDARY_NAV_ITEMS: NavItem[] = [
     label: 'Privacy',
     icon: ShieldCheck,
     meta: 'CONTROL',
+  },
+  {
+    to: '/settings',
+    label: 'Settings',
+    icon: Settings2,
+    meta: 'PREFS',
   },
 ]
 
