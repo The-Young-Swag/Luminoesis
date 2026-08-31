@@ -94,7 +94,7 @@ export function SelectionBubble({
       ref={ref}
       role="toolbar"
       aria-label="Selection actions"
-      className="rise flex items-center gap-1 rounded-2xl border border-(--glass-border) bg-(--glass-bg-strong) p-1.5 shadow-2xl backdrop-blur-xl"
+      className="rise relative flex items-center gap-0.5 rounded-[11px] border border-(--line)/60 bg-(--surface)/90 p-[5px] shadow-[0_12px_32px_rgba(0,0,0,0.12),0_1px_0_rgba(255,255,255,0.04)_inset] backdrop-blur-[18px] before:absolute before:-bottom-[5px] before:left-1/2 before:h-[9px] before:w-[9px] before:-translate-x-1/2 before:rotate-45 before:rounded-br-[2px] before:border-r before:border-b before:border-(--line)/60 before:bg-(--surface)/90 before:content-['']"
       style={style}
       onMouseDown={(event) => event.preventDefault()}
     >
@@ -109,17 +109,17 @@ export function SelectionBubble({
             onClick={() => handlers[action.run](text)}
             className={
               isPrimary
-                ? 'flex items-center gap-2 rounded-xl px-3.5 py-2.5 text-[13px] font-medium text-(--blue) transition hover:bg-(--blue)/12'
-                : 'flex items-center gap-2 rounded-xl px-3.5 py-2.5 text-[13px] font-medium text-(--ink-soft) transition hover:bg-(--surface-muted) hover:text-(--ink)'
+                ? 'flex items-center gap-1.5 rounded-[7px] px-2.5 py-1.5 text-[12.5px] font-medium text-(--blue) transition hover:bg-(--blue)/10'
+                : 'flex items-center gap-1.5 rounded-[7px] px-2.5 py-1.5 text-[12.5px] font-medium text-(--ink-soft) transition hover:bg-(--surface-muted) hover:text-(--ink)'
             }
           >
-            <Icon size={16} aria-hidden="true" />
+            <Icon size={14} aria-hidden="true" />
             {action.label}
           </button>
         )
       })}
 
-      <div className="mx-1 h-5 w-px shrink-0 bg-(--glass-border)" aria-hidden="true" />
+      <div className="mx-0.5 h-4 w-px shrink-0 bg-(--line)/60" aria-hidden="true" />
 
       {SECONDARY_ACTIONS.map((action) => {
         const Icon = action.icon
@@ -129,9 +129,9 @@ export function SelectionBubble({
             key={action.key}
             type="button"
             onClick={() => handlers[action.run](text)}
-            className="flex items-center gap-2 rounded-xl px-3.5 py-2.5 text-[13px] font-medium text-(--ink-soft) transition hover:bg-(--surface-muted) hover:text-(--ink)"
+            className="flex items-center gap-1.5 rounded-[7px] px-2.5 py-1.5 text-[12.5px] font-medium text-(--ink-soft) transition hover:bg-(--surface-muted) hover:text-(--ink)"
           >
-            <Icon size={16} aria-hidden="true" />
+            <Icon size={14} aria-hidden="true" />
             {action.label}
           </button>
         )

@@ -356,6 +356,12 @@ a:hover {
     margin-left: 280px;
   }
 
+  html[data-sidebar-collapsed='1'] .app-main {
+    width: calc(100% - 64px);
+    max-width: calc(100% - 64px);
+    margin-left: 64px;
+  }
+
   .app-content {
     width: 100%;
     max-width: 100%;

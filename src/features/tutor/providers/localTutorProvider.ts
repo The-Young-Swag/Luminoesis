@@ -1,30 +1,3 @@
-import type { TutorProvider, TutorRequest, TutorResponse } from '../domain/tutor'
-
-/**
- * LocalTutorProvider — the preferred, offline, privacy-preserving tutor.
- *
- * Today this is a grounded, rule-based preview that works entirely on-device
- * with no network and no API key. It is intentionally honest: the response
- * is labeled as a local preview and never pretends to be a large language
- * model. The architecture is ready for a real on-device model (e.g. via
- * Transformers.js / WebGPU) once licensing and distribution are verified —
- * see docs below.
- *
- * Benefits that remain true even with the rule-based preview:
- * - no per-request cost
- * - no data leaves the device
- * - works offline
- * - learning context stays local
- *
- * When a real local model is bundled:
- * - verify license, redistribution rights, portfolio/demo usage, commercial
- *   restrictions, weight distribution, browser rights, attribution
- * - load model lazily, via WASM/WebGPU, only if user opts in
- * - keep the same TutorProvider interface so the rest of the app does not
- *   need to change
- *
- * Core app must continue functioning without AI — this provider is additive.
- */
 /**
  * Lazy on-device pipeline — cached after first load.
  * Model: Xenova/LaMini-Flan-T5-77M (77M, Apache 2.0, portfolio-safe).
@@ -35,25 +8,36 @@ import type { TutorProvider, TutorRequest, TutorResponse } from '../domain/tutor
 let cachedPipeline: unknown = null
 let pipelineLoadFailed = false
 
+const MODEL_LOAD_TIMEOUT_MS = 15000
+const INFERENCE_TIMEOUT_MS = 30000
+
+function timeoutPromise<T>(ms: number, label: string): Promise<T> {
+  return new Promise((_, reject) => {
+    setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms)
+  }
+}
+
 async function getLocalPipeline(): Promise<unknown | null> {
   if (cachedPipeline) return cachedPipeline
   if (pipelineLoadFailed) return null
   if (typeof WebAssembly === 'undefined') return null
 
   try {
-    // Dynamic import keeps the main bundle small; model weights download lazily
-    const { pipeline } = await import('@huggingface/transformers')
-    // Use quantized 77M Flan-T5 — text2text generation, good for tutoring prompts
-    // The library will cache in IndexedDB / Cache Storage after first download
-    const pipe = await (pipeline as unknown as (task: string, model: string, opts?: unknown) => Promise<unknown>)(
-      'text2text-generation',
-      'Xenova/LaMini-Flan-T5-77M',
-      { dtype: 'q8', device: 'wasm' } as unknown,
-    )
+    const pipelinePromise = (async () => {
+      const { pipeline } = await import('@huggingface/transformers')
+      const pipe = await (pipeline as unknown as (task: string, model: string, opts?: unknown) => Promise<unknown>)(
+        'text2text-generation',
+        'Xenova/LaMini-Flan-T5-77M',
+        { dtype: 'q8', device: 'wasm' } as unknown,
+      )
+      return pipe
+    })()
+
+    const pipe = await Promise.race([pipelinePromise, timeoutPromise(MODEL_LOAD_TIMEOUT_MS, 'Model load')])
     cachedPipeline = pipe
     return pipe
   } catch (error) {
-    console.warn('[tutor] local model load failed, falling back to rule-based', error)
+    console.warn('[tutor] local model load failed/timed out, falling back to rule-based', error)
     pipelineLoadFailed = true
     return null
   }
@@ -82,7 +66,8 @@ export class LocalTutorProvider implements TutorProvider {
         const input = [...contextParts, `Question: ${prompt}`, 'Answer:'].join('\n')
 
         const generator = pipe as unknown as (input: string, opts?: unknown) => Promise<Array<{ generated_text: string }>>
-        const output = await generator(input, { max_new_tokens: 120, temperature: 0.7 } as unknown)
+        const inferencePromise = generator(input, { max_new_tokens: 120, temperature: 0.7 } as unknown)
+        const output = await Promise.race([inferencePromise, timeoutPromise(INFERENCE_TIMEOUT_MS, 'Inference')])
         const generated = output?.[0]?.generated_text?.trim()
         if (generated && generated.length > 10) {
           return {
@@ -98,7 +83,7 @@ export class LocalTutorProvider implements TutorProvider {
           }
         }
       } catch (error) {
-        console.warn('[tutor] local inference failed, falling back', error)
+        console.warn('[tutor] local inference failed/timed out, falling back', error)
       }
     }
 
@@ -149,5 +134,3 @@ export class LocalTutorProvider implements TutorProvider {
     }
   }
 }
-
-export const localTutorProvider = new LocalTutorProvider()

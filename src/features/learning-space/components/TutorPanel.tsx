@@ -9,13 +9,13 @@ import {
 } from 'react'
 import { CornerDownLeft, Sparkles, Info } from 'lucide-react'
 
-import { tutorService, fetchGeminiTutor } from '#/features/tutor/application/tutorService'
+import { tutorService } from '#/features/tutor/application/tutorService'
 
 type TutorMessage = {
   id: string
   role: 'user' | 'assistant'
   text: string
-  provider?: 'local' | 'gemini'
+  provider?: 'local'
 }
 
 export type TutorPanelHandle = {
@@ -29,20 +29,20 @@ type TutorPanelProps = {
   context?: string
   /** Optional control (e.g. a collapse button) rendered in the header, next to the Preview chip. */
   headerAction?: React.ReactNode
+  hideHeader?: boolean
 }
 
 export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
-  function TutorPanelImpl({ materialTitle, materialId, learningSpaceId, context, headerAction }, ref) {
+  function TutorPanelImpl({ materialTitle, materialId, learningSpaceId, context, headerAction, hideHeader = false }, ref) {
     const [messages, setMessages] = useState<TutorMessage[]>(() => [
       {
         id: 'intro',
         role: 'assistant',
-        text: `This is the AI Tutor for "${materialTitle}". Ask about the material — answers are grounded in your concepts and review history. Local preview works offline; online Tutor (Gemini fallback) is limited to 3 uploads for this demo.`,
+        text: `This is the AI Tutor for "${materialTitle}". Ask about the material — answers are grounded in your concepts and review history. Local AI works offline. Gemini online fallback — Coming soon.`,
       },
     ])
     const [draft, setDraft] = useState('')
     const [sending, setSending] = useState(false)
-    const [quota, setQuota] = useState<{ remaining: number; limit: number } | null>(null)
     const textareaRef = useRef<HTMLTextAreaElement>(null)
 
     useImperativeHandle(
@@ -52,18 +52,6 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
       }),
       [],
     )
-
-    useEffect(() => {
-      const base = import.meta.env.VITE_SYNC_URL ?? 'http://localhost:4901'
-      fetch(`${base.replace(/\/$/, '')}/tutor/quota`, { credentials: 'include' })
-        .then((res) => (res.ok ? res.json() : null))
-        .then((data) => {
-          if (data && typeof data.remaining === 'number') {
-            setQuota({ remaining: data.remaining, limit: data.limit })
-          }
-        })
-        .catch(() => {})
-    }, [])
 
     const send = useCallback(async () => {
       const text = draft.trim()
@@ -75,42 +63,19 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
       setSending(true)
 
       try {
-        // Prefer gemini only if user explicitly wants online? For now,
-        // always use local-first; gemini is reachable via explicit fallback.
-        // If quota exhausted, local still works.
-        const useGemini = false
-        const service = useGemini
-          ? new (await import('#/features/tutor/application/tutorService')).TutorService(
-              (await import('#/features/tutor/providers/localTutorProvider')).localTutorProvider,
-              fetchGeminiTutor,
-            )
-          : tutorService
-
-        const response = await service.ask({
+        const response = await tutorService.ask({
           materialId,
           materialTitle,
           selectedText: context,
           learningSpaceId,
           prompt: text,
-          prefer: useGemini ? 'gemini' : 'local',
+          localTimeoutMs: 15000,
         })
 
         setMessages((prev) => [
           ...prev,
           { id: `a-${Date.now()}`, role: 'assistant', text: response.text, provider: response.provider },
         ])
-
-        if (response.provider === 'gemini') {
-          const base = import.meta.env.VITE_SYNC_URL ?? 'http://localhost:4901'
-          fetch(`${base.replace(/\/$/, '')}/tutor/quota`, { credentials: 'include' })
-            .then((res) => (res.ok ? res.json() : null))
-            .then((data) => {
-              if (data && typeof data.remaining === 'number') {
-                setQuota({ remaining: data.remaining, limit: data.limit })
-              }
-            })
-            .catch(() => {})
-        }
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Tutor failed.'
         setMessages((prev) => [
@@ -136,43 +101,23 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
 
     return (
       <div className="flex h-full min-h-0 flex-col bg-transparent">
-        <header className="flex shrink-0 items-center justify-between gap-3 px-6 py-5">
-          <div className="flex items-center gap-2.5">
-            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-(--blue)/10 text-(--blue)">
-              <Sparkles size={15} aria-hidden="true" />
-            </span>
-            <p className="font-mono text-[11px] font-semibold tracking-[0.08em] text-(--ink-faint) uppercase">
-              Ask Tutor
-            </p>
-          </div>
+        {!hideHeader && (
+          <header className="flex shrink-0 items-center justify-between gap-3 px-6 py-5">
+            <div className="flex items-center gap-2.5">
+              <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-(--blue)/10 text-(--blue)">
+                <Sparkles size={15} aria-hidden="true" />
+              </span>
+              <p className="font-mono text-[11px] font-semibold tracking-[0.08em] text-(--ink-faint) uppercase">
+                Ask Tutor
+              </p>
+            </div>
 
-          <div className="flex shrink-0 items-center gap-2">
-            <span className="chip">Preview</span>
-            {quota && <span className="chip text-[10px]">{quota.remaining}/{quota.limit} online left</span>}
-            {headerAction}
-          </div>
-        </header>
-
-        {quota && quota.remaining <= 0 ? (
-          <div
-            role="status"
-            aria-live="polite"
-            className="mx-6 mb-4 flex gap-2.5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs leading-relaxed text-amber-900 dark:border-amber-900/30 dark:bg-amber-950/30 dark:text-amber-100"
-          >
-            <Info size={14} className="mt-0.5 shrink-0" aria-hidden="true" />
-            <span>You&apos;ve used all {quota.limit} online Tutor uploads available for this demo. Local AI may still work, and all non-AI learning features continue working.</span>
-          </div>
-        ) : (
-          <div
-            role="status"
-            aria-live="polite"
-            className="mx-6 mb-4 flex gap-2.5 rounded-xl border border-(--line)/60 bg-(--surface-muted)/60 px-4 py-3 text-xs leading-relaxed text-(--ink-soft)"
-          >
-            <Info size={14} className="mt-0.5 shrink-0 text-(--ink-faint)" aria-hidden="true" />
-            <span>
-              Online Tutor uses Gemini when local AI isn&apos;t available. This demo allows up to {quota?.limit ?? 3} online material uploads. Selected learning context is sent to the online AI provider to generate a response.
-            </span>
-          </div>
+            <div className="flex shrink-0 items-center gap-2">
+              <span className="chip">Local AI</span>
+              <span className="chip text-[10px] text-(--blue)">Gemini — Coming soon</span>
+              {headerAction}
+            </div>
+          </header>
         )}
 
         <div

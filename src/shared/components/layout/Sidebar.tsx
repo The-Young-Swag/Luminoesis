@@ -8,6 +8,8 @@ import {
   Menu,
   Moon,
   MoreHorizontal,
+  PanelLeftClose,
+  PanelLeftOpen,
   Settings2,
   ShieldCheck,
   Sun,
@@ -15,7 +17,7 @@ import {
   Brain,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { useTheme } from '#/shared/hooks/useTheme'
 
@@ -381,49 +383,96 @@ function MobileDrawer({
 /* Desktop sidebar */
 /* -------------------------------------------------------------------------- */
 
+function usePersistentBoolean(key: string, initial: boolean): readonly [boolean, (next: boolean) => void] {
+  const [value, setValue] = useState(initial)
+  const hydrated = useRef(false)
+  useEffect(() => {
+    try {
+      const stored = window.localStorage.getItem(key)
+      if (stored !== null) setValue(stored === '1')
+    } catch {}
+    hydrated.current = true
+  }, [key])
+  useEffect(() => {
+    if (!hydrated.current) return
+    try {
+      window.localStorage.setItem(key, value ? '1' : '0')
+    } catch {}
+  }, [key, value])
+  return [value, setValue] as const
+}
+
 function DesktopSidebar({
   focusMode,
 }: {
   focusMode: boolean
 }) {
+  const [collapsed, setCollapsed] = usePersistentBoolean('app-sidebar:collapsed', false)
+
+  // Expose collapse state to CSS via data attribute for app-main offset
+  useEffect(() => {
+    document.documentElement.setAttribute('data-sidebar-collapsed', collapsed ? '1' : '0')
+  }, [collapsed])
+
   return (
     <aside
+      style={{ width: collapsed ? '64px' : '280px' } as React.CSSProperties}
       className={cx(
-        'sidebar-shell fixed inset-y-0 left-0 z-50 hidden w-70 lg:flex',
+        'sidebar-shell fixed inset-y-0 left-0 z-50 hidden lg:flex flex-col overflow-hidden border-r border-(--line)/60 bg-(--surface)/90 backdrop-blur-xl transition-[width] duration-300 ease-out',
         focusMode && 'focus-sidebar',
       )}
     >
       <div className="flex min-h-0 w-full flex-col">
         {/* Brand */}
-        <div className="flex h-20 shrink-0 items-center gap-3 border-b border-sidebar-border px-5">
-          <Link
-            to="/"
-            className="flex min-w-0 flex-1 items-center gap-3 no-underline"
-          >
+        <div className={cx('flex h-14 shrink-0 items-center border-b border-sidebar-border', collapsed ? 'justify-center px-2' : 'gap-3 px-4')}>
+          <Link to="/" className={cx('flex items-center no-underline', collapsed ? 'justify-center' : 'min-w-0 flex-1 gap-3')}>
             <BrandMark />
-
-            <div className="min-w-0 leading-none">
-              <div className="display truncate text-xl tracking-tight">
-                Luminoesis
+            {!collapsed && (
+              <div className="min-w-0 leading-none">
+                <div className="display truncate text-[17px] font-semibold tracking-tight">Luminoesis</div>
+                <div className="mono-label mt-0.5 truncate text-[10px] text-(--ink-faint)">Adaptive study</div>
               </div>
-
-              <div className="mono-label mt-1 truncate text-(--ink-faint)">
-                Adaptive study
-              </div>
-            </div>
+            )}
           </Link>
+          {!collapsed && (
+            <button
+              type="button"
+              aria-label="Collapse sidebar"
+              onClick={() => setCollapsed(true)}
+              className="grid h-7 w-7 place-items-center rounded-md text-(--ink-faint) hover:bg-(--surface-muted) hover:text-(--ink)"
+            >
+              <PanelLeftClose size={14} aria-hidden="true" />
+            </button>
+          )}
         </div>
+        {collapsed && (
+          <button
+            type="button"
+            aria-label="Expand sidebar"
+            onClick={() => setCollapsed(false)}
+            className="mx-auto mt-2 grid h-8 w-8 place-items-center rounded-md text-(--ink-faint) hover:bg-(--surface-muted) hover:text-(--ink)"
+          >
+            <PanelLeftOpen size={14} aria-hidden="true" />
+          </button>
+        )}
 
         {/* Navigation */}
         <nav
           aria-label="Sidebar navigation"
-          className="sidebar-scroll min-h-0 flex-1 overflow-y-auto px-4 py-6"
+          className={cx('sidebar-scroll min-h-0 flex-1 overflow-y-auto py-4', collapsed ? 'px-2' : 'px-3')}
         >
-          <SidebarNav />
+          <SidebarNav collapsed={collapsed} />
         </nav>
 
         {/* Footer */}
-        <SidebarFooter />
+        <div className={cx(collapsed && 'hidden lg:hidden')}>
+          <SidebarFooter />
+        </div>
+        {collapsed && (
+          <div className="flex flex-col items-center gap-2 border-t border-sidebar-border p-2">
+            <ThemeToggle />
+          </div>
+        )}
       </div>
     </aside>
   )
@@ -435,23 +484,27 @@ function DesktopSidebar({
 
 type SidebarNavProps = {
   onNavigate?: () => void
+  collapsed?: boolean
 }
 
 function SidebarNav({
   onNavigate,
+  collapsed = false,
 }: SidebarNavProps) {
   return (
-    <div className="space-y-7">
+    <div className={cx('space-y-7', collapsed && 'space-y-6')}>
       <NavSection
         label="Study"
         items={PRIMARY_NAV_ITEMS}
         onNavigate={onNavigate}
+        collapsed={collapsed}
       />
 
       <NavSection
         label="Intelligence"
         items={SECONDARY_NAV_ITEMS}
         onNavigate={onNavigate}
+        collapsed={collapsed}
       />
     </div>
   )
@@ -461,25 +514,26 @@ type NavSectionProps = {
   label: string
   items: NavItem[]
   onNavigate?: () => void
+  collapsed?: boolean
 }
 
 function NavSection({
   label,
   items,
   onNavigate,
+  collapsed = false,
 }: NavSectionProps) {
   return (
     <section>
-      <div className="sidebar-kicker mb-2 px-2">
-        {label}
-      </div>
+      {!collapsed && <div className="sidebar-kicker mb-2 px-2">{label}</div>}
 
-      <div className="space-y-1">
+      <div className={cx('space-y-1', collapsed && 'space-y-2')}>
         {items.map((item) => (
           <SidebarNavLink
             key={item.to}
             item={item}
             onNavigate={onNavigate}
+            collapsed={collapsed}
           />
         ))}
       </div>
@@ -490,13 +544,34 @@ function NavSection({
 type SidebarNavLinkProps = {
   item: NavItem
   onNavigate?: () => void
+  collapsed?: boolean
 }
 
 function SidebarNavLink({
   item,
   onNavigate,
+  collapsed = false,
 }: SidebarNavLinkProps) {
   const Icon = item.icon
+
+  if (collapsed) {
+    return (
+      <Link
+        to={item.to}
+        onClick={onNavigate}
+        aria-label={item.label}
+        title={item.label}
+        className="grid h-10 w-10 place-items-center rounded-xl text-(--ink-soft) transition hover:bg-(--sidebar-accent) hover:text-(--ink) data-[status=active]:bg-(--sidebar-primary) data-[status=active]:text-white"
+        activeProps={{
+          className:
+            'grid h-10 w-10 place-items-center rounded-xl bg-(--sidebar-primary) text-white shadow-sm',
+          'aria-current': 'page',
+        } as unknown as Record<string, unknown>}
+      >
+        <Icon size={18} aria-hidden="true" />
+      </Link>
+    )
+  }
 
   return (
     <Link

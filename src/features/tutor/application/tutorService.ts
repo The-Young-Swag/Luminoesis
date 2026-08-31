@@ -8,9 +8,8 @@ import { localTutorProvider } from '../providers/localTutorProvider'
  * The application builds a learning context once, then delegates to a
  * provider. Context construction is not duplicated per provider.
  *
- * Today the service prefers the local provider. Gemini fallback is
- * server-mediated (never from the browser) and quota-gated — see
- * `src/server/http/routes/tutor.ts`.
+ * Local AI is the active provider. Gemini infrastructure is preserved
+ * but frozen for future release.
  */
 export type TutorServiceOptions = {
   materialId?: string
@@ -18,13 +17,16 @@ export type TutorServiceOptions = {
   selectedText?: string
   learningSpaceId: string
   prompt: string
-  /** Force a specific provider; default is local-first. */
-  prefer?: 'local' | 'gemini'
+  /** Timeout for local provider in ms (default: 20000). */
+  localTimeoutMs?: number
 }
+
+const DEFAULT_LOCAL_TIMEOUT_MS = 20000
 
 export class TutorService {
   constructor(
     private readonly localProvider: TutorProvider = localTutorProvider,
+    // Gemini fetch is preserved but frozen for future release
     private readonly geminiFetch?: (request: TutorRequest) => Promise<TutorResponse>,
   ) {}
 
@@ -38,25 +40,32 @@ export class TutorService {
     })
 
     const request: TutorRequest = { context }
+    const timeoutMs = options.localTimeoutMs ?? DEFAULT_LOCAL_TIMEOUT_MS
 
-    // Local first — offline, private, zero cost.
-    if (options.prefer !== 'gemini') {
-      const localAvailable = await this.localProvider.isAvailable()
-      if (localAvailable) {
-        return this.localProvider.respond(request)
+    // Local AI is the active provider. No Gemini fallback.
+    const localAvailable = await this.localProvider.isAvailable()
+    if (!localAvailable) {
+      return {
+        text:
+          'Local AI is unavailable. Please ensure your browser supports WebAssembly. All non-AI learning features continue working.',
+        provider: 'local',
       }
     }
 
-    // Gemini fallback via server boundary (never expose key to browser).
-    if (this.geminiFetch) {
-      return this.geminiFetch(request)
-    }
-
-    // No provider available — honest fallback, never fake.
-    return {
-      text:
-        'AI tutoring isn’t connected in this build yet — but your material, concepts, highlights and review history are all captured here, so a tutor can use them the moment it’s enabled. All non-AI learning features continue working.',
-      provider: 'local',
+    try {
+      // Race local provider against timeout
+      const localPromise = this.localProvider.respond(request)
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Local provider timed out')), timeoutMs)
+      )
+      return await Promise.race([localPromise, timeoutPromise])
+    } catch (error) {
+      console.warn('[tutor] local provider failed/timed out', error)
+      return {
+        text:
+          'Local AI encountered an error. All non-AI learning features continue working.',
+        provider: 'local',
+      }
     }
   }
 }
@@ -65,6 +74,7 @@ export const tutorService = new TutorService()
 
 /**
  * Client helper for Gemini fallback via server API.
+ * Preserved but frozen for future release.
  * Keeps GEMINI_API_KEY server-side; browser only talks to our /tutor/chat.
  */
 export async function fetchGeminiTutor(request: TutorRequest): Promise<TutorResponse> {

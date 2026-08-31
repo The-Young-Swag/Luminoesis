@@ -15,7 +15,9 @@ const TutorChatSchema = z.object({
   weakSpots: z.array(z.object({ conceptId: z.string(), conceptName: z.string(), rate: z.number(), total: z.number() })).max(3).optional(),
 })
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY
+function getGeminiKey(): string | undefined {
+  return process.env.GEMINI_API_KEY?.trim() || undefined
+}
 
 // GET /tutor/quota — remaining uploads for this anonymous user
 tutorRouter.get('/quota', (req, res) => {
@@ -43,7 +45,8 @@ tutorRouter.post('/chat', async (req, res) => {
   }
 
   // Honest: require key server-side; never expose to browser
-  if (!GEMINI_API_KEY) {
+  const geminiKey = getGeminiKey()
+  if (!geminiKey) {
     res.status(503).json({
       error:
         'Online Tutor is not configured on this server. Local preview is still available, and all non-AI features continue working.',
@@ -77,7 +80,7 @@ tutorRouter.post('/chat', async (req, res) => {
   consumeUpload(fingerprint)
 
   try {
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${geminiKey}`
     const gemResponse = await fetch(geminiUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
