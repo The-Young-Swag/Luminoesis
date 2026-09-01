@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import type { ReactNode, RefObject } from 'react'
 
 import type { Material } from '#/features/learning-space/domain/learningSpace'
 import { useMaterialFile } from '#/features/learning-space/hooks/useMaterialFile'
@@ -10,42 +10,57 @@ import { PptxPreview } from './PptxPreview'
 type MaterialPreviewProps = {
   material: Material
   /**
-   * Rendered when the original file isn't available — either because it was
-   * uploaded before file persistence existed, or persistence failed. We
-   * fall back to the extracted-text reading experience instead of showing
-   * nothing or fabricating a preview.
+   * The selection boundary must cover only the actual document content.
+   * Preview controls intentionally live outside this element so their labels
+   * cannot trigger the Selection Bubble.
    */
+  contentRef?: RefObject<HTMLDivElement | null>
   fallback: ReactNode
 }
 
-/**
- * Renders a faithful visual preview of the original uploaded file.
- *
- * Deliberately separate from MaterialContent: MaterialContent is the
- * normalized text the Tutor/Concepts/Flashcards/Quiz operate on, while this
- * shows the document the way the learner actually uploaded it.
- */
-export function MaterialPreview({ material, fallback }: MaterialPreviewProps) {
+export function MaterialPreview({
+  material,
+  contentRef,
+  fallback,
+}: MaterialPreviewProps) {
   const { objectUrl, ready } = useMaterialFile(material.id)
 
   if (!ready) {
-    return <p className="mono-label text-(--ink-faint)">Loading document…</p>
+    return (
+      <div className="flex min-h-64 items-center justify-center rounded-2xl border border-(--line) bg-(--surface-muted)">
+        <p className="mono-label text-(--ink-faint)">Loading document…</p>
+      </div>
+    )
   }
 
   if (!objectUrl) {
-    return <>{fallback}</>
+    return (
+      <div ref={contentRef} className="w-full">
+        {fallback}
+      </div>
+    )
   }
 
   switch (material.type) {
     case 'pdf':
-      return <PdfPreview fileUrl={objectUrl} />
+      return <PdfPreview fileUrl={objectUrl} contentRef={contentRef} />
     case 'docx':
-      return <DocxPreview fileUrl={objectUrl} />
+      return <DocxPreview fileUrl={objectUrl} contentRef={contentRef} />
     case 'pptx':
-      return <PptxPreview fileUrl={objectUrl} />
+      return <PptxPreview fileUrl={objectUrl} contentRef={contentRef} />
     case 'image':
-      return <ImagePreview fileUrl={objectUrl} fileName={material.source.fileName} />
+      return (
+        <ImagePreview
+          fileUrl={objectUrl}
+          fileName={material.source.fileName}
+          contentRef={contentRef}
+        />
+      )
     default:
-      return <>{fallback}</>
+      return (
+        <div ref={contentRef} className="w-full">
+          {fallback}
+        </div>
+      )
   }
 }

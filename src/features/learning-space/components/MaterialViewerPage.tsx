@@ -230,7 +230,7 @@ export function MaterialViewerPage({ materialId }: { materialId: string }) {
         return
       }
       const anchor = sel.anchorNode
-      if (!anchor || !readerContentRef.current?.contains(anchor.parentElement)) {
+      if (!anchor || !readerContentRef.current?.contains(anchor)) {
         setSelection(null)
         return
       }
@@ -374,7 +374,14 @@ export function MaterialViewerPage({ materialId }: { materialId: string }) {
     )
   }
 
-  const readerMax = focused ? 1080 : 900
+  const hasOriginalPreview = TYPES_WITH_ORIGINAL_FILE_PREVIEW.has(material.type)
+  const readerWidthClass = hasOriginalPreview
+    ? focused
+      ? 'max-w-[1100px]'
+      : 'max-w-[900px]'
+    : focused
+      ? 'max-w-[1080px]'
+      : 'max-w-[900px]'
 
   return (
     <div className="flex h-screen flex-col overflow-hidden">
@@ -429,7 +436,7 @@ export function MaterialViewerPage({ materialId }: { materialId: string }) {
       </header>
 
       {/* Mobile modes */}
-      <div className="justify-center lg:hidden">
+      <div className="flex h-12 shrink-0 items-center justify-center border-b border-(--glass-border) bg-(--glass-bg-strong)/70 px-3 backdrop-blur-xl lg:hidden">
         <ModeTabs mode={mode} onChange={handleModeChange} />
       </div>
 
@@ -480,10 +487,15 @@ export function MaterialViewerPage({ materialId }: { materialId: string }) {
         </div>
 
         {/* Center: Reader */}
-        <div className="sidebar-scroll min-w-0 flex-1 overflow-y-auto">
+        <main className="sidebar-scroll min-w-0 flex-1 overflow-y-auto">
           <div
-            className="relative mx-auto w-full px-6 py-8 lg:px-16 lg:pb-24 lg:pt-14"
-            style={{ maxWidth: readerMax }}
+            className={cx(
+              'relative mx-auto w-full',
+              readerWidthClass,
+              hasOriginalPreview
+                ? 'px-3 py-5 sm:px-5 lg:px-8 lg:pb-24 lg:pt-8'
+                : 'px-6 py-8 lg:px-16 lg:pb-24 lg:pt-14',
+            )}
           >
           {paneMode === 'read' && (
             <ReadPane
@@ -521,7 +533,7 @@ export function MaterialViewerPage({ materialId }: { materialId: string }) {
               />
             )}
           </div>
-        </div>
+        </main>
 
         {/* Right: Ask Tutor */}
         <div
@@ -855,10 +867,8 @@ type ReadPaneProps = {
   onStartEditing: () => void
   onCancelEditing: () => void
   onSave: () => void
-  // The Reader boundary: only selections inside this element are eligible
-  // for the Selection Bubble. Every preview (PDF text layer, DOCX HTML,
-  // PPTX slide text, plain text/markdown) mounts inside it, so the boundary
-  // check stays structural without needing per-format special-casing.
+  // The Reader boundary is attached to the actual document content by each
+  // preview renderer. Viewer controls intentionally remain outside it.
   contentRef: React.RefObject<HTMLDivElement | null>
 }
 
@@ -928,21 +938,20 @@ function ReadPane({
           </div>
         </div>
       ) : showsOriginalDocumentPreview ? (
-        <div id="reader-content" ref={contentRef}>
-          <MaterialPreview
-            material={material}
-            fallback={
-              content && content.blocks.length > 0 ? (
-                <div className="space-y-5">{renderContentBlocks(content.blocks)}</div>
-              ) : (
-                <EmptyReaderState label="Preview unavailable">
-                  The original file wasn&apos;t saved for this material, so we can&apos;t show a
-                  document preview. Extracted text will appear here once available.
-                </EmptyReaderState>
-              )
-            }
-          />
-        </div>
+        <MaterialPreview
+          material={material}
+          contentRef={contentRef}
+          fallback={
+            content && content.blocks.length > 0 ? (
+              <div className="space-y-5">{renderContentBlocks(content.blocks)}</div>
+            ) : (
+              <EmptyReaderState label="Preview unavailable">
+                The original file wasn&apos;t saved for this material, so we can&apos;t show a
+                document preview. Extracted text will appear here once available.
+              </EmptyReaderState>
+            )
+          }
+        />
       ) : content && content.blocks.length > 0 ? (
         <article id="reader-content" ref={contentRef} className="space-y-5">
           {renderContentBlocks(content.blocks)}
