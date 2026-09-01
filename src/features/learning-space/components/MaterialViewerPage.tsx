@@ -146,7 +146,11 @@ export function MaterialViewerPage({ materialId }: { materialId: string }) {
   const [showFlashcard, setShowFlashcard] = useState(false)
   const [showQuiz, setShowQuiz] = useState(false)
   const [pendingText, setPendingText] = useState<string | undefined>()
-  const readerRef = useRef<HTMLDivElement>(null)
+  // The Reader boundary: the Selection Bubble is only eligible to appear when
+  // the browser selection lives inside this element. It's attached to the
+  // <article> in ReadPane that renders actual material text — not to the
+  // surrounding column, which also hosts Explore and Review content.
+  const readerContentRef = useRef<HTMLElement>(null)
   const tutorRef = useRef<TutorPanelHandle>(null)
 
   const [mode, setMode] = useState<Mode>('read')
@@ -202,7 +206,7 @@ export function MaterialViewerPage({ materialId }: { materialId: string }) {
         return
       }
       const anchor = sel.anchorNode
-      if (!anchor || !readerRef.current?.contains(anchor.parentElement)) {
+      if (!anchor || !readerContentRef.current?.contains(anchor.parentElement)) {
         setSelection(null)
         return
       }
@@ -454,7 +458,6 @@ export function MaterialViewerPage({ materialId }: { materialId: string }) {
         {/* Center: Reader */}
         <div className="sidebar-scroll min-w-0 flex-1 overflow-y-auto">
           <div
-            ref={readerRef}
             className="relative mx-auto w-full px-6 py-8 lg:px-16 lg:pb-24 lg:pt-14"
             style={{ maxWidth: readerMax }}
           >
@@ -469,6 +472,7 @@ export function MaterialViewerPage({ materialId }: { materialId: string }) {
                 onStartEditing={startEditing}
                 onCancelEditing={() => setEditing(false)}
                 onSave={() => void saveContent()}
+                contentRef={readerContentRef}
               />
             )}
 
@@ -825,6 +829,10 @@ type ReadPaneProps = {
   onStartEditing: () => void
   onCancelEditing: () => void
   onSave: () => void
+  // The Reader boundary: only selections inside this element are eligible
+  // for the Selection Bubble. Attached to the <article> below, and read by
+  // MaterialViewerPage's mouseup handler.
+  contentRef: React.RefObject<HTMLElement | null>
 }
 
 function ReadPane({
@@ -837,6 +845,7 @@ function ReadPane({
   onStartEditing,
   onCancelEditing,
   onSave,
+  contentRef,
 }: ReadPaneProps) {
   const firstHeading = content?.blocks.find((block) => block.type === 'heading')?.text
   const eyebrow = firstHeading ? firstHeading : hasContent ? 'Reading' : 'Full text'
@@ -883,7 +892,7 @@ function ReadPane({
           </div>
         </div>
       ) : content && content.blocks.length > 0 ? (
-        <article id="reader-content" className="space-y-5">
+        <article id="reader-content" ref={contentRef} className="space-y-5">
           {content.blocks.map((block) =>
             block.type === 'heading' ? (
               <h1

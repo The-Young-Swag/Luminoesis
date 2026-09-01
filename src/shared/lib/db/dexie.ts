@@ -3,9 +3,16 @@ import type { Table } from 'dexie'
 
 import type { AppSettings } from '#/shared/types/settings'
 import type { LearningSpaceRecord } from '#/shared/lib/db/models'
-import type { Material, Concept, Highlight } from '#/features/learning-space/domain/learningSpace'
+import type {
+  Material,
+  Concept,
+  Highlight,
+} from '#/features/learning-space/domain/learningSpace'
 import type { MaterialContent } from '#/features/learning-space/domain/materialContent'
-import type { BaselineFeature, SessionSignal } from '#/features/learning-state/domain/learningSignals'
+import type {
+  BaselineFeature,
+  SessionSignal,
+} from '#/features/learning-state/domain/learningSignals'
 import type { Card } from '#/features/library/domain/card'
 import type { Insight } from '#/features/insights/domain/insight'
 import type { ReviewSession } from '#/features/review/domain/reviewSession'
@@ -13,8 +20,9 @@ import type { Question } from '#/features/quiz/domain/question'
 import type { QuizAttempt } from '#/features/quiz/domain/quizAttempt'
 import type { ReviewEvent } from '#/features/review/domain/reviewEvent'
 import type { Flashcard } from '#/features/flashcard/domain/flashcard'
+import type { WebRetrievalCacheEntry } from '#/features/tutor/domain/webRetrieval'
 
-export class CircadiaDB extends Dexie {
+export class LuminoesisDB extends Dexie {
   cards!: Table<Card, string>
   reviewSessions!: Table<ReviewSession, string>
   baselineFeatures!: Table<BaselineFeature, string>
@@ -30,6 +38,7 @@ export class CircadiaDB extends Dexie {
   quizAttempts!: Table<QuizAttempt, string>
   materialContents!: Table<MaterialContent, string>
   highlights!: Table<Highlight, string>
+  webRetrievalCache!: Table<WebRetrievalCacheEntry, string>
 
   constructor() {
     super('circadia')
@@ -72,7 +81,11 @@ export class CircadiaDB extends Dexie {
     this.version(8).stores({
       highlights: 'id, materialId, conceptId, learningSpaceId, createdAt',
     })
+
+    this.version(9).stores({
+      webRetrievalCache: 'queryKey, materialId, expiresAt',
+    })
   }
 }
 
-export const db = new CircadiaDB()
+export const db = new LuminoesisDB()

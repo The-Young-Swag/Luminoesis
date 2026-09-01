@@ -98,13 +98,61 @@ async function extractImageFile(file: File): Promise<string> {
   }
 }
 
+const PPTX_MAX_SLIDES = 200 // guard against pathologically large decks, mirrors the PDF page cap
+const PPTX_SLIDE_PATH_PATTERN = /^ppt\/slides\/slide(\d+)\.xml$/
+const PPTX_TEXT_RUN_TAG = 'a:t'
+
+function extractSlideNumber(slidePath: string): number {
+  const match = slidePath.match(PPTX_SLIDE_PATH_PATTERN)
+  return match ? Number(match[1]) : 0
+}
+
+// AFTER
+function extractTextFromSlideXml(slideXml: string): string {
+  const slideDocument = new DOMParser().parseFromString(slideXml, 'application/xml')
+  const textRuns = Array.from(slideDocument.getElementsByTagName(PPTX_TEXT_RUN_TAG))
+
+  return textRuns
+    .map((run) => run.textContent)
+    .filter((text) => text.trim().length > 0)
+    .join(' ')
+}
+
+async function extractPptxFile(file: File): Promise<string> {
+  // Lazy-load JSZip — MIT, client-side only. A .pptx file is a zip archive;
+  // each slide's text lives in ppt/slides/slideN.xml as <a:t> text runs.
+  const JSZip = (await import('jszip')).default
+  const archive = await JSZip.loadAsync(file)
+
+  const slidePaths = Object.keys(archive.files)
+    .filter((path) => PPTX_SLIDE_PATH_PATTERN.test(path))
+    .sort((a, b) => extractSlideNumber(a) - extractSlideNumber(b))
+    .slice(0, PPTX_MAX_SLIDES)
+
+  const slideSections: string[] = []
+
+  for (let index = 0; index < slidePaths.length; index++) {
+    const slideXml = await archive.files[slidePaths[index]].async('text')
+    const slideText = extractTextFromSlideXml(slideXml)
+
+    if (!slideText) continue
+
+    // One heading per slide keeps slide boundaries visible in MaterialContent,
+    // and reuses blocksFromParagraphs the same way PDF pages already do.
+    const slideNumber = index + 1
+    slideSections.push(`# Slide ${slideNumber}\n${slideText}`)
+  }
+
+  return slideSections.join('\n\n')
+}
+
 /**
  * Real extraction pipeline — never fabricates text.
  *
  * - text/markdown: File.text() → blocks
- * - pdf: pdfjs-dist getDocument → per-page text
+ * - pdf: pdfjs-dist getDocument → per-page text layer, Tesseract OCR fallback for scanned pages
  * - image: tesseract.js OCR
- * - pptx: honest failure (no parser yet)
+ * - pptx: JSZip → per-slide <a:t> text runs, one heading block per slide
  *
  * Provenance: `materialId` + `source: extracted` preserved; empty content
  * is handled as Ready with empty blocks, not as fake data.
@@ -152,7 +200,14 @@ export async function processMaterialExtraction(file: File, material: Material):
         break
       }
       case 'pptx': {
-        throw new Error('PowerPoint extraction is not yet supported — add content manually.')
+        try {
+          raw = await extractPptxFile(file)
+        } catch (error) {
+          console.warn('[extraction] pptx failed', error)
+          throw new Error('PowerPoint extraction failed — try adding content manually.')
+        }
+        blocks = blocksFromParagraphs(raw.split(/\n\n+/))
+        break
       }
       default:
         throw new Error('Unsupported material type.')
