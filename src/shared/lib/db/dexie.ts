@@ -9,6 +9,7 @@ import type {
   Highlight,
 } from '#/features/learning-space/domain/learningSpace'
 import type { MaterialContent } from '#/features/learning-space/domain/materialContent'
+import type { MaterialFileRecord } from '#/features/learning-space/domain/materialFile'
 import type {
   BaselineFeature,
   SessionSignal,
@@ -39,6 +40,7 @@ export class LuminoesisDB extends Dexie {
   materialContents!: Table<MaterialContent, string>
   highlights!: Table<Highlight, string>
   webRetrievalCache!: Table<WebRetrievalCacheEntry, string>
+  materialFiles!: Table<MaterialFileRecord, string>
 
   constructor() {
     super('circadia')
@@ -84,6 +86,14 @@ export class LuminoesisDB extends Dexie {
 
     this.version(9).stores({
       webRetrievalCache: 'queryKey, materialId, expiresAt',
+    })
+
+    // Stores the original uploaded File as a Blob so the Read pane can show
+    // a faithful preview after reload, instead of only the fileName/mimeType
+    // metadata that already lived on `materials`. One row per material —
+    // `materialId` is the primary key, so re-uploading overwrites cleanly.
+    this.version(10).stores({
+      materialFiles: 'materialId, updatedAt',
     })
   }
 }

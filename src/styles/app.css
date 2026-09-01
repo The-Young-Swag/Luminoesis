@@ -1085,6 +1085,37 @@ a:hover {
 }
 
 /* ==========================================================================
+   DOCUMENT PREVIEW — PDF TEXT LAYER
+   ========================================================================== */
+
+/*
+  pdfjs-dist's TextLayer renders absolutely-positioned spans matching the
+  canvas beneath it 1:1, using the --scale-factor variable it sets on this
+  container itself. That positioning can't be expressed with Tailwind
+  utilities, so it lives here with the rest of the app's hand-written CSS
+  instead of a component-scoped stylesheet.
+*/
+.textLayer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  line-height: 1;
+}
+
+.textLayer span,
+.textLayer br {
+  color: transparent;
+  position: absolute;
+  white-space: pre;
+  cursor: text;
+  transform-origin: 0% 0%;
+}
+
+.textLayer ::selection {
+  background: color-mix(in oklab, var(--blue) 25%, transparent);
+}
+
+/* ==========================================================================
    TAILWIND BASE
    ========================================================================== */
 

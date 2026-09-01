@@ -15,6 +15,7 @@ export type MaterialType =
   | 'pdf'
   | 'image'
   | 'pptx'
+  | 'docx'
   | 'text'
   | 'markdown'
 

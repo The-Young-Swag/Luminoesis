@@ -11,6 +11,7 @@ const CreateMaterialSchema = z.object({
     'pdf',
     'image',
     'pptx',
+    'docx',
     'text',
     'markdown',
   ]),

@@ -3,6 +3,7 @@ import { Upload, X } from 'lucide-react'
 
 import { createMaterial } from '../application/createMaterial'
 import { processMaterialExtraction } from '../application/materialExtraction'
+import { saveMaterialFile } from '../application/saveMaterialFile'
 
 type AddMaterialDialogProps = {
   learningSpaceId: string
@@ -11,7 +12,7 @@ type AddMaterialDialogProps = {
 }
 
 const ACCEPTED_FILES =
-  '.pdf,.png,.jpg,.jpeg,.pptx,.txt,.md,.markdown'
+  '.pdf,.docx,.png,.jpg,.jpeg,.pptx,.txt,.md,.markdown'
 
 function getMaterialType(
   fileName: string,
@@ -19,6 +20,7 @@ function getMaterialType(
   | 'pdf'
   | 'image'
   | 'pptx'
+  | 'docx'
   | 'text'
   | 'markdown'
   | undefined {
@@ -36,6 +38,9 @@ function getMaterialType(
 
     case 'pptx':
       return 'pptx'
+
+    case 'docx':
+      return 'docx'
 
     case 'txt':
       return 'text'
@@ -91,8 +96,17 @@ export function AddMaterialDialog({
         },
       })
 
+      // Persist the original file so the Read pane can show a faithful
+      // preview after reload. Best-effort: if this fails, extraction still
+      // runs and the Read pane falls back to extracted text.
+      try {
+        await saveMaterialFile(material.id, file)
+      } catch (persistError) {
+        console.warn('[material] failed to persist original file for preview', persistError)
+      }
+
       // Real extraction — never fabricate. For text/markdown this is instant;
-      // for pdf/image it uses pdfjs-dist / tesseract.js and may take a moment.
+      // for pdf/docx/image it may take a moment.
       try {
         await processMaterialExtraction(file, material)
       } catch (extractionError) {
@@ -168,7 +182,7 @@ export function AddMaterialDialog({
           </span>
 
           <span className="mt-1.5 text-xs text-(--ink-faint)">
-            PDF, image, PPTX, TXT, or Markdown
+            PDF, Word, image, PPTX, TXT, or Markdown
           </span>
 
           <input

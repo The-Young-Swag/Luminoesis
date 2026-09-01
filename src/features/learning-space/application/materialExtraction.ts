@@ -1,6 +1,7 @@
 import type { Material } from '#/features/learning-space/domain/learningSpace'
 import type { MaterialContentBlock } from '#/features/learning-space/domain/materialContent'
 import { materialRepository } from '#/features/learning-space/repositories/materialRepository'
+import { loadPdfjs } from './pdfWorker'
 import { saveMaterialContent } from './saveMaterialContent'
 
 function toBlocks(raw: string): MaterialContentBlock[] {
@@ -41,20 +42,9 @@ async function extractTextFile(file: File): Promise<string> {
 }
 
 async function extractPdfFile(file: File): Promise<string> {
-  // Lazy-load pdfjs-dist — Apache 2.0, portfolio-safe. Worker is configured via Vite ?url import.
-  // If pdfjs is not installed or fails, we throw and the caller marks extraction failed honestly.
-  const pdfjs = await import('pdfjs-dist')
-  // Configure worker for browser. The `?url` import is handled by Vite.
-  // Fallback: try legacy worker path.
-  try {
-    const workerUrl = (await import('pdfjs-dist/build/pdf.worker.mjs?url')).default 
-    const maybePdfjs = pdfjs as unknown as { GlobalWorkerOptions?: { workerSrc?: string } }
-    if (maybePdfjs.GlobalWorkerOptions) {
-      maybePdfjs.GlobalWorkerOptions.workerSrc = workerUrl
-    }
-  } catch {
-    // Worker setup may fail in some bundlers; pdfjs can still work without it for simple docs
-  }
+  // Apache 2.0, portfolio-safe. If pdfjs is not installed or fails, we throw
+  // and the caller marks extraction failed honestly.
+  const pdfjs = await loadPdfjs()
 
   const buffer = await file.arrayBuffer()
   const loadingTask = pdfjs.getDocument({ data: buffer })
@@ -75,6 +65,17 @@ async function extractPdfFile(file: File): Promise<string> {
     if (pageText) texts.push(pageText)
   }
   return texts.join('\n\n')
+}
+
+async function extractDocxFile(file: File): Promise<string> {
+  // mammoth.extractRawText produces plain text for the Tutor/extraction
+  // pipeline. DocxPreview separately uses mammoth.convertToHtml for the
+  // faithful visual preview — same library, two different conversions,
+  // because the Tutor needs normalized text, not markup.
+  const mammoth = await import('mammoth')
+  const arrayBuffer = await file.arrayBuffer()
+  const result = await mammoth.extractRawText({ arrayBuffer })
+  return result.value
 }
 
 async function extractImageFile(file: File): Promise<string> {
@@ -107,7 +108,6 @@ function extractSlideNumber(slidePath: string): number {
   return match ? Number(match[1]) : 0
 }
 
-// AFTER
 function extractTextFromSlideXml(slideXml: string): string {
   const slideDocument = new DOMParser().parseFromString(slideXml, 'application/xml')
   const textRuns = Array.from(slideDocument.getElementsByTagName(PPTX_TEXT_RUN_TAG))
@@ -118,7 +118,17 @@ function extractTextFromSlideXml(slideXml: string): string {
     .join(' ')
 }
 
-async function extractPptxFile(file: File): Promise<string> {
+export type PptxSlideText = {
+  slideNumber: number
+  text: string
+}
+
+/**
+ * Parses slide text out of a .pptx archive. Exported so PptxPreview can
+ * reuse the exact same parsing for its slide-by-slide preview instead of
+ * duplicating the JSZip/DOMParser logic.
+ */
+export async function extractPptxSlideTexts(file: File): Promise<PptxSlideText[]> {
   // Lazy-load JSZip — MIT, client-side only. A .pptx file is a zip archive;
   // each slide's text lives in ppt/slides/slideN.xml as <a:t> text runs.
   const JSZip = (await import('jszip')).default
@@ -129,21 +139,25 @@ async function extractPptxFile(file: File): Promise<string> {
     .sort((a, b) => extractSlideNumber(a) - extractSlideNumber(b))
     .slice(0, PPTX_MAX_SLIDES)
 
-  const slideSections: string[] = []
+  const slides: PptxSlideText[] = []
 
   for (let index = 0; index < slidePaths.length; index++) {
     const slideXml = await archive.files[slidePaths[index]].async('text')
-    const slideText = extractTextFromSlideXml(slideXml)
-
-    if (!slideText) continue
-
-    // One heading per slide keeps slide boundaries visible in MaterialContent,
-    // and reuses blocksFromParagraphs the same way PDF pages already do.
-    const slideNumber = index + 1
-    slideSections.push(`# Slide ${slideNumber}\n${slideText}`)
+    slides.push({ slideNumber: index + 1, text: extractTextFromSlideXml(slideXml) })
   }
 
-  return slideSections.join('\n\n')
+  return slides
+}
+
+async function extractPptxFile(file: File): Promise<string> {
+  const slides = await extractPptxSlideTexts(file)
+
+  // One heading per slide keeps slide boundaries visible in MaterialContent,
+  // and reuses blocksFromParagraphs the same way PDF pages already do.
+  return slides
+    .filter((slide) => slide.text.length > 0)
+    .map((slide) => `# Slide ${slide.slideNumber}\n${slide.text}`)
+    .join('\n\n')
 }
 
 /**
@@ -151,8 +165,13 @@ async function extractPptxFile(file: File): Promise<string> {
  *
  * - text/markdown: File.text() → blocks
  * - pdf: pdfjs-dist getDocument → per-page text layer, Tesseract OCR fallback for scanned pages
+ * - docx: mammoth.extractRawText → blocks
  * - image: tesseract.js OCR
  * - pptx: JSZip → per-slide <a:t> text runs, one heading block per slide
+ *
+ * This produces MaterialContent for the Tutor/Concepts/Flashcards/Quiz —
+ * it is deliberately separate from the visual document preview, which reads
+ * the persisted original file instead (see materialFileRepository).
  *
  * Provenance: `materialId` + `source: extracted` preserved; empty content
  * is handled as Ready with empty blocks, not as fake data.
@@ -185,6 +204,16 @@ export async function processMaterialExtraction(file: File, material: Material):
           } catch {
             // remain empty, will be treated as no readable content
           }
+        }
+        blocks = blocksFromParagraphs(raw.split(/\n\n+/))
+        break
+      }
+      case 'docx': {
+        try {
+          raw = await extractDocxFile(file)
+        } catch (error) {
+          console.warn('[extraction] docx failed', error)
+          throw new Error('Word document extraction failed — try adding content manually.')
         }
         blocks = blocksFromParagraphs(raw.split(/\n\n+/))
         break

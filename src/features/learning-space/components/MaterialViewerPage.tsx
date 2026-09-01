@@ -21,7 +21,10 @@ import {
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { ConceptMastery } from '../hooks/useConceptsMastery'
-import type { Concept } from '#/features/learning-space/domain/learningSpace'
+import type {
+  Concept,
+  Material,
+} from '#/features/learning-space/domain/learningSpace'
 import type {
   MaterialContent,
   MaterialContentBlock,
@@ -41,11 +44,32 @@ import type { ReaderSelection } from './SelectionBubble'
 import { AddConceptDialog } from './AddConceptDialog'
 import { AddFlashcardDialog } from '#/features/flashcard/components/AddFlashcardDialog'
 import { AddQuestionDialog } from '#/features/quiz/components/AddQuestionDialog'
+import { MaterialPreview } from './previews/MaterialPreview'
 
 function cx(...classes: Array<string | false | undefined>): string {
   return classes.filter(Boolean).join(' ')
 }
 
+
+function renderContentBlocks(blocks: MaterialContentBlock[]) {
+  return blocks.map((block) =>
+    block.type === 'heading' ? (
+      <h1
+        key={block.id}
+        className="font-display text-[34px] leading-[1.2] font-semibold tracking-tight text-(--ink)"
+      >
+        {block.text}
+      </h1>
+    ) : (
+      <p
+        key={block.id}
+        className="font-display text-[18.5px] leading-[1.9] text-(--ink-soft)"
+      >
+        {block.text}
+      </p>
+    ),
+  )
+}
 function usePersistentBoolean(
   key: string,
   initial: boolean,
@@ -150,7 +174,7 @@ export function MaterialViewerPage({ materialId }: { materialId: string }) {
   // the browser selection lives inside this element. It's attached to the
   // <article> in ReadPane that renders actual material text — not to the
   // surrounding column, which also hosts Explore and Review content.
-  const readerContentRef = useRef<HTMLElement>(null)
+  const readerContentRef = useRef<HTMLDivElement>(null)
   const tutorRef = useRef<TutorPanelHandle>(null)
 
   const [mode, setMode] = useState<Mode>('read')
@@ -461,20 +485,21 @@ export function MaterialViewerPage({ materialId }: { materialId: string }) {
             className="relative mx-auto w-full px-6 py-8 lg:px-16 lg:pb-24 lg:pt-14"
             style={{ maxWidth: readerMax }}
           >
-            {paneMode === 'read' && (
-              <ReadPane
-                content={content}
-                hasContent={hasContent}
-                editing={editing}
-                draft={draft}
-                saving={saving}
-                onDraftChange={setDraft}
-                onStartEditing={startEditing}
-                onCancelEditing={() => setEditing(false)}
-                onSave={() => void saveContent()}
-                contentRef={readerContentRef}
-              />
-            )}
+          {paneMode === 'read' && (
+            <ReadPane
+              material={material}
+              content={content}
+              hasContent={hasContent}
+              editing={editing}
+              draft={draft}
+              saving={saving}
+              onDraftChange={setDraft}
+              onStartEditing={startEditing}
+              onCancelEditing={() => setEditing(false)}
+              onSave={() => void saveContent()}
+              contentRef={readerContentRef}
+            />
+          )}
 
             {paneMode === 'explore' && (
               <ExplorePane concepts={associatedConcepts} />
@@ -820,6 +845,7 @@ function StudyGuide({
 // ---------------------------------------------------------------------------
 
 type ReadPaneProps = {
+  material: Material
   content: MaterialContent | undefined
   hasContent: boolean
   editing: boolean
@@ -830,12 +856,21 @@ type ReadPaneProps = {
   onCancelEditing: () => void
   onSave: () => void
   // The Reader boundary: only selections inside this element are eligible
-  // for the Selection Bubble. Attached to the <article> below, and read by
-  // MaterialViewerPage's mouseup handler.
-  contentRef: React.RefObject<HTMLElement | null>
+  // for the Selection Bubble. Every preview (PDF text layer, DOCX HTML,
+  // PPTX slide text, plain text/markdown) mounts inside it, so the boundary
+  // check stays structural without needing per-format special-casing.
+  contentRef: React.RefObject<HTMLDivElement | null>
 }
 
+const TYPES_WITH_ORIGINAL_FILE_PREVIEW = new Set<Material['type']>([
+  'pdf',
+  'docx',
+  'pptx',
+  'image',
+])
+
 function ReadPane({
+  material,
   content,
   hasContent,
   editing,
@@ -849,6 +884,7 @@ function ReadPane({
 }: ReadPaneProps) {
   const firstHeading = content?.blocks.find((block) => block.type === 'heading')?.text
   const eyebrow = firstHeading ? firstHeading : hasContent ? 'Reading' : 'Full text'
+  const showsOriginalDocumentPreview = TYPES_WITH_ORIGINAL_FILE_PREVIEW.has(material.type)
 
   return (
     <div>
@@ -891,44 +927,60 @@ function ReadPane({
             </button>
           </div>
         </div>
+      ) : showsOriginalDocumentPreview ? (
+        <div id="reader-content" ref={contentRef}>
+          <MaterialPreview
+            material={material}
+            fallback={
+              content && content.blocks.length > 0 ? (
+                <div className="space-y-5">{renderContentBlocks(content.blocks)}</div>
+              ) : (
+                <EmptyReaderState label="Preview unavailable">
+                  The original file wasn&apos;t saved for this material, so we can&apos;t show a
+                  document preview. Extracted text will appear here once available.
+                </EmptyReaderState>
+              )
+            }
+          />
+        </div>
       ) : content && content.blocks.length > 0 ? (
         <article id="reader-content" ref={contentRef} className="space-y-5">
-          {content.blocks.map((block) =>
-            block.type === 'heading' ? (
-              <h1
-                key={block.id}
-                className="font-display text-[34px] leading-[1.2] font-semibold tracking-tight text-(--ink)"
-              >
-                {block.text}
-              </h1>
-            ) : (
-              <p
-                key={block.id}
-                className="font-display text-[18.5px] leading-[1.9] text-(--ink-soft)"
-              >
-                {block.text}
-              </p>
-            ),
-          )}
+          {renderContentBlocks(content.blocks)}
         </article>
       ) : (
-        <div className="flex flex-col items-center gap-4 rounded-2xl border border-dashed border-(--line-strong) bg-(--surface-muted) px-8 py-16 text-center">
-          <span className="grid h-14 w-14 place-items-center rounded-2xl bg-(--surface) text-(--ink-faint)">
-            <FileText size={24} aria-hidden="true" />
-          </span>
+        <EmptyReaderState label="No readable content yet" onStartEditing={onStartEditing}>
+          Add the material&apos;s text here, or it will be filled automatically when extraction is
+          available.
+        </EmptyReaderState>
+      )}
+    </div>
+  )
+}
 
-          <div className="max-w-sm">
-            <p className="text-sm font-medium text-(--ink)">No readable content yet</p>
-            <p className="mt-1.5 text-sm leading-relaxed text-(--ink-soft)">
-              Add the material&apos;s text here, or it will be filled automatically when
-              extraction is available.
-            </p>
-          </div>
+function EmptyReaderState({
+  label,
+  children,
+  onStartEditing,
+}: {
+  label: string
+  children: React.ReactNode
+  onStartEditing?: () => void
+}) {
+  return (
+    <div className="flex flex-col items-center gap-4 rounded-2xl border border-dashed border-(--line-strong) bg-(--surface-muted) px-8 py-16 text-center">
+      <span className="grid h-14 w-14 place-items-center rounded-2xl bg-(--surface) text-(--ink-faint)">
+        <FileText size={24} aria-hidden="true" />
+      </span>
 
-          <button type="button" onClick={onStartEditing} className="btn-primary mt-1">
-            Add content
-          </button>
-        </div>
+      <div className="max-w-sm">
+        <p className="text-sm font-medium text-(--ink)">{label}</p>
+        <p className="mt-1.5 text-sm leading-relaxed text-(--ink-soft)">{children}</p>
+      </div>
+
+      {onStartEditing && (
+        <button type="button" onClick={onStartEditing} className="btn-primary mt-1">
+          Add content
+        </button>
       )}
     </div>
   )
