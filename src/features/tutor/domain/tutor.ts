@@ -1,6 +1,18 @@
+import type { WebSource } from './webRetrieval'
+
 export type TutorRole = 'user' | 'assistant'
 
 export type TutorExecution = 'on-device' | 'fallback'
+
+/*
+ * 'local' runs SmolLM2 on-device (current default, always available
+ * offline). 'online' additionally allows web retrieval + a server-side
+ * LLM call — see webRetrieval.ts and the architecture note in
+ * tutorService.ts. Not yet wired into TutorService/TutorPanel; this type
+ * exists so provider and UI work can build against a stable contract
+ * once the server-side endpoint is ready.
+ */
+export type TutorMode = 'local' | 'online'
 
 export type TutorMessage = {
   id: string
@@ -74,6 +86,14 @@ export type TutorResponse = {
   provider: 'local' | 'gemini'
   execution?: TutorExecution
   citation?: TutorCitation
+  /*
+   * Populated only by Online Mode when web retrieval contributed to the
+   * answer. Always the real sources webRetrieval.ts returned — titles and
+   * URLs are never fabricated. Lets the UI attribute material vs. web vs.
+   * model knowledge using the same citation-style pattern already in use,
+   * rather than a separate provenance system.
+   */
+  webSources?: WebSource[]
 }
 
 export type TutorProviderId = 'local' | 'gemini'

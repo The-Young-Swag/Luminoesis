@@ -9,6 +9,8 @@ import {
   MAX_SELECTED_TEXT_CHARS,
   MAX_CONVERSATION_MESSAGES,
 } from './tutor'
+import { resolveEffectiveTopic } from './tutorTopic'
+import { selectRelevantMaterialExcerpt } from './materialRetrieval'
 import { materialContentRepository } from '#/features/learning-space/repositories/materialContentRepository'
 import { conceptRepository } from '#/features/learning-space/repositories/conceptRepository'
 import { highlightRepository } from '#/features/learning-space/repositories/highlightRepository'
@@ -21,6 +23,12 @@ import { retentionByConcept } from '#/features/insights/domain/analytics'
  * concepts, highlights, review history, and weak spots — so both
  * LocalTutorProvider and GeminiTutorProvider receive the same grounded
  * payload without duplicating query logic.
+ *
+ * Material grounding is retrieval-based, not positional: `excerpt` is
+ * selected by searching the material's own content blocks for what's
+ * relevant to the current topic (selection, or the resolved conversation
+ * subject for a question with no selection), not by taking a fixed slice
+ * of wherever the document happens to start. See materialRetrieval.ts.
  */
 export type BuildTutorContextInput = {
   materialId?: string
@@ -50,11 +58,24 @@ export async function buildTutorContext(
     reviewEventRepository.findAll(),
   ])
 
+  /*
+   * A selection is itself the topic. Otherwise, resolve what the current
+   * question is actually about — inheriting the subject of a short
+   * follow-up from the conversation rather than searching the material
+   * for the follow-up's own (topic-less) wording.
+   */
+  const effectiveTopic = resolveEffectiveTopic(
+    prompt,
+    selectedText,
+    conversationHistory,
+  )
+
   const excerpt = materialContent
-    ? materialContent.blocks
-        .map((block) => block.text)
-        .join('\n\n')
-        .slice(0, MAX_CONTEXT_CHARS)
+    ? selectRelevantMaterialExcerpt(
+        materialContent.blocks,
+        effectiveTopic,
+        MAX_CONTEXT_CHARS,
+      )
     : ''
 
   const truncatedSelected = selectedText

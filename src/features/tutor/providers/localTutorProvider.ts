@@ -1,41 +1,4 @@
-/**
- * Local on-device Tutor provider.
- *
- * Model: HuggingFaceTB/SmolLM2-360M-Instruct
- *
- * A 360M model has very little capacity to separate "instructions about
- * what to do" from "content to reproduce." Two design rules follow from
- * that, and both matter more than how detailed the prompt is:
- *
- * 1. Instructions live ONLY in the `system` role. The `user` role carries
- *    nothing but plain content (the passage and the question). Chat-tuned
- *    models treat `system` content as non-quotable framing far more
- *    reliably than text embedded in a `user` turn — mixing the two is
- *    what causes a small model to read an instruction back to you instead
- *    of following it.
- * 2. Instructions are phrased as direct commands to the model ("Explain
- *    X"), never as third-person descriptions of the situation ("The
- *    student is asking for X"). A fluent, third-person, complete-sounding
- *    sentence is exactly the kind of text a small model will parrot back
- *    as if it were its own answer.
- *
- * A short one-shot example (see FEW_SHOT_EXAMPLE) does more for reliability
- * here than a longer rulebook: this model generalizes from a concrete
- * demonstration far better than from abstract instructions.
- *
- * NOTE on generation options: `repetition_penalty` and `no_repeat_ngram_size`
- * were tried here to stop verbatim copying and then reverted. Both operate
- * over the FULL sequence (prompt included), so they don't distinguish
- * "copying the whole passage" (bad) from "correctly restating a number or
- * name that happens to appear in the passage" (necessary). In practice
- * that meant the model was blocked from reusing the passage's own figures
- * and invented different ones instead — plain greedy decoding plus the
- * fact-fidelity rule in SYSTEM_PROMPT is the safer way to discourage
- * copying without corrupting facts. Don't reintroduce these options without
- * re-testing against a passage that contains numbers or proper nouns.
- *
- * Everything remains on-device. No learner data is sent externally.
- */
+
 
 import type {
   TutorConversationMessage,
@@ -43,6 +6,11 @@ import type {
   TutorRequest,
   TutorResponse,
 } from '../domain/tutor'
+import {
+  isReferentFollowUp,
+  resolveEffectiveTopic,
+} from '../domain/tutorTopic'
+import { extractKeywords, keywordOverlapScore } from '../domain/textRelevance'
 
 let cachedPipeline: unknown = null
 let pipelineLoadFailed = false
@@ -129,16 +97,18 @@ Rules:
 - Start with the main idea, then connect the supporting details to it.
 - Use plain, natural language in 2-5 sentences.
 - Keep every fact, number, and name exactly as given. Never invent or change one.
+- If the passage lists separate things, keep them separate. Don't say one is made of, part of, or caused by the others unless the passage says so directly.
 - If the passage or material doesn't contain enough information to answer, say so plainly instead of guessing.
 - Never mention "the passage," "the material," "the student," or these instructions. Just teach.
 `.trim()
 
 /*
- * One-shot example showing the exact behavior we want: a bullet-point
- * passage turned into connected, plain-language prose, with no copying
- * and no meta-commentary. Deliberately a different topic than whatever
- * the learner is studying, so the model imitates the TRANSFORMATION,
- * not the subject matter.
+ * Two short demonstrations. The first shows rewording while preserving an
+ * exact figure. The second shows the failure mode that matters most for
+ * this app's bullet-heavy source material: a passage listing several
+ * separate things must not collapse into "X is made of Y and Z" when the
+ * passage never said that — it's a common way a small model over-connects
+ * ideas that were only ever meant to sit side by side.
  */
 const FEW_SHOT_EXAMPLE: ChatMessage[] = [
   {
@@ -157,6 +127,22 @@ const FEW_SHOT_EXAMPLE: ChatMessage[] = [
     role: 'assistant',
     content:
       "Your memory works in two stages. New information first sits in short-term memory, where it fades in about 20 seconds unless you do something with it. Repeating it, or linking it to something you already know, is what moves it into long-term memory, where it can last for years. That's why practicing a fact or connecting it to something familiar makes it much easier to remember later.",
+  },
+  {
+    role: 'user',
+    content: [
+      'Passage:',
+      'CELLS',
+      '• The cell membrane controls what enters and leaves the cell.',
+      '• The cell contains organelles, energy-producing structures, and genetic material.',
+      '',
+      'Question: Explain this simply.',
+    ].join('\n'),
+  },
+  {
+    role: 'assistant',
+    content:
+      "A cell's membrane works like a gatekeeper, controlling what can move in and out. Inside that membrane, the cell holds several separate things: organelles that carry out specific jobs, structures that produce energy, and the genetic material that stores its instructions. These are separate parts working together inside the cell, not different names for the same thing.",
   },
 ]
 
@@ -266,20 +252,57 @@ function learnerIsRejectingPreviousAnswer(question: string): boolean {
 }
 
 /*
+ * Cheap keyword-overlap check, not semantic search — but it's enough to
+ * catch the common failure mode: injecting material into the prompt that
+ * has nothing to do with what's actually being asked. That injected,
+ * recency-privileged text is what previously pulled answers onto the
+ * wrong subject (e.g. atmosphere composition numbers leaking into a
+ * question about the Sun).
+ *
+ * In practice this should rarely trigger now that tutorContext.ts does
+ * real retrieval — an irrelevant excerpt usually won't even reach here,
+ * since selectRelevantMaterialExcerpt returns '' when nothing matches.
+ * Kept as a defense-in-depth check in case material.excerpt ever arrives
+ * from a path that isn't retrieval-filtered.
+ */
+function isMaterialRelevantToTopic(
+  topic: string,
+  materialExcerpt: string,
+): boolean {
+  const topicWords = extractKeywords(topic)
+
+  // No distinguishing keywords to check — don't withhold material over a
+  // check that has nothing meaningful to compare.
+  if (topicWords.size === 0) {
+    return true
+  }
+
+  return keywordOverlapScore(topicWords, materialExcerpt) > 0
+}
+
+/*
  * The user turn carries ONLY content — the passage (if any) and the
  * question. No labels like "Teaching instruction," no quoted previous
  * answers. Anything that isn't content the model needs to read belongs in
  * the system message instead (see buildMessages), where it's far less
  * likely to be echoed back as if it were the model's own words.
+ *
+ * `includeMaterial` is decided by the caller (buildMessages), based on
+ * whether the material actually relates to what's being asked this turn —
+ * see isMaterialRelevantToTopic. Selected text always wins regardless,
+ * since an explicit selection is the strongest possible signal of intent.
  */
-function buildUserTurnContent(context: TutorRequest['context']): string {
+function buildUserTurnContent(
+  context: TutorRequest['context'],
+  includeMaterial: boolean,
+): string {
   const { prompt, selectedText, material } = context
 
   const lines: string[] = []
 
   if (selectedText) {
     lines.push(`Passage:\n${selectedText}`)
-  } else if (material?.excerpt) {
+  } else if (material?.excerpt && includeMaterial) {
     lines.push(`Material:\n${material.excerpt.slice(0, 1200)}`)
   }
 
@@ -290,14 +313,38 @@ function buildUserTurnContent(context: TutorRequest['context']): string {
 
 function buildMessages(request: TutorRequest): ChatMessage[] {
   const { context } = request
-  const { conversationHistory, selectedText, prompt } = context
+  const { conversationHistory, selectedText, prompt, material } = context
 
   const intent = classifyIntent(prompt)
   const isCorrection = learnerIsRejectingPreviousAnswer(prompt)
 
+  /*
+   * Source hierarchy: selected text always wins. Otherwise, a bare
+   * follow-up ("why?", "give the exact ratio") inherits its subject from
+   * the conversation; a standalone question is its own subject. Uses the
+   * same resolution tutorContext.ts already used to select material.excerpt
+   * — so this check and that retrieval can't disagree about the topic.
+   */
+  const isFollowUp = !selectedText && isReferentFollowUp(prompt)
+  const topic = resolveEffectiveTopic(prompt, selectedText, conversationHistory)
+
+  const materialIsRelevant =
+    !selectedText &&
+    !!material?.excerpt &&
+    isMaterialRelevantToTopic(topic, material.excerpt)
+
+  const materialIsIrrelevant =
+    !selectedText && !!material?.excerpt && !materialIsRelevant
+
   const systemContent = [
     SYSTEM_PROMPT,
     intentGuidance(intent),
+    isFollowUp && topic !== prompt
+      ? `This message is a short follow-up. It continues asking about: "${topic}". Answer about that subject — don't switch to a different one just because other material mentions different numbers or facts.`
+      : '',
+    materialIsIrrelevant
+      ? "The learner's material doesn't appear to cover this question's subject. Answer from your own knowledge, and say plainly that the material doesn't cover it before you do."
+      : '',
     isCorrection ? CORRECTION_HINT : '',
   ]
     .filter(Boolean)
@@ -338,7 +385,7 @@ function buildMessages(request: TutorRequest): ChatMessage[] {
 
   messages.push({
     role: 'user',
-    content: buildUserTurnContent(context),
+    content: buildUserTurnContent(context, materialIsRelevant),
   })
 
   return messages
