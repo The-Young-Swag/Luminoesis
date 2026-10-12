@@ -9,6 +9,7 @@ import { useDashboardAnalytics } from '#/features/dashboard/hooks/useDashboardAn
 import { useDashboardData } from '#/features/dashboard/hooks/useDashboardData'
 
 import { PageHeader } from '#/shared/components/ui/PageHeader'
+import { Reveal } from '#/shared/components/ui/Reveal'
 import { StatCard } from '#/features/dashboard/components/snapshot/StatCard'
 import { AdaptiveOptInBanner } from '#/features/dashboard/components/hero/AdaptiveOptInBanner'
 import { DashboardHero } from '#/features/dashboard/components/hero/DashboardHero'
@@ -148,7 +149,7 @@ export function DashboardPage() {
         aria-label="Study overview"
         className="grid grid-cols-12 items-stretch gap-4"
       >
-        <div className="col-span-12 lg:col-span-7 lg:row-span-2">
+        <Reveal className="col-span-12 lg:col-span-7 lg:row-span-2" delay={0}>
           <DashboardHero
             learningState={learningState}
             sessionCount={sessionCount}
@@ -157,9 +158,9 @@ export function DashboardPage() {
             calibrationProgress={calibrationProgress}
             isCalibrating={isCalibrating}
           />
-        </div>
+        </Reveal>
 
-        <div className="col-span-12 sm:col-span-6 lg:col-span-5">
+        <Reveal className="col-span-12 sm:col-span-6 lg:col-span-5" delay={60}>
           <StatCard
             label="Study time"
             value={`${studyMinutesThisWeek}m`}
@@ -168,9 +169,9 @@ export function DashboardPage() {
             spark={weekMinutes}
             sparkDays
           />
-        </div>
+        </Reveal>
 
-        <div className="col-span-12 sm:col-span-6 lg:col-span-5">
+        <Reveal className="col-span-12 sm:col-span-6 lg:col-span-5" delay={120}>
           <StatCard
             label="Recall"
             value={recallValue}
@@ -178,28 +179,28 @@ export function DashboardPage() {
             delta={recallDelta}
             to="/insights"
           />
-        </div>
+        </Reveal>
 
-        <div className="col-span-12 lg:col-span-7 lg:row-span-2">
+        <Reveal className="col-span-12 lg:col-span-7 lg:row-span-2" delay={120}>
           <UpcomingDue groups={queue} reviewedThisWeek={recentReviewCount} />
-        </div>
+        </Reveal>
 
-        <div className="col-span-12 sm:col-span-6 lg:col-span-5">
+        <Reveal className="col-span-12 sm:col-span-6 lg:col-span-5" delay={180}>
           <RhythmPanel
             hasBaseline={hasBaseline}
             rhythmChartData={rhythmChartData}
             signalCount={signals.length}
             recentSignalCount={recentSignals.length}
           />
-        </div>
+        </Reveal>
 
-        <div className="col-span-12 sm:col-span-6 lg:col-span-5">
+        <Reveal className="col-span-12 sm:col-span-6 lg:col-span-5" delay={240}>
           {heatmap.total > 0 ? (
             <ActivityHeatmap data={heatmap} />
           ) : (
             <StatePanel learningState={learningState} peakLearningHour={peakLearningHour} />
           )}
-        </div>
+        </Reveal>
       </section>
 
       {pattern && <InsightBanner text={pattern.text} stat={pattern.stat} />}
