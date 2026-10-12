@@ -49,7 +49,7 @@ export function SettingsPage() {
         <h2 className="flex items-center gap-2 text-sm font-semibold">
           {isDark ? <Moon size={16} aria-hidden="true" /> : <Sun size={16} aria-hidden="true" />} Appearance
         </h2>
-        <p className="mt-1 text-xs text-(--ink-faint)">Switch between light and dark. Choice persists on this device.</p>
+        <p className="mt-1 text-xs text-(--ink-soft)">Switch between light and dark. Choice persists on this device.</p>
         <button type="button" onClick={toggleTheme} className="btn-ghost mt-3">
           Switch to {isDark ? 'light' : 'dark'} mode
         </button>
@@ -63,7 +63,7 @@ export function SettingsPage() {
         <div className="mt-3 flex items-center gap-2">
           <span
             className={`rounded-full border px-2.5 py-1 text-xs ${
-              optIn ? 'border-(--emerald)/30 bg-(--emerald-muted) text-(--veridian-strong)' : 'border-(--line) bg-(--surface-muted) text-(--ink-faint)'
+              optIn ? 'border-(--emerald)/30 bg-(--emerald-muted) text-(--veridian-strong)' : 'border-(--line) bg-(--surface-muted) text-(--ink-soft)'
             }`}
           >
             {optIn ? 'Opted in' : optIn === false ? 'Off' : 'Not asked'}
@@ -77,7 +77,7 @@ export function SettingsPage() {
             </button>
           </div>
         </div>
-        <p className="mt-2 text-xs text-(--ink-faint)">
+        <p className="mt-2 text-xs text-(--ink-soft)">
           Opt out keeps full study functionality; it simply uses standard scheduling.
         </p>
       </div>
@@ -140,7 +140,7 @@ export function SettingsPage() {
             </button>
           ))}
         </div>
-        <p className="mt-2 text-xs text-(--ink-faint)">
+        <p className="mt-2 text-xs text-(--ink-soft)">
           If the capable build fails to load, answers silently fall back to Standard.
         </p>
       </div>
@@ -155,7 +155,7 @@ export function SettingsPage() {
         <div className="mt-3 flex items-center gap-2">
           <span
             className={`rounded-full border px-2.5 py-1 text-xs ${
-              escalation ? 'border-(--emerald)/30 bg-(--emerald-muted) text-(--veridian-strong)' : 'border-(--line) bg-(--surface-muted) text-(--ink-faint)'
+              escalation ? 'border-(--emerald)/30 bg-(--emerald-muted) text-(--veridian-strong)' : 'border-(--line) bg-(--surface-muted) text-(--ink-soft)'
             }`}
           >
             {escalation ? 'On' : 'Off'}

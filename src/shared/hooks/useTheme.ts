@@ -4,11 +4,27 @@ export type Theme = 'light' | 'dark'
 
 const THEME_STORAGE_KEY = 'theme'
 
+const THEME_COLORS: Record<Theme, string> = {
+  light: '#EAF3EE',
+  dark: '#05130d',
+}
+
 function applyTheme(theme: Theme): void {
   document.documentElement.classList.toggle(
     'dark',
     theme === 'dark',
   )
+
+  try {
+    window.localStorage.setItem(THEME_STORAGE_KEY, theme)
+  } catch {
+    // Private mode — theme just won't persist.
+  }
+
+  const meta = document.querySelector('meta[name="theme-color"]')
+  if (meta) {
+    meta.setAttribute('content', THEME_COLORS[theme])
+  }
 }
 
 export function useTheme() {

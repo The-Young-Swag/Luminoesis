@@ -96,7 +96,7 @@ export function QuizSetupDialog({
         </div>
 
         <div className="mt-5">
-          <span id="quiz-limit-label" className="kicker text-(--ink-faint)">Max questions</span>
+          <span id="quiz-limit-label" className="kicker text-(--ink-soft)">Max questions</span>
           <div className="mt-2 flex gap-2" role="radiogroup" aria-labelledby="quiz-limit-label">
             {LIMITS.map((value) => (
               <button

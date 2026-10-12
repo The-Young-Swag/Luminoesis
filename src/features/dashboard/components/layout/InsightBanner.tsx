@@ -5,7 +5,7 @@ export function InsightBanner({ text, stat }: { text: string; stat: string }) {
   return (
     <section className="relative overflow-hidden rounded-2xl border border-(--veridian)/20 bg-(--veridian-muted) p-5">
       <div className="flex flex-col gap-4 md:flex-row md:items-center">
-        <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-(--veridian) text-white shadow-[0_0_20px_-4px_var(--veridian)]">
+        <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-(--accent) text-(--accent-ink)">
           <Sparkles size={16} />
         </div>
 

@@ -123,7 +123,7 @@ export function AddQuestionDialog({
         ) : (
         <div className="mt-4 space-y-3">
           <label className="block">
-            <span className="kicker text-(--ink-faint)">Concept</span>
+            <span className="kicker text-(--ink-soft)">Concept</span>
             <select
               value={conceptId}
               onChange={(event) => setConceptId(event.target.value)}
@@ -138,7 +138,7 @@ export function AddQuestionDialog({
           </label>
 
           <label className="block">
-            <span className="kicker text-(--ink-faint)">Type</span>
+            <span className="kicker text-(--ink-soft)">Type</span>
             <select
               value={type}
               onChange={(event) =>
@@ -155,7 +155,7 @@ export function AddQuestionDialog({
           </label>
 
           <label className="block">
-            <span className="kicker text-(--ink-faint)">Prompt</span>
+            <span className="kicker text-(--ink-soft)">Prompt</span>
             <textarea
               value={prompt}
               onChange={(event) => setPrompt(event.target.value)}
@@ -166,7 +166,7 @@ export function AddQuestionDialog({
 
           {isChoiceType ? (
             <div>
-              <span className="kicker text-(--ink-faint)">Choices</span>
+              <span className="kicker text-(--ink-soft)">Choices</span>
               {effectiveChoices.map((choice, index) => (
                 <div key={index} className="mt-2 flex items-center gap-2">
                   <input
@@ -197,7 +197,7 @@ export function AddQuestionDialog({
               ) : null}
 
               <label className="mt-3 block">
-                <span className="kicker text-(--ink-faint)">Correct answer</span>
+                <span className="kicker text-(--ink-soft)">Correct answer</span>
                 <select
                   value={answer}
                   onChange={(event) => setAnswer(event.target.value)}
@@ -214,7 +214,7 @@ export function AddQuestionDialog({
             </div>
           ) : (
             <label className="block">
-              <span className="kicker text-(--ink-faint)">
+              <span className="kicker text-(--ink-soft)">
                 Reference answer
               </span>
               <input
@@ -226,7 +226,7 @@ export function AddQuestionDialog({
           )}
 
           <label className="block">
-            <span className="kicker text-(--ink-faint)">
+            <span className="kicker text-(--ink-soft)">
               Explanation (optional)
             </span>
             <textarea

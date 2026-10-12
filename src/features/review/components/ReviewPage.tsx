@@ -612,7 +612,7 @@ function ReviewHeader({
   return (
     <div>
     <div className="flex items-center justify-between">
-      <div className="text-sm tabular-nums text-(--ink-faint)">
+      <div className="text-sm tabular-nums text-(--ink-soft)">
         <span
           className="font-medium text-(--ink)"
           role="status"
@@ -636,7 +636,7 @@ function ReviewHeader({
           className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium ${
             captureEnabled
               ? 'border-(--emerald)/30 bg-(--emerald-muted) text-(--veridian-strong)'
-              : 'border-(--line) bg-(--surface-muted) text-(--ink-faint)'
+              : 'border-(--line) bg-(--surface-muted) text-(--ink-soft)'
           }`}
         >
           <Keyboard size={12} />
@@ -747,7 +747,7 @@ function ReviewCard({
         <GradeControls onGrade={onGrade} />
       ) : null}
 
-      <div className="mt-6 flex items-center gap-2 text-xs text-(--ink-faint)">
+      <div className="mt-6 flex items-center gap-2 text-xs text-(--ink-soft)">
         <span className="h-2 w-2 rounded-full bg-(--line-strong)" />
         Type in the answer field to let rhythm
         sensing work — or just grade without
@@ -788,7 +788,7 @@ function SignalStatus({
 
   return (
     <div
-      className="mt-3 flex items-center gap-2 text-xs font-mono text-(--ink-faint)"
+      className="mt-3 flex items-center gap-2 text-xs font-mono text-(--ink-soft)"
       aria-live="polite"
     >
       <span

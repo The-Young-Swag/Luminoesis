@@ -78,7 +78,7 @@ function RhythmCalibratingNotice() {
       <div className="max-w-sm text-center">
         <p className="text-sm font-medium">Your rhythm is still calibrating</p>
 
-        <p className="mt-1.5 text-xs leading-5 text-(--ink-faint)">
+        <p className="mt-1.5 text-xs leading-5 text-(--ink-soft)">
           Complete a few more sensed review observations and Luminoesis will begin showing your personal
           learning rhythm.
         </p>

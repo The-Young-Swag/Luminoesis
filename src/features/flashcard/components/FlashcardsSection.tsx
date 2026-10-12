@@ -146,7 +146,7 @@ export function FlashcardsSection({ learningSpaceId, concepts, materials }: Flas
                       type="button"
                       aria-label="Edit flashcard"
                       onClick={() => setEditing(flashcard)}
-                      className="rounded-lg p-1.5 text-(--ink-faint) transition hover:bg-(--surface-muted) hover:text-(--ink)"
+                      className="rounded-lg p-1.5 text-(--ink-soft) transition hover:bg-(--surface-muted) hover:text-(--ink)"
                     >
                       <Pencil size={14} aria-hidden="true" />
                     </button>
@@ -158,7 +158,7 @@ export function FlashcardsSection({ learningSpaceId, concepts, materials }: Flas
                         title="Delete flashcard"
                         onClick={() => setConfirmingId(flashcard.id)}
                         disabled={busy}
-                        className="rounded-lg p-1.5 text-(--ink-faint) transition hover:bg-red-50 hover:text-red-600 disabled:opacity-50 dark:hover:bg-red-950/40"
+                        className="rounded-lg p-1.5 text-(--ink-soft) transition hover:bg-red-50 hover:text-red-600 disabled:opacity-50 dark:hover:bg-red-950/40"
                       >
                         <Trash2 size={14} aria-hidden="true" />
                       </button>

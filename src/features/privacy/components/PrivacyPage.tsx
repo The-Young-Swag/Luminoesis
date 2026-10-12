@@ -168,7 +168,7 @@ export function PrivacyPage() {
           </li>
         </ul>
 
-        <p className="mt-3 text-xs text-(--ink-faint)">
+        <p className="mt-3 text-xs text-(--ink-soft)">
           Only these summarized numbers are ever kept. The actual characters you
           type are never saved, sent, or used to build any of these measures.
         </p>
@@ -181,7 +181,7 @@ export function PrivacyPage() {
               optIn
                 ? 'border-(--emerald)/30 bg-(--emerald-muted) text-(--veridian-strong)'
                 : optIn === false
-                  ? 'border-(--line) bg-(--surface-muted) text-(--ink-faint)'
+                  ? 'border-(--line) bg-(--surface-muted) text-(--ink-soft)'
                   : 'border-(--warning)/30 bg-(--warning-muted) text-(--warning-strong)'
             }`}
           >
@@ -209,7 +209,7 @@ export function PrivacyPage() {
           </div>
         </div>
 
-        <p className="mt-2 text-xs text-(--ink-faint)">
+        <p className="mt-2 text-xs text-(--ink-soft)">
           If you opt out, or on non-keyboard input, Luminoesis still works
           fully — it simply falls back to a standard study scheduler with no
           personalization.
@@ -220,7 +220,7 @@ export function PrivacyPage() {
         <div className="card-flat p-5">
           <h3 className="text-sm font-semibold">Your personal baseline</h3>
 
-          <p className="mt-1 text-xs text-(--ink-faint)">
+          <p className="mt-1 text-xs text-(--ink-soft)">
             A reference built from your own typing, so Luminoesis can notice
             when your rhythm changes. “Typical” is your normal value; “spread”
             is how much it usually varies.
@@ -247,7 +247,7 @@ export function PrivacyPage() {
 
                   <p className="mt-1 text-(--ink-soft)">{text.summary}</p>
 
-                  <p className="mt-1 text-xs text-(--ink-faint)">
+                  <p className="mt-1 text-xs text-(--ink-soft)">
                     {text.reference}
                   </p>
                 </div>
@@ -259,7 +259,7 @@ export function PrivacyPage() {
         <div className="card-flat p-5">
           <h3 className="text-sm font-semibold">Your typing, last 24 hours</h3>
 
-          <p className="text-xs text-(--ink-faint)">
+          <p className="text-xs text-(--ink-soft)">
             A once-per-minute summary of how you typed — never the actual
             keystrokes.
           </p>
@@ -276,7 +276,7 @@ export function PrivacyPage() {
                 key={signal.timestamp}
                 className="flex flex-wrap gap-3 rounded-lg border border-(--line) bg-(--surface-muted) px-3 py-2"
               >
-                <span className="text-(--ink-faint)">
+                <span className="text-(--ink-soft)">
                   {new Date(signal.timestamp).toLocaleTimeString()}
                 </span>
 
@@ -316,7 +316,7 @@ export function PrivacyPage() {
           </button>
         </div>
 
-        <p className="mt-2 text-xs text-(--ink-faint)">
+        <p className="mt-2 text-xs text-(--ink-soft)">
           One click exports everything in a single file, and one click deletes
           it all. No cloud account required.
         </p>
@@ -340,7 +340,7 @@ export function PrivacyPage() {
           <li>The app remains fully usable without online AI. Study, review, flashcards, quizzes and insights never require it.</li>
         </ul>
 
-        <p className="mt-3 text-xs text-(--ink-faint)">
+        <p className="mt-3 text-xs text-(--ink-soft)">
           The 3-upload limit is enforced on the server. Because this demo has no login, the limit uses an anonymous browser cookie — it&apos;s a demo safeguard, not strong authentication.
         </p>
       </div>

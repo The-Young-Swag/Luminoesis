@@ -100,7 +100,7 @@ function GradeBtn({
         <span className="text-sm font-semibold">{label}</span>
         <kbd
           aria-hidden="true"
-          className="rounded border border-(--line) bg-(--surface-muted) px-1.5 py-0.5 font-mono text-[10px] text-(--ink-faint)"
+          className="rounded border border-(--line) bg-(--surface-muted) px-1.5 py-0.5 font-mono text-[10px] text-(--ink-soft)"
         >
           {shortcut}
         </kbd>

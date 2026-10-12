@@ -6,7 +6,7 @@ export function RhythmEmptyState({ hasBaseline, signalCount }: { hasBaseline: bo
           {hasBaseline ? 'Waiting for recent timing observations' : 'Learning your baseline'}
         </div>
 
-        <div className="mt-1 text-xs leading-5 text-(--ink-faint)">
+        <div className="mt-1 text-xs leading-5 text-(--ink-soft)">
           {hasBaseline
             ? `${signalCount} timing observations available; more are needed for the recent rhythm view.`
             : 'Luminoesis will establish the reference from your actual sensed review sessions.'}

@@ -158,7 +158,7 @@ export function LibraryPage() {
             <Search
               size={16}
               aria-hidden="true"
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-(--ink-faint)"
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-(--ink-soft)"
             />
 
             <input
@@ -168,7 +168,7 @@ export function LibraryPage() {
               value={search}
               onChange={(event) => handleSearchChange(event.target.value)}
               placeholder="Search your knowledge…"
-              className="w-full rounded-lg border border-(--line) bg-(--surface-muted) py-2.5 pl-9 pr-9 text-base text-(--ink) outline-none transition duration-150 placeholder:text-(--ink-faint) focus:border-(--ink-soft) focus:bg-(--surface) focus:ring-2 focus:ring-(--veridian)/10 sm:text-sm"
+              className="w-full rounded-lg border border-(--line) bg-(--surface-muted) py-2.5 pl-9 pr-9 text-base text-(--ink) outline-none transition duration-150 placeholder:text-(--ink-soft) focus:border-(--ink-soft) focus:bg-(--surface) focus:ring-2 focus:ring-(--veridian)/10 sm:text-sm"
             />
 
             {search && (
@@ -176,7 +176,7 @@ export function LibraryPage() {
                 type="button"
                 aria-label="Clear search"
                 onClick={() => handleSearchChange('')}
-                className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-(--ink-faint) transition-colors hover:text-(--ink) focus:outline-none focus:ring-2 focus:ring-(--veridian)/20"
+                className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-(--ink-soft) transition-colors hover:text-(--ink) focus:outline-none focus:ring-2 focus:ring-(--veridian)/20"
               >
                 <X size={14} aria-hidden="true" />
               </button>
@@ -215,7 +215,7 @@ export function LibraryPage() {
           </div>
         </div>
 
-        <div className="mt-3 flex items-center justify-between gap-3 px-1 text-xs text-(--ink-faint)">
+        <div className="mt-3 flex items-center justify-between gap-3 px-1 text-xs text-(--ink-soft)">
           <span aria-live="polite" className="tabular-nums">
             {total} {total === 1 ? 'card' : 'cards'}
             {search ? ' match your search' : ' in your library'}
@@ -244,12 +244,12 @@ export function LibraryPage() {
                 Your cards
               </h2>
 
-              <p className="mt-0.5 text-xs text-(--ink-faint)">
+              <p className="mt-0.5 text-xs text-(--ink-soft)">
                 Knowledge ready for review.
               </p>
             </div>
 
-            <span className="text-xs tabular-nums text-(--ink-faint)">
+            <span className="text-xs tabular-nums text-(--ink-soft)">
               {total}
             </span>
           </div>

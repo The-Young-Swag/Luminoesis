@@ -104,7 +104,7 @@ export function ConceptsSection({
                       aria-label={`Delete concept ${concept.name}`}
                       onClick={() => setConfirmingId(concept.id)}
                       disabled={busy}
-                      className="shrink-0 rounded-lg p-1.5 text-(--ink-faint) opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100 hover:bg-red-50 hover:text-red-600 disabled:opacity-50 dark:hover:bg-red-950/40"
+                      className="shrink-0 rounded-lg p-1.5 text-(--ink-soft) opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100 hover:bg-red-50 hover:text-red-600 disabled:opacity-50 dark:hover:bg-red-950/40"
                     >
                       <Trash2 size={15} aria-hidden="true" />
                     </button>
@@ -120,7 +120,7 @@ export function ConceptsSection({
                 <div className="mt-5 flex-1 border-t border-(--line) pt-4">
                   {concept.materialIds.length > 0 ? (
                     <div className="flex flex-wrap items-center gap-1.5">
-                      <Link2 size={13} className="text-(--ink-faint)" aria-hidden="true" />
+                      <Link2 size={13} className="text-(--ink-soft)" aria-hidden="true" />
 
                       {concept.materialIds.map((id) => {
                         const title = materialTitleById.get(id)
@@ -133,7 +133,7 @@ export function ConceptsSection({
                       })}
                     </div>
                   ) : (
-                    <span className="text-xs text-(--ink-faint)">No linked material</span>
+                    <span className="text-xs text-(--ink-soft)">No linked material</span>
                   )}
                 </div>
 

@@ -603,37 +603,34 @@ export function MaterialViewerPage({ materialId }: { materialId: string }) {
         </div>
       </div>
 
-      {showConcept && (
-        <AddConceptDialog
-          learningSpaceId={material.learningSpaceId}
-          materials={materials}
-          initialName={pendingText?.slice(0, 80)}
-          initialMaterialIds={[material.id]}
-          onCreated={() => setShowConcept(false)}
-          onClose={() => setShowConcept(false)}
-        />
-      )}
+      <AddConceptDialog
+        open={showConcept}
+        learningSpaceId={material.learningSpaceId}
+        materials={materials}
+        initialName={pendingText?.slice(0, 80)}
+        initialMaterialIds={[material.id]}
+        onCreated={() => setShowConcept(false)}
+        onClose={() => setShowConcept(false)}
+      />
 
-      {showFlashcard && (
-        <AddFlashcardDialog
-          concepts={concepts}
-          materials={materials}
-          initialFront={pendingText}
-          initialMaterialId={material.id}
-          onCreated={() => setShowFlashcard(false)}
-          onClose={() => setShowFlashcard(false)}
-        />
-      )}
+      <AddFlashcardDialog
+        open={showFlashcard}
+        concepts={concepts}
+        materials={materials}
+        initialFront={pendingText}
+        initialMaterialId={material.id}
+        onCreated={() => setShowFlashcard(false)}
+        onClose={() => setShowFlashcard(false)}
+      />
 
-      {showQuiz && (
-        <AddQuestionDialog
-          concepts={concepts}
-          initialPrompt={pendingText}
-          initialMaterialId={material.id}
-          onCreated={() => setShowQuiz(false)}
-          onClose={() => setShowQuiz(false)}
-        />
-      )}
+      <AddQuestionDialog
+        open={showQuiz}
+        concepts={concepts}
+        initialPrompt={pendingText}
+        initialMaterialId={material.id}
+        onCreated={() => setShowQuiz(false)}
+        onClose={() => setShowQuiz(false)}
+      />
     </div>
   )
 }

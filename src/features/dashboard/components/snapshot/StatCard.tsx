@@ -35,7 +35,7 @@ export function StatCard({ icon, label, value, hint, delta, spark, sparkDays = f
         {to && (
           <ArrowUpRight
             size={14}
-            className="ml-auto text-(--ink-faint) opacity-0 transition-opacity group-hover:opacity-100"
+            className="ml-auto text-(--ink-soft) opacity-0 transition-opacity group-hover:opacity-100"
           />
         )}
       </div>

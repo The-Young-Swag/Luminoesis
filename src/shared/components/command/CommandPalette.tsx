@@ -147,7 +147,7 @@ export function CommandPalette({
     >
       <div className="glass-panel overflow-hidden rounded-2xl">
         <div className="flex items-center gap-2 border-b border-(--line) px-4">
-          <Search size={16} aria-hidden="true" className="shrink-0 text-(--ink-faint)" />
+          <Search size={16} aria-hidden="true" className="shrink-0 text-(--ink-soft)" />
           <input
             ref={inputRef}
             value={query}
@@ -161,11 +161,11 @@ export function CommandPalette({
             placeholder="Type a command or search…"
             autoComplete="off"
             spellCheck={false}
-            className="h-12 w-full bg-transparent text-[15px] text-(--ink) outline-none placeholder:text-(--ink-faint)"
+            className="h-12 w-full bg-transparent text-[15px] text-(--ink) outline-none placeholder:text-(--ink-soft)"
           />
           <kbd
             aria-hidden="true"
-            className="shrink-0 rounded border border-(--line) bg-(--surface-muted) px-1.5 py-0.5 font-mono text-[10px] text-(--ink-faint)"
+            className="shrink-0 rounded border border-(--line) bg-(--surface-muted) px-1.5 py-0.5 font-mono text-[10px] text-(--ink-soft)"
           >
             ESC
           </kbd>
@@ -178,7 +178,7 @@ export function CommandPalette({
           className="sidebar-scroll max-h-[40vh] overflow-y-auto p-2"
         >
           {allResults.length === 0 && (
-            <li className="px-3 py-6 text-center text-sm text-(--ink-faint)">
+            <li className="px-3 py-6 text-center text-sm text-(--ink-soft)">
               No matches. Try “review”, “library” or “theme”.
             </li>
           )}
@@ -209,7 +209,7 @@ export function CommandPalette({
                     {command.label}
                   </span>
                   <span
-                    className={`mono-label text-[10px] ${selected ? 'text-white/70' : ''}`}
+                    className={`text-[10px] font-semibold ${selected ? 'text-white/70' : 'text-(--ink-soft)'}`}
                   >
                     {command.hint}
                   </span>

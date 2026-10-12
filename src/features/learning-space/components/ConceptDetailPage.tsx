@@ -161,7 +161,7 @@ export function ConceptDetailPage({ conceptId }: ConceptDetailPageProps) {
         <Link to="/review" className="btn-primary">
           Start a review session
         </Link>
-        <p className="mt-2 text-xs text-(--ink-faint)">
+        <p className="mt-2 text-xs text-(--ink-soft)">
           Due cards across your library, scheduled by SM-2 and your rhythm.
         </p>
       </div>

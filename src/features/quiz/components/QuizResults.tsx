@@ -37,7 +37,7 @@ export function QuizResults({
 
         {needsWork.length > 0 ? (
           <div className="mt-5">
-            <h3 className="kicker text-(--ink-faint)">Needs work</h3>
+            <h3 className="kicker text-(--ink-soft)">Needs work</h3>
             <ul className="mt-2 flex flex-wrap gap-2">
               {needsWork.map((conceptId) => (
                 <li key={conceptId} className="chip">

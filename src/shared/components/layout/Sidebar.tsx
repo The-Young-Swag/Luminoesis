@@ -445,7 +445,7 @@ function DesktopSidebar({
               aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
               aria-expanded={!collapsed}
               title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-              className="grid h-11 w-11 place-items-center rounded-[14px] text-(--ink-faint) transition-colors hover:bg-(--surface-muted) hover:text-(--ink)"
+              className="grid h-11 w-11 place-items-center rounded-[14px] text-(--ink-soft) transition-colors hover:bg-(--surface-muted) hover:text-(--ink)"
             >
               {collapsed ? (
                 <PanelLeftOpen size={17} aria-hidden="true" />

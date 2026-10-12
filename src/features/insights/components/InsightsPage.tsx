@@ -63,7 +63,7 @@ export function InsightsPage() {
         <div className="card-flat p-5">
           <h2 className="text-sm font-semibold">Retention by topic</h2>
 
-          <p className="text-xs text-(--ink-faint)">
+          <p className="text-xs text-(--ink-soft)">
             Correct / total — Good or Easy counts as correct.
           </p>
 
@@ -111,7 +111,7 @@ export function InsightsPage() {
                       />
                     </div>
 
-                    <span className="w-16 text-right text-xs tabular-nums text-(--ink-faint)">
+                    <span className="w-16 text-right text-xs tabular-nums text-(--ink-soft)">
                       {percentage}% · {item.correct}/{item.total}
                     </span>
                   </div>
@@ -126,7 +126,7 @@ export function InsightsPage() {
             Session length vs performance
           </h2>
 
-          <p className="text-xs text-(--ink-faint)">
+          <p className="text-xs text-(--ink-soft)">
             Average grade by bucket — visual, not numeric-obsessive.
           </p>
 
@@ -141,7 +141,7 @@ export function InsightsPage() {
                     key={item.sessionId}
                     className="flex items-center gap-3 text-sm"
                   >
-                    <span className="w-16 text-xs font-medium tabular-nums text-(--ink-faint)">
+                    <span className="w-16 text-xs font-medium tabular-nums text-(--ink-soft)">
                       {item.durationMinutes.toFixed(0)}m
                     </span>
 
@@ -159,7 +159,7 @@ export function InsightsPage() {
                       />
                     </div>
 
-                    <span className="text-xs tabular-nums text-(--ink-faint)">
+                    <span className="text-xs tabular-nums text-(--ink-soft)">
                       {item.reviewCount
                         ? `${item.averageGrade.toFixed(1)}/3`
                         : '—'}{' '}

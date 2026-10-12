@@ -135,7 +135,7 @@ function LearningSpaceCard({
     <button
       type="button"
       onClick={openLearningSpace}
-      className="card-flat group block w-full cursor-pointer p-5 text-left transition hover:-translate-y-0.5 hover:border-(--blue)/30 focus:outline-none focus:ring-2 focus:ring-(--blue)/30"
+      className="card-flat group block w-full cursor-pointer p-5 text-left transition hover:-translate-y-0.5 hover:border-(--blue)/30 focus:outline-none focus:ring-2 focus:ring-(--veridian)/30"
       aria-label={`Open learning space: ${learningSpace.title}`}
     >
       <div className="flex items-start justify-between gap-4">

@@ -29,7 +29,7 @@ export function QuestionView({
 
   return (
     <div className="min-h-40 flex flex-col">
-      <div className="text-xs tracking-wide uppercase font-semibold text-(--ink-faint)">
+      <div className="text-xs tracking-wide uppercase font-semibold text-(--ink-soft)">
         Front
       </div>
       <div className="display text-balance text-[22px] leading-snug font-medium mt-2 md:text-2xl">
@@ -48,7 +48,7 @@ export function QuestionView({
           </button>
         ) : (
           <div className="rounded-xl border border-(--line) bg-(--surface-muted) p-4">
-            <div className="text-xs tracking-wide uppercase font-semibold text-(--ink-faint)">
+            <div className="text-xs tracking-wide uppercase font-semibold text-(--ink-soft)">
               Back
             </div>
             <div className="text-[16px] leading-relaxed mt-1">{back}</div>

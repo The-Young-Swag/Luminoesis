@@ -272,7 +272,7 @@ function WorkspaceTabs({
               <span
                 className={cx(
                   'rounded-full px-1.5 py-0.5 text-[11px] font-semibold tabular-nums',
-                  isActive ? 'bg-(--blue)/12 text-(--blue)' : 'bg-(--surface) text-(--ink-faint)',
+                  isActive ? 'bg-(--blue)/12 text-(--blue)' : 'bg-(--surface) text-(--ink-soft)',
                 )}
               >
                 {count}
@@ -357,7 +357,7 @@ function MaterialsSection({ materials, onAddMaterial }: MaterialsSectionProps) {
                   <h3 className="truncate text-[15px] font-semibold text-(--ink)">
                     {material.title}
                   </h3>
-                  <p className="mt-1 truncate text-xs text-(--ink-faint)">
+                  <p className="mt-1 truncate text-xs text-(--ink-soft)">
                     {material.source.fileName}
                   </p>
                 </div>
@@ -365,7 +365,7 @@ function MaterialsSection({ materials, onAddMaterial }: MaterialsSectionProps) {
 
               <div className="mt-5 flex flex-1 flex-wrap items-center gap-2 text-xs">
                 <span className="chip">{materialTypeLabel(material.type)}</span>
-                <span className="text-(--ink-faint)">
+                <span className="text-(--ink-soft)">
                   {formatBytes(material.source.sizeBytes)}
                 </span>
               </div>

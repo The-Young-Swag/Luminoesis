@@ -116,7 +116,7 @@ export function QuizSection({ learningSpaceId, concepts }: QuizSectionProps) {
         <>
           {attempts.length > 0 && (
             <div className="card-flat mb-6 p-6">
-              <h3 className="mono-label text-(--ink-faint)">Recent attempts</h3>
+              <h3 className="eyebrow">Recent attempts</h3>
 
               <ul className="mt-4 divide-y divide-(--line)">
                 {attempts.slice(0, 5).map((attempt) => (
@@ -137,7 +137,7 @@ export function QuizSection({ learningSpaceId, concepts }: QuizSectionProps) {
           )}
 
           <div className="mb-4 flex items-center justify-between gap-4">
-            <h3 className="mono-label text-(--ink-faint)">Questions</h3>
+            <h3 className="eyebrow">Questions</h3>
 
             <button
               type="button"
@@ -167,7 +167,7 @@ export function QuizSection({ learningSpaceId, concepts }: QuizSectionProps) {
                       onConfirm={() => {
                         void deleteQuestion(question.id)
                       }}
-                      className="shrink-0 rounded-lg p-1.5 text-(--ink-faint) opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/40"
+                      className="shrink-0 rounded-lg p-1.5 text-(--ink-soft) opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/40"
                     >
                       <Trash2 size={14} aria-hidden="true" />
                     </ConfirmButton>

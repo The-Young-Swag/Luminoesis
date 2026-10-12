@@ -124,7 +124,7 @@ export function AddFlashcardDialog({
             <select
               value={conceptId}
               onChange={(event) => setConceptId(event.target.value)}
-              className="mt-1.5 w-full rounded-xl border border-(--line) bg-(--surface) px-3 py-2.5 text-sm outline-none focus:border-(--blue) focus:ring-2 focus:ring-(--blue)/20"
+              className="mt-1.5 w-full rounded-xl border border-(--line) bg-(--surface) px-3 py-2.5 text-sm outline-none focus:border-(--veridian) focus:ring-2 focus:ring-(--veridian)/20"
             >
               {concepts.map((concept) => (
                 <option key={concept.id} value={concept.id}>
@@ -144,7 +144,7 @@ export function AddFlashcardDialog({
                 setError(null)
               }}
               rows={2}
-              className="mt-1.5 w-full rounded-xl border border-(--line) bg-(--surface) p-3 text-[15px] outline-none focus:border-(--blue) focus:ring-2 focus:ring-(--blue)/20"
+              className="mt-1.5 w-full rounded-xl border border-(--line) bg-(--surface) p-3 text-[15px] outline-none focus:border-(--veridian) focus:ring-2 focus:ring-(--veridian)/20"
               placeholder="The prompt shown first"
             />
           </label>
@@ -159,7 +159,7 @@ export function AddFlashcardDialog({
                 setError(null)
               }}
               rows={3}
-              className="mt-1.5 w-full rounded-xl border border-(--line) bg-(--surface) p-3 text-[15px] outline-none focus:border-(--blue) focus:ring-2 focus:ring-(--blue)/20"
+              className="mt-1.5 w-full rounded-xl border border-(--line) bg-(--surface) p-3 text-[15px] outline-none focus:border-(--veridian) focus:ring-2 focus:ring-(--veridian)/20"
               placeholder="The answer revealed after recall"
             />
           </label>
@@ -173,7 +173,7 @@ export function AddFlashcardDialog({
                 onChange={(event) =>
                   setDifficulty(event.target.value as FlashcardDifficulty)
                 }
-                className="mt-1.5 w-full rounded-xl border border-(--line) bg-(--surface) px-3 py-2.5 text-sm outline-none focus:border-(--blue) focus:ring-2 focus:ring-(--blue)/20"
+                className="mt-1.5 w-full rounded-xl border border-(--line) bg-(--surface) px-3 py-2.5 text-sm outline-none focus:border-(--veridian) focus:ring-2 focus:ring-(--veridian)/20"
               >
                 {DIFFICULTIES.map((value) => (
                   <option key={value} value={value}>
@@ -186,7 +186,7 @@ export function AddFlashcardDialog({
             <label className="text-sm">
               <span className="font-medium">
                 Source material
-                <span className="font-normal text-(--ink-faint)">
+                <span className="font-normal text-(--ink-soft)">
                   {' '}
                   (optional)
                 </span>
@@ -195,7 +195,7 @@ export function AddFlashcardDialog({
               <select
                 value={materialId}
                 onChange={(event) => setMaterialId(event.target.value)}
-                className="mt-1.5 w-full rounded-xl border border-(--line) bg-(--surface) px-3 py-2.5 text-sm outline-none focus:border-(--blue) focus:ring-2 focus:ring-(--blue)/20"
+                className="mt-1.5 w-full rounded-xl border border-(--line) bg-(--surface) px-3 py-2.5 text-sm outline-none focus:border-(--veridian) focus:ring-2 focus:ring-(--veridian)/20"
               >
                 <option value="">None</option>
 

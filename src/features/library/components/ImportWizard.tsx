@@ -334,7 +334,7 @@ export function ImportWizard({
             {mode === 'paste' ? (
               <>
                 <div>
-                  <div className="text-xs font-semibold uppercase tracking-wide text-(--ink-faint)">
+                  <div className="text-xs font-semibold uppercase tracking-wide text-(--ink-soft)">
                     Start with an example — tap to try
                   </div>
 
@@ -350,7 +350,7 @@ export function ImportWizard({
                           {template.label}
                         </div>
 
-                        <div className="mt-0.5 text-xs text-(--ink-faint)">
+                        <div className="mt-0.5 text-xs text-(--ink-soft)">
                           {template.hint}
                         </div>
                       </button>
@@ -361,7 +361,7 @@ export function ImportWizard({
                 <label className="block">
                   <span className="text-sm font-medium">Your notes</span>
 
-                  <span className="ml-2 text-xs text-(--ink-faint)">
+                  <span className="ml-2 text-xs text-(--ink-soft)">
                     Paste however they are — we’ll sort it
                   </span>
 
@@ -369,7 +369,7 @@ export function ImportWizard({
                     value={text}
                     onChange={(event) => setText(event.target.value)}
                     rows={9}
-                    className="mt-2 w-full rounded-xl border border-(--line) bg-(--surface-muted) p-4 text-[15px] leading-relaxed outline-none placeholder:text-(--ink-faint) focus:border-(--blue) focus:bg-(--surface) focus:ring-2 focus:ring-(--blue)/10"
+                    className="mt-2 w-full rounded-xl border border-(--line) bg-(--surface-muted) p-4 text-[15px] leading-relaxed outline-none placeholder:text-(--ink-soft) focus:border-(--veridian) focus:bg-(--surface) focus:ring-2 focus:ring-(--veridian)/10"
                     placeholder={`Try:
 
 Photosynthesis :: How plants make food
@@ -382,7 +382,7 @@ A: How plants use sunlight
 Or just one fact per line — we’ll handle the rest.`}
                   />
 
-                  <span className="mt-1.5 block text-xs text-(--ink-faint)">
+                  <span className="mt-1.5 block text-xs text-(--ink-soft)">
                     Tip: One idea per line works great. You can also use
                     “Question :: Answer”.
                   </span>
@@ -468,7 +468,7 @@ Or just one fact per line — we’ll handle the rest.`}
                     Drop your file here or click to browse
                   </div>
 
-                  <div className="mt-1 text-sm text-(--ink-faint)">
+                  <div className="mt-1 text-sm text-(--ink-soft)">
                     Supported: {SUPPORTED} · Your data stays on this device
                   </div>
 
@@ -496,7 +496,7 @@ Or just one fact per line — we’ll handle the rest.`}
 
                 {text && (
                   <div className="rounded-xl border border-(--line) bg-(--surface) p-3">
-                    <div className="text-xs font-semibold uppercase tracking-wide text-(--ink-faint)">
+                    <div className="text-xs font-semibold uppercase tracking-wide text-(--ink-soft)">
                       File contents — you can still edit
                     </div>
 
@@ -559,7 +559,7 @@ Or just one fact per line — we’ll handle the rest.`}
               />
 
               {editable.length > 20 && (
-                <p className="mt-2 text-xs text-(--ink-faint)">
+                <p className="mt-2 text-xs text-(--ink-soft)">
                   Showing all {editable.length} cards — they’ll all be added.
                 </p>
               )}

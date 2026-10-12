@@ -90,7 +90,7 @@ export function CardDialog({
             <span className="font-medium">
               Front — what you’ll see first
             </span>
-            <span className="font-normal text-(--ink-faint)">
+            <span className="font-normal text-(--ink-soft)">
               {' '}
               (question, prompt, word)
             </span>
@@ -107,7 +107,7 @@ export function CardDialog({
 
           <label className="text-sm">
             <span className="font-medium">Back — the answer</span>
-            <span className="font-normal text-(--ink-faint)">
+            <span className="font-normal text-(--ink-soft)">
               {' '}
               (keep it concise)
             </span>
@@ -124,7 +124,7 @@ export function CardDialog({
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <label className="text-sm">
               <span className="font-medium">Topic</span>
-              <span className="font-normal text-(--ink-faint)">
+              <span className="font-normal text-(--ink-soft)">
                 {' '}
                 (groups your cards)
               </span>
@@ -147,7 +147,7 @@ export function CardDialog({
 
             <label className="text-sm">
               <span className="font-medium">Target date</span>
-              <span className="font-normal text-(--ink-faint)">
+              <span className="font-normal text-(--ink-soft)">
                 {' '}
                 (optional)
               </span>

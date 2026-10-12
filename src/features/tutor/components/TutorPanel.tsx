@@ -265,7 +265,7 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
                 <Sparkles size={15} aria-hidden="true" />
               </span>
 
-              <p className="font-mono text-[11px] font-semibold tracking-[0.08em] text-(--ink-faint) uppercase">
+              <p className="font-mono text-[11px] font-semibold tracking-[0.08em] text-(--ink-soft) uppercase">
                 Ask Tutor
               </p>
             </div>
@@ -312,7 +312,7 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
                 <Sparkles size={12} aria-hidden="true" />
               </span>
 
-              <p className="pt-0.5 text-[14px] leading-relaxed text-(--ink-faint)">
+              <p className="pt-0.5 text-[14px] leading-relaxed text-(--ink-soft)">
                 Thinking…
               </p>
             </div>
@@ -331,7 +331,7 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
 
           {modelStatus === 'loading' && (
             <div className="mb-3" role="status" aria-live="polite">
-              <div className="flex items-baseline justify-between gap-2 font-mono text-[10px] text-(--ink-faint)">
+              <div className="flex items-baseline justify-between gap-2 font-mono text-[10px] text-(--ink-soft)">
                 <span className="truncate">
                   Downloading on-device model{modelFile ? ` · ${modelFile}` : ''}…
                 </span>
@@ -359,7 +359,7 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
             <div className="mb-3 flex gap-3 rounded-xl bg-(--surface-muted)/60 px-4 py-3.5">
               <Info
                 size={15}
-                className="mt-0.5 shrink-0 text-(--ink-faint)"
+                className="mt-0.5 shrink-0 text-(--ink-soft)"
                 aria-hidden="true"
               />
 
@@ -384,7 +384,7 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
               rows={1}
               placeholder="Ask about this material…"
               aria-label="Ask Tutor about this material"
-              className="max-h-32 min-h-10 flex-1 resize-none bg-transparent py-2 text-[14px] leading-relaxed text-(--ink) outline-none placeholder:text-(--ink-faint)"
+              className="max-h-32 min-h-10 flex-1 resize-none bg-transparent py-2 text-[14px] leading-relaxed text-(--ink) outline-none placeholder:text-(--ink-soft)"
             />
 
             <button
@@ -416,7 +416,7 @@ function TutorMessageBubble({
         <div className="max-w-[82%] space-y-1.5">
           {message.selectedText && (
             <div className="rounded-xl bg-(--glass-bg-strong)/60 px-3.5 py-2.5 text-xs leading-relaxed text-(--ink-soft)">
-              <p className="mb-1 font-medium text-(--ink-faint)">
+              <p className="mb-1 font-medium text-(--ink-soft)">
                 Selected passage
               </p>
   
@@ -446,7 +446,7 @@ function TutorMessageBubble({
         </p>
 
         {message.provider === 'local' && (
-          <p className="mt-1.5 px-1 text-[10.5px] leading-relaxed text-(--ink-faint)">
+          <p className="mt-1.5 px-1 text-[10.5px] leading-relaxed text-(--ink-soft)">
             {message.execution === 'on-device'
               ? 'Local AI · Generated on-device · No data sent externally.'
               : 'Local AI · On-device model unavailable · No data sent externally.'}
@@ -454,7 +454,7 @@ function TutorMessageBubble({
         )}
 
         {message.provider === 'gemini' && (
-          <p className="mt-1.5 px-1 text-[10.5px] leading-relaxed text-(--ink-faint)">
+          <p className="mt-1.5 px-1 text-[10.5px] leading-relaxed text-(--ink-soft)">
             Gemini · Online AI
           </p>
         )}

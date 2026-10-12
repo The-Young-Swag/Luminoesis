@@ -106,7 +106,7 @@ export function AddConceptDialog({
                 setError(null)
               }}
               autoFocus
-              className="mt-2 w-full rounded-full border border-(--line) bg-(--surface) px-4 py-3 text-sm outline-none focus:border-(--blue) focus:ring-2 focus:ring-(--blue)/20"
+              className="mt-2 w-full rounded-full border border-(--line) bg-(--surface) px-4 py-3 text-sm outline-none focus:border-(--veridian) focus:ring-2 focus:ring-(--veridian)/20"
               placeholder="e.g. Cardiac output…"
             />
           </label>
@@ -114,7 +114,7 @@ export function AddConceptDialog({
           <label className="text-sm">
             <span className="font-medium">
               Description
-              <span className="font-normal text-(--ink-faint)">
+              <span className="font-normal text-(--ink-soft)">
                 {' '}
                 (optional)
               </span>
@@ -124,7 +124,7 @@ export function AddConceptDialog({
               value={description}
               onChange={(event) => setDescription(event.target.value)}
               rows={3}
-              className="mt-2 w-full rounded-xl border border-(--line) bg-(--surface) p-4 text-[15px] leading-relaxed outline-none focus:border-(--blue) focus:ring-2 focus:ring-(--blue)/20"
+              className="mt-2 w-full rounded-xl border border-(--line) bg-(--surface) p-4 text-[15px] leading-relaxed outline-none focus:border-(--veridian) focus:ring-2 focus:ring-(--veridian)/20"
               placeholder="What does this concept mean?"
             />
           </label>
@@ -132,7 +132,7 @@ export function AddConceptDialog({
           <div className="text-sm">
             <span className="font-medium">
               Source material
-              <span className="font-normal text-(--ink-faint)">
+              <span className="font-normal text-(--ink-soft)">
                 {' '}
                 (optional)
               </span>

@@ -15,7 +15,7 @@ type ImportPreviewProps = {
     if (cards.length === 0) {
         return (
         <div className="mt-4 rounded-xl border border-dashed border-(--line) bg-(--surface-muted) px-6 py-10 text-center">
-            <div className="mx-auto grid h-11 w-11 place-items-center rounded-full border border-(--line) bg-(--surface) text-(--ink-faint)">
+            <div className="mx-auto grid h-11 w-11 place-items-center rounded-full border border-(--line) bg-(--surface) text-(--ink-soft)">
               <Inbox size={18} aria-hidden="true" />
             </div>
             <p className="mt-4 text-sm font-medium text-(--ink)">No cards yet</p>
@@ -40,7 +40,7 @@ type ImportPreviewProps = {
                     {index + 1}
                 </span>
 
-                <span className="text-xs font-semibold uppercase tracking-wide text-(--ink-faint)">
+                <span className="text-xs font-semibold uppercase tracking-wide text-(--ink-soft)">
                     Card
                 </span>
                 </div>
@@ -49,7 +49,7 @@ type ImportPreviewProps = {
                 type="button"
                 aria-label={`Remove card ${index + 1}`}
                 onClick={() => onRemove(index)}
-                className="inline-flex h-8 w-8 items-center justify-center rounded-full text-(--ink-faint) transition-colors hover:bg-(--destructive)/10 hover:text-destructive focus:outline-none focus:ring-2 focus:ring-(--destructive)/20"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-full text-(--ink-soft) transition-colors hover:bg-(--destructive)/10 hover:text-destructive focus:outline-none focus:ring-2 focus:ring-(--destructive)/20"
                 >
                 <Trash2 size={14} aria-hidden="true" />
                 </button>
@@ -68,7 +68,7 @@ type ImportPreviewProps = {
                     }
                     rows={2}
                     placeholder="What should you remember?"
-                    className="mt-1.5 w-full resize-y rounded-lg border border-(--line) bg-(--surface-muted) px-3 py-2.5 text-sm leading-6 text-(--ink) outline-none transition-colors placeholder:text-(--ink-faint) focus:border-(--blue) focus:bg-(--surface) focus:ring-2 focus:ring-(--blue)/10"
+                    className="mt-1.5 w-full resize-y rounded-lg border border-(--line) bg-(--surface-muted) px-3 py-2.5 text-sm leading-6 text-(--ink) outline-none transition-colors placeholder:text-(--ink-soft) focus:border-(--veridian) focus:bg-(--surface) focus:ring-2 focus:ring-(--veridian)/10"
                 />
                 </label>
 
@@ -84,7 +84,7 @@ type ImportPreviewProps = {
                     }
                     rows={2}
                     placeholder="What is the answer?"
-                    className="mt-1.5 w-full resize-y rounded-lg border border-(--line) bg-(--surface-muted) px-3 py-2.5 text-sm leading-6 text-(--ink) outline-none transition-colors placeholder:text-(--ink-faint) focus:border-(--blue) focus:bg-(--surface) focus:ring-2 focus:ring-(--blue)/10"
+                    className="mt-1.5 w-full resize-y rounded-lg border border-(--line) bg-(--surface-muted) px-3 py-2.5 text-sm leading-6 text-(--ink) outline-none transition-colors placeholder:text-(--ink-soft) focus:border-(--veridian) focus:bg-(--surface) focus:ring-2 focus:ring-(--veridian)/10"
                 />
                 </label>
 
@@ -99,7 +99,7 @@ type ImportPreviewProps = {
                     onUpdate(index, { topic: event.target.value })
                     }
                     placeholder="General"
-                    className="mt-1.5 w-full rounded-lg border border-(--line) bg-(--surface-muted) px-3 py-2 text-sm text-(--ink) outline-none transition-colors placeholder:text-(--ink-faint) focus:border-(--blue) focus:bg-(--surface) focus:ring-2 focus:ring-(--blue)/10"
+                    className="mt-1.5 w-full rounded-lg border border-(--line) bg-(--surface-muted) px-3 py-2 text-sm text-(--ink) outline-none transition-colors placeholder:text-(--ink-soft) focus:border-(--veridian) focus:bg-(--surface) focus:ring-2 focus:ring-(--veridian)/10"
                 />
                 </label>
             </div>

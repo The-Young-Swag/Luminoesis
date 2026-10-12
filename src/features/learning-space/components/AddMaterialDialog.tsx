@@ -148,7 +148,7 @@ export function AddMaterialDialog({
               Add material
             </h2>
 
-            <p className="mt-1.5 text-sm text-(--ink-faint)">
+            <p className="mt-1.5 text-sm text-(--ink-soft)">
               Add a file to this Learning Space.
             </p>
           </div>
@@ -156,7 +156,7 @@ export function AddMaterialDialog({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-2 text-(--ink-faint) transition hover:bg-(--surface-muted) hover:text-(--ink)"
+            className="rounded-lg p-2 text-(--ink-soft) transition hover:bg-(--surface-muted) hover:text-(--ink)"
             aria-label="Close"
           >
             <X size={18} aria-hidden="true" />
@@ -168,7 +168,7 @@ export function AddMaterialDialog({
         >
           <Upload
             size={26}
-            className="mb-4 text-(--ink-faint)"
+            className="mb-4 text-(--ink-soft)"
             aria-hidden="true"
           />
 
@@ -176,7 +176,7 @@ export function AddMaterialDialog({
             {file ? file.name : 'Choose a file'}
           </span>
 
-          <span className="mt-1.5 text-xs text-(--ink-faint)">
+          <span className="mt-1.5 text-xs text-(--ink-soft)">
             PDF, Word, image, PPTX, TXT, or Markdown
           </span>
 

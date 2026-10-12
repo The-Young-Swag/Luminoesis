@@ -67,14 +67,14 @@ export function CreateLearningSpaceDialog({
               value={title}
               onChange={(event) => setTitle(event.target.value)}
               autoFocus
-              className="mt-1.5 w-full rounded-full border border-(--line) bg-(--surface) px-3.5 py-2.5 text-sm outline-none focus:border-(--blue) focus:ring-2 focus:ring-(--blue)/20"
+              className="mt-1.5 w-full rounded-full border border-(--line) bg-(--surface) px-3.5 py-2.5 text-sm outline-none focus:border-(--veridian) focus:ring-2 focus:ring-(--veridian)/20"
               placeholder="e.g. Cellular respiration…"
             />
           </label>
 
           <label className="text-sm">
             <span className="font-medium">Description</span>
-            <span className="font-normal text-(--ink-faint)">
+            <span className="font-normal text-(--ink-soft)">
               {' '}
               (optional)
             </span>
@@ -83,7 +83,7 @@ export function CreateLearningSpaceDialog({
               value={description}
               onChange={(event) => setDescription(event.target.value)}
               rows={3}
-              className="mt-1.5 w-full rounded-xl border border-(--line) bg-(--surface) p-3 text-[15px] outline-none focus:border-(--blue) focus:ring-2 focus:ring-(--blue)/20"
+              className="mt-1.5 w-full rounded-xl border border-(--line) bg-(--surface) p-3 text-[15px] outline-none focus:border-(--veridian) focus:ring-2 focus:ring-(--veridian)/20"
               placeholder="What this space is for"
             />
           </label>

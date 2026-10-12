@@ -113,7 +113,7 @@ export function SelectionBubble({
         type="button"
         onClick={onDismiss}
         aria-label="Dismiss selection actions"
-        className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-(--ink-faint) transition hover:bg-(--surface-muted) hover:text-(--ink)"
+        className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-(--ink-soft) transition hover:bg-(--surface-muted) hover:text-(--ink)"
       >
         <X size={14} aria-hidden="true" />
       </button>

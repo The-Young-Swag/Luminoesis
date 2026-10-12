@@ -84,7 +84,7 @@ function QueueGroup({ label, cards }: { label: string; cards: Card[] }) {
             >
               <span
                 aria-hidden="true"
-                className="grid h-9 w-9 shrink-0 place-items-center rounded-[11px] bg-(--surface-muted) text-[13px] font-bold text-(--ink-soft)"
+                className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-(--surface-muted) text-[13px] font-bold text-(--ink-soft)"
               >
                 {monogram(card.topic)}
               </span>
