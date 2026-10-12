@@ -10,7 +10,7 @@ import {
   MAX_CONVERSATION_MESSAGES,
 } from './tutor'
 import { resolveEffectiveTopic } from './tutorTopic'
-import { precomputeChunkIndex, selectRelevantMaterialExcerpt } from './materialRetrieval'
+import { precomputeChunkIndex, selectRelevantMaterialExcerpt, selectSemanticExcerpt } from './materialRetrieval'
 import { materialContentRepository } from '#/features/learning-space/repositories/materialContentRepository'
 import { conceptRepository } from '#/features/learning-space/repositories/conceptRepository'
 import { highlightRepository } from '#/features/learning-space/repositories/highlightRepository'
@@ -71,7 +71,12 @@ export async function buildTutorContext(
   )
 
   const excerpt = materialContent
-    ? selectRelevantMaterialExcerpt(
+    ? (await selectSemanticExcerpt(
+        materialContent.blocks,
+        effectiveTopic,
+        MAX_CONTEXT_CHARS,
+      )) ??
+      selectRelevantMaterialExcerpt(
         materialContent.blocks,
         effectiveTopic,
         MAX_CONTEXT_CHARS,

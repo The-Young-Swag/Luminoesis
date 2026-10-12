@@ -26,15 +26,19 @@ type ChatMessage = {
 type Inbound =
   | { id: number; type: 'load'; modelId: string; device: 'webgpu' | 'wasm'; dtype: 'q4' | 'q8' }
   | { id: number; type: 'generate'; messages: ChatMessage[]; maxNewTokens: number }
+  | { id: number; type: 'embed'; texts: string[] }
 
 type TextGenerator = (
   input: ChatMessage[],
   options?: unknown,
 ) => Promise<Array<{ generated_text: ChatMessage[] | string }>>
 
+type EmbeddingExtractor = (texts: string[], options?: unknown) => Promise<{ tolist: () => number[][] }>
+
 let generator: TextGenerator | null = null
 let generatorKey = ''
 let generatorTokenizer: PreTrainedTokenizer | null = null
+let embedder: EmbeddingExtractor | null = null
 
 async function handleLoad(message: Extract<Inbound, { type: 'load' }>): Promise<void> {
   const key = `${message.modelId}|${message.device}|${message.dtype}`
@@ -61,6 +65,28 @@ async function handleLoad(message: Extract<Inbound, { type: 'load' }>): Promise<
   generatorTokenizer = (pipe as unknown as { tokenizer: PreTrainedTokenizer }).tokenizer
   generatorKey = key
   self.postMessage({ id: message.id, type: 'ready' })
+}
+
+const EMBEDDER_MODEL_ID = 'Xenova/all-MiniLM-L6-v2'
+
+async function handleEmbed(message: Extract<Inbound, { type: 'embed' }>): Promise<void> {
+  if (!embedder) {
+    const extractor = await pipeline('feature-extraction', EMBEDDER_MODEL_ID, {
+      device: 'wasm',
+      progress_callback: (entry: { status: string; progress?: number; file?: string }) => {
+        self.postMessage({
+          id: message.id,
+          type: 'progress',
+          fraction: typeof entry.progress === 'number' ? entry.progress / 100 : 0,
+          file: entry.file ?? '',
+        })
+      },
+    })
+    embedder = extractor as unknown as EmbeddingExtractor
+  }
+
+  const output = await embedder(message.texts, { pooling: 'mean', normalize: true })
+  self.postMessage({ id: message.id, type: 'done', text: JSON.stringify(output.tolist()) })
 }
 
 async function handleGenerate(message: Extract<Inbound, { type: 'generate' }>): Promise<void> {
@@ -98,6 +124,8 @@ self.onmessage = async (event: MessageEvent<Inbound>) => {
   try {
     if (message.type === 'load') {
       await handleLoad(message)
+    } else if (message.type === 'embed') {
+      await handleEmbed(message)
     } else {
       await handleGenerate(message)
     }

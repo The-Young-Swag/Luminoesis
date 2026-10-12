@@ -1,5 +1,6 @@
 import type { MaterialContentBlock } from '#/features/learning-space/domain/materialContent'
 import { extractKeywords, keywordOverlapScore, keywordOverlapScoreSets } from './textRelevance'
+import { embedTexts, rankByCosine, withTimeout } from './embeddings'
 
 const MAX_RELEVANT_BLOCKS = 3
 const MAX_CACHED_MATERIALS = 20
@@ -71,6 +72,24 @@ function blockKeywords(
  * as "the material doesn't cover this," which is the honest outcome —
  * not a fallback to an arbitrary, unrelated chunk of the document.
  */
+export function scoreBlocksByKeyword(
+  blocks: MaterialContentBlock[],
+  topic: string,
+): Array<{ index: number; score: number }> {
+  const topicKeywords = extractKeywords(topic)
+
+  if (topicKeywords.size === 0 || blocks.length === 0) {
+    return []
+  }
+
+  return blocks
+    .map((block, index) => ({
+      index,
+      score: keywordOverlapScore(topicKeywords, block.text),
+    }))
+    .filter((entry) => entry.score > 0)
+}
+
 export function selectRelevantMaterialExcerpt(
   blocks: MaterialContentBlock[],
   topic: string,
@@ -83,19 +102,19 @@ export function selectRelevantMaterialExcerpt(
     return ''
   }
 
-  const cached = blockKeywords(materialKey, blocks)
+  const keywordSets =
+    blockKeywords(materialKey, blocks) ??
+    blocks.map((block) => extractKeywords(block.text))
 
   const scoredBlocks = blocks
-    .map((block, index) => {
-      const cachedSet = cached?.[index]
-      return {
-        block,
-        index,
-        score: cachedSet
-          ? keywordOverlapScoreSets(topicKeywords, cachedSet)
-          : keywordOverlapScore(topicKeywords, block.text),
-      }
-    })
+    .map((block, index) => ({
+      block,
+      index,
+      score: keywordOverlapScoreSets(
+        topicKeywords,
+        keywordSets[index] as Set<string>,
+      ),
+    }))
     .filter((entry) => entry.score > 0)
 
   if (scoredBlocks.length === 0) {
@@ -113,4 +132,46 @@ export function selectRelevantMaterialExcerpt(
   const excerpt = selectedBlocks.map((entry) => entry.block.text).join('\n\n')
 
   return excerpt.slice(0, maxChars)
+}
+
+const SEMANTIC_CANDIDATE_BLOCKS = 12
+const SEMANTIC_TIMEOUT_MS = 12000
+
+/*
+ * Semantic retrieval: keyword prefilter narrows to a dozen candidates,
+ * embeddings pick the top 3 by meaning. Returns null when embeddings
+ * are unavailable or too slow — the caller falls back to keywords.
+ */
+export async function selectSemanticExcerpt(
+  blocks: MaterialContentBlock[],
+  topic: string,
+  maxChars: number,
+): Promise<string | null> {
+  if (blocks.length === 0 || topic.trim().length === 0) return null
+
+  const candidates = [...scoreBlocksByKeyword(blocks, topic)]
+    .sort((a, b) => b.score - a.score)
+    .slice(0, SEMANTIC_CANDIDATE_BLOCKS)
+
+  if (candidates.length === 0) return null
+
+  const vectors = await withTimeout(
+    embedTexts([topic, ...candidates.map((entry) => blocks[entry.index]?.text ?? '')]),
+    SEMANTIC_TIMEOUT_MS,
+  ).catch(() => null)
+
+  if (!vectors || vectors.length < 2) return null
+
+  const [topicVector, ...chunkVectors] = vectors as [number[], ...number[][]]
+  const blockIndexes = rankByCosine(topicVector, chunkVectors, MAX_RELEVANT_BLOCKS)
+    .map((candidateIndex) => candidates[candidateIndex]?.index ?? -1)
+    .filter((blockIndex) => blockIndex >= 0)
+    .sort((a, b) => a - b)
+
+  const excerpt = blockIndexes
+    .map((blockIndex) => blocks[blockIndex]?.text ?? '')
+    .filter((text) => text.length > 0)
+    .join('\n\n')
+
+  return excerpt.length > 0 ? excerpt.slice(0, maxChars) : null
 }

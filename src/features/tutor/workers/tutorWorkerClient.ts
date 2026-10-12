@@ -17,8 +17,18 @@ type PendingCall = {
 
 const LOAD_TIMEOUT_MS = 60000
 const GENERATE_TIMEOUT_MS = 30000
+const EMBED_TIMEOUT_MS = 60000
 
 let nextId = 1
+
+let sharedClient: TutorWorkerClient | null | undefined
+
+/** One worker per page, shared by generation and embeddings. */
+export function getSharedTutorWorker(): TutorWorkerClient | null {
+  if (sharedClient !== undefined) return sharedClient
+  sharedClient = createTutorWorker()
+  return sharedClient
+}
 
 export type TutorWorkerClient = {
   load: (
@@ -32,6 +42,7 @@ export type TutorWorkerClient = {
     maxNewTokens: number,
     onToken?: (text: string) => void,
   ) => Promise<string>
+  embed: (texts: string[]) => Promise<number[][]>
   terminate: () => void
 }
 
@@ -137,6 +148,25 @@ export function createTutorWorker(): TutorWorkerClient | null {
           { type: 'generate', messages, maxNewTokens },
           { onToken, resolve, reject },
           GENERATE_TIMEOUT_MS,
+        )
+      })
+    },
+
+    embed(texts) {
+      return new Promise<number[][]>((resolve, reject) => {
+        send(
+          { type: 'embed', texts },
+          {
+            resolve: (json: string) => {
+              try {
+                resolve(JSON.parse(json) as number[][])
+              } catch {
+                reject(new Error('Bad embedding payload'))
+              }
+            },
+            reject,
+          },
+          EMBED_TIMEOUT_MS,
         )
       })
     },
