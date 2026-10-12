@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { Link } from '@tanstack/react-router'
 import { Zap } from 'lucide-react'
 
 import type { Concept } from '#/features/learning-space/domain/learningSpace'
@@ -58,7 +59,12 @@ export function BrainTrainerSection({ concepts }: BrainTrainerSectionProps) {
         <EmptyState
           icon={Zap}
           title="Nothing to drill yet"
-          description="Once you have due flashcards or quiz questions, they'll show up here as a mixed recall drill."
+          description="Once you have due flashcards or quiz questions, they’ll show up here as a mixed recall drill."
+          action={
+            <Link to="/library" className="btn-primary">
+              Add study cards
+            </Link>
+          }
         />
       ) : phase === 'done' ? (
         <div className="card-flat p-6">

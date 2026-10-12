@@ -20,14 +20,16 @@ export function BrainTrainerOverlay({
   const [revealed, setRevealed] = useState(false)
   const [busy, setBusy] = useState(false)
   const startedAtRef = useRef<number>(Date.now())
+  const strongCountRef = useRef(0)
 
   const total = items.length
   const current = items[index]
-  const finished = index >= total
+  const finished = index >= total || total === 0
 
   async function handleGrade(grade: number) {
-    if (busy) return
+    if (busy || !current) return
     setBusy(true)
+    if (grade >= 2) strongCountRef.current += 1
     const payload: SubmitBrainTrainerAnswerInput = {
       item: { id: current.id, conceptId: current.conceptId },
       grade,
@@ -42,7 +44,7 @@ export function BrainTrainerOverlay({
 
     const answered = index + 1
     if (answered >= total) {
-      onComplete({ answered: total, strong: grade >= 2 ? answered : 0 })
+      onComplete({ answered: total, strong: strongCountRef.current })
       return
     }
 
