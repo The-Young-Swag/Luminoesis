@@ -1,7 +1,7 @@
 import type { MaterialContentBlock } from '#/features/learning-space/domain/materialContent'
 import { extractKeywords, keywordOverlapScore } from './textRelevance'
 
-const MAX_RELEVANT_BLOCKS = 6
+const MAX_RELEVANT_BLOCKS = 3
 
 /**
  * Turns raw, extracted material content into the excerpt that's actually

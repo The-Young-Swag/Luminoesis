@@ -11,11 +11,47 @@ import {
 } from '../domain/tutorTopic'
 import { extractKeywords, keywordOverlapScore } from '../domain/textRelevance'
 
-let cachedPipeline: unknown = null
-let pipelineLoadFailed = false
+let cachedPipelines = new Map<string, unknown>()
+let failedPipelines = new Set<string>()
 
 const MODEL_LOAD_TIMEOUT_MS = 60000
 const INFERENCE_TIMEOUT_MS = 30000
+
+/*
+ * Model catalogue. Standard is the verified default. Capable is a larger
+ * build for stronger devices — confirm its Transformers.js weight format
+ * before enabling the toggle; a failed load falls back to standard.
+ */
+export const LOCAL_MODEL_IDS = {
+  standard: 'HuggingFaceTB/SmolLM2-360M-Instruct',
+  capable: 'HuggingFaceTB/SmolLM2-1.7B-Instruct',
+} as const
+
+export type LocalModelTier = keyof typeof LOCAL_MODEL_IDS
+
+function hasWebGpu(): boolean {
+  return typeof navigator !== 'undefined' && 'gpu' in navigator
+}
+
+async function createTextPipeline(modelId: string): Promise<unknown> {
+  const { pipeline } = await import('@huggingface/transformers')
+
+  if (hasWebGpu()) {
+    try {
+      return await pipeline('text-generation', modelId, {
+        dtype: 'q4',
+        device: 'webgpu',
+      })
+    } catch (error) {
+      console.warn('[tutor] webgpu load failed, falling back to wasm', error)
+    }
+  }
+
+  return pipeline('text-generation', modelId, {
+    dtype: 'q8',
+    device: 'wasm',
+  })
+}
 
 function timeoutPromise<T>(ms: number, label: string): Promise<T> {
   return new Promise((_, reject) => {
@@ -25,35 +61,25 @@ function timeoutPromise<T>(ms: number, label: string): Promise<T> {
   })
 }
 
-async function getLocalPipeline(): Promise<unknown | null> {
-  if (cachedPipeline) {
-    return cachedPipeline
+async function getLocalPipeline(tier: LocalModelTier = 'standard'): Promise<unknown | null> {
+  const cached = cachedPipelines.get(tier)
+  if (cached) {
+    return cached
   }
 
-  if (pipelineLoadFailed || typeof WebAssembly === 'undefined') {
-    return null
+  if (failedPipelines.has(tier) || typeof WebAssembly === 'undefined') {
+    return tier === 'standard' ? null : getLocalPipeline('standard')
   }
 
   try {
-    const pipelinePromise = (async () => {
-      const { pipeline } = await import('@huggingface/transformers')
-
-      return pipeline(
-        'text-generation',
-        'HuggingFaceTB/SmolLM2-360M-Instruct',
-        {
-          dtype: 'q8',
-          device: 'wasm',
-        },
-      )
-    })()
+    const pipelinePromise = createTextPipeline(LOCAL_MODEL_IDS[tier])
 
     const pipe = await Promise.race([
       pipelinePromise,
-      timeoutPromise(MODEL_LOAD_TIMEOUT_MS, 'Model load'),
+      timeoutPromise<unknown>(MODEL_LOAD_TIMEOUT_MS, 'Model load'),
     ])
 
-    cachedPipeline = pipe
+    cachedPipelines.set(tier, pipe)
     return pipe
   } catch (error) {
     console.warn(
@@ -61,8 +87,8 @@ async function getLocalPipeline(): Promise<unknown | null> {
       error,
     )
 
-    pipelineLoadFailed = true
-    return null
+    failedPipelines.add(tier)
+    return tier === 'standard' ? null : getLocalPipeline('standard')
   }
 }
 
@@ -102,12 +128,10 @@ Rules:
 `.trim()
 
 /*
- * Two short demonstrations. The first shows rewording while preserving an
- * exact figure. The second shows the failure mode that matters most for
- * this app's bullet-heavy source material: a passage listing several
- * separate things must not collapse into "X is made of Y and Z" when the
- * passage never said that — it's a common way a small model over-connects
- * ideas that were only ever meant to sit side by side.
+ * One short demonstration: rewording while preserving an exact figure.
+ * Kept to a single example so the prompt stays short — the no-copy and
+ * fact-fidelity rules above carry the rest, and the post-hoc
+ * `looksLikeSourceRepetition` check catches what slips through.
  */
 const FEW_SHOT_EXAMPLE: ChatMessage[] = [
   {
@@ -126,22 +150,6 @@ const FEW_SHOT_EXAMPLE: ChatMessage[] = [
     role: 'assistant',
     content:
       "Your memory works in two stages. New information first sits in short-term memory, where it fades in about 20 seconds unless you do something with it. Repeating it, or linking it to something you already know, is what moves it into long-term memory, where it can last for years. That's why practicing a fact or connecting it to something familiar makes it much easier to remember later.",
-  },
-  {
-    role: 'user',
-    content: [
-      'Passage:',
-      'CELLS',
-      '• The cell membrane controls what enters and leaves the cell.',
-      '• The cell contains organelles, energy-producing structures, and genetic material.',
-      '',
-      'Question: Explain this simply.',
-    ].join('\n'),
-  },
-  {
-    role: 'assistant',
-    content:
-      "A cell's membrane works like a gatekeeper, controlling what can move in and out. Inside that membrane, the cell holds several separate things: organelles that carry out specific jobs, structures that produce energy, and the genetic material that stores its instructions. These are separate parts working together inside the cell, not different names for the same thing.",
   },
 ]
 
@@ -569,7 +577,7 @@ export class LocalTutorProvider implements TutorProvider {
       >
 
       const inferencePromise = generator(messages, {
-        max_new_tokens: 180,
+        max_new_tokens: 120,
         do_sample: false,
         /*
          * Plain greedy decoding. `repetition_penalty` and
