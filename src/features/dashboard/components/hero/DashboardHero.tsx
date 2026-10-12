@@ -1,7 +1,9 @@
+import { useEffect, useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import { ArrowUpRight, GraduationCap, Library } from 'lucide-react'
 
 import { headlineForState } from '#/features/dashboard/components/lib/dashboardFormatters'
+import { AnimatedNumber } from '#/shared/components/ui/AnimatedNumber'
 
 type DashboardHeroProps = {
   learningState: { state: string; reason: string }
@@ -113,7 +115,7 @@ export function DashboardHero({
           ) : (
             <div className="text-left lg:text-right">
               <div className="display text-6xl tabular-nums text-white">
-                {dueTodayCount}
+                <AnimatedNumber value={dueTodayCount} />
               </div>
               <div className="mt-1 font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-[#cfe3d6]">
                 Due today
@@ -133,12 +135,19 @@ function CalibrationRing({
   progress: number
   total: number
 }) {
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => setMounted(true))
+    return () => cancelAnimationFrame(frame)
+  }, [])
+
   const size = 96
   const stroke = 9
   const radius = (size - stroke) / 2
   const circumference = 2 * Math.PI * radius
   const fraction = Math.min(1, Math.max(0, progress / total))
-  const offset = circumference * (1 - fraction)
+  const offset = circumference * (1 - (mounted ? fraction : 0))
 
   return (
     <div
@@ -171,6 +180,10 @@ function CalibrationRing({
           strokeLinecap="round"
           strokeDasharray={circumference}
           strokeDashoffset={offset}
+          style={{
+            transition:
+              'stroke-dashoffset 1.1s cubic-bezier(0.16, 1, 0.3, 1)',
+          }}
         />
       </svg>
 
