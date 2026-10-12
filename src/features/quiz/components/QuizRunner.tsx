@@ -24,19 +24,23 @@ export function QuizRunner({
 
   const total = questions.length
   const current = questions[index]
-  const conceptTitle = conceptTitleById.get(current.conceptId)
+  const conceptTitle =
+    total === 0 ? undefined : conceptTitleById.get(current.conceptId)
 
   const choices = useMemo(() => {
-    if (current.type === 'multiple-choice') return current.choices ?? []
-    if (current.type === 'true-false') return ['True', 'False']
+    if (total === 0) return []
+    const item = questions[index]
+    if (item.type === 'multiple-choice') return item.choices ?? []
+    if (item.type === 'true-false') return ['True', 'False']
     return []
-  }, [current])
+  }, [questions, index, total])
 
   function selectChoice(choice: string) {
     setUserAnswer(choice)
   }
 
   function goNext() {
+    if (index >= total) return
     const answered = userAnswer.trim()
     if (answered === '') return
 
@@ -96,7 +100,7 @@ export function QuizRunner({
               const selected = userAnswer === choice
               return (
                 <button
-                  key={choiceIndex}
+                  key={`${index}-${choiceIndex}`}
                   type="button"
                   onClick={() => selectChoice(choice)}
                   className={`card-flat w-full px-4 py-3 text-left text-(--ink) transition ${

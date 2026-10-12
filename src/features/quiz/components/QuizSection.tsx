@@ -11,6 +11,7 @@ import type {
 } from '#/features/quiz/application/quiz'
 import { deleteQuestion } from '#/features/quiz/application/question'
 import { SectionHeader } from '#/shared/components/ui/SectionHeader'
+import { ConfirmButton } from '#/shared/components/ui/ConfirmButton'
 import { EmptyState } from '#/shared/components/ui/EmptyState'
 import { QuizSetupDialog } from '#/features/quiz/components/QuizSetupDialog'
 import { QuizRunner } from '#/features/quiz/components/QuizRunner'
@@ -34,6 +35,7 @@ export function QuizSection({ learningSpaceId, concepts }: QuizSectionProps) {
   const [result, setResult] = useState<SubmitQuizResult | null>(null)
   const [scopeIds, setScopeIds] = useState<string[]>(conceptIds)
   const [showAddQuestion, setShowAddQuestion] = useState(false)
+  const [setupNotice, setSetupNotice] = useState<string | null>(null)
   const startedAtRef = useRef<number>(Date.now())
 
   const conceptTitleById = useMemo(
@@ -54,6 +56,11 @@ export function QuizSection({ learningSpaceId, concepts }: QuizSectionProps) {
       questions,
       limit: config.limit,
     })
+    if (built.length === 0) {
+      setSetupNotice('No questions match this selection — widen the scope or add questions.')
+      return
+    }
+    setSetupNotice(null)
     setSession(built)
     setPhase('running')
   }
@@ -155,14 +162,16 @@ export function QuizSection({ learningSpaceId, concepts }: QuizSectionProps) {
                       {question.prompt}
                     </p>
 
-                    <button
-                      type="button"
-                      onClick={() => deleteQuestion(question.id)}
-                      aria-label="Delete question"
-                      className="shrink-0 rounded-lg p-1.5 text-(--ink-faint) opacity-0 transition group-hover:opacity-100 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/40"
+                    <ConfirmButton
+                      label={`Delete question: ${question.prompt}`}
+                      title="Delete question"
+                      onConfirm={() => {
+                        void deleteQuestion(question.id)
+                      }}
+                      className="shrink-0 rounded-lg p-1.5 text-(--ink-faint) opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/40"
                     >
                       <Trash2 size={14} aria-hidden="true" />
-                    </button>
+                    </ConfirmButton>
                   </div>
 
                   <div className="mt-4 flex-1 border-t border-(--line) pt-4">
@@ -194,7 +203,7 @@ export function QuizSection({ learningSpaceId, concepts }: QuizSectionProps) {
       )}
 
       {phase === 'setup' ? (
-        <QuizSetupDialog concepts={concepts} onStart={beginQuiz} onClose={reset} />
+        <QuizSetupDialog concepts={concepts} notice={setupNotice} onStart={beginQuiz} onClose={reset} />
       ) : null}
 
       {phase === 'running' && session.length > 0 ? (
@@ -207,7 +216,15 @@ export function QuizSection({ learningSpaceId, concepts }: QuizSectionProps) {
       ) : null}
 
       {phase === 'results' && result ? (
-        <QuizResults result={result} conceptTitleById={conceptTitleById} onClose={reset} />
+        <QuizResults
+          result={result}
+          conceptTitleById={conceptTitleById}
+          onClose={reset}
+          onRetake={() => {
+            setResult(null)
+            setPhase('setup')
+          }}
+        />
       ) : null}
 
       {showAddQuestion ? (

@@ -4,12 +4,14 @@ type QuizResultsProps = {
   result: SubmitQuizResult
   conceptTitleById: Map<string, string>
   onClose: () => void
+  onRetake: () => void
 }
 
 export function QuizResults({
   result,
   conceptTitleById,
   onClose,
+  onRetake,
 }: QuizResultsProps) {
   const { correctCount, totalQuestions, conceptBreakdown } = result
   const percent =
@@ -45,7 +47,14 @@ export function QuizResults({
           </p>
         )}
 
-        <div className="mt-6 flex justify-end">
+        <div className="mt-6 flex justify-end gap-2">
+          <button
+            type="button"
+            onClick={onRetake}
+            className="btn-ghost px-5 py-2"
+          >
+            Retake quiz
+          </button>
           <button
             type="button"
             onClick={onClose}

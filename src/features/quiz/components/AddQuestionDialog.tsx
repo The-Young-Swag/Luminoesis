@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import type { Concept } from '#/features/learning-space/domain/learningSpace'
 import type {
@@ -37,6 +37,20 @@ export function AddQuestionDialog({
   const [answer, setAnswer] = useState('')
   const [explanation, setExplanation] = useState('')
   const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!conceptId && concepts[0]) {
+      setConceptId(concepts[0].id)
+    }
+  }, [concepts, conceptId])
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [onClose])
 
   const isChoiceType = type === 'multiple-choice' || type === 'true-false'
   const effectiveChoices =
@@ -79,19 +93,34 @@ export function AddQuestionDialog({
   }
 
   return (
-    <div className="glass-scrim fixed inset-0 z-50 flex items-center justify-center p-6">
-      <div className="glass-surface glass-specular rise card-flat w-full max-w-lg p-6">
+    <div
+      className="glass-scrim fixed inset-0 z-50 flex items-center justify-center p-6"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="add-question-title"
+      onClick={onClose}
+    >
+      <div
+        className="glass-surface glass-specular rise card-flat w-full max-w-lg p-6"
+        onClick={(event) => event.stopPropagation()}
+      >
         <div className="flex items-start justify-between">
-          <h2 className="text-lg font-semibold text-(--ink)">Add question</h2>
+          <h2 id="add-question-title" className="text-lg font-semibold text-(--ink)">Add question</h2>
           <button
             type="button"
             onClick={onClose}
+            aria-label="Close add question"
             className="btn-ghost px-3 py-1 text-sm"
           >
             Cancel
           </button>
         </div>
 
+        {concepts.length === 0 ? (
+          <p className="mt-4 text-sm text-(--ink-soft)">
+            Add a concept to this Learning Space first — questions need something to attach to.
+          </p>
+        ) : (
         <div className="mt-4 space-y-3">
           <label className="block">
             <span className="kicker text-(--ink-faint)">Concept</span>
@@ -209,15 +238,17 @@ export function AddQuestionDialog({
           </label>
 
           {error ? (
-            <p className="text-sm text-red-400">{error}</p>
+            <p role="alert" className="text-sm text-red-400">{error}</p>
           ) : null}
         </div>
+        )}
 
         <div className="mt-5 flex justify-end">
           <button
             type="button"
             onClick={save}
-            className="btn-primary px-5 py-2"
+            disabled={concepts.length === 0}
+            className="btn-primary px-5 py-2 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Add question
           </button>
