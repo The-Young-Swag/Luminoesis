@@ -30,6 +30,16 @@ export function getSharedTutorWorker(): TutorWorkerClient | null {
   return sharedClient
 }
 
+/** Drop a wedged worker so the next call starts fresh. */
+export function resetSharedTutorWorker(): void {
+  try {
+    sharedClient?.terminate()
+  } catch {
+    // Already gone — nothing to clean up.
+  }
+  sharedClient = undefined
+}
+
 export type TutorWorkerClient = {
   load: (
     modelId: string,

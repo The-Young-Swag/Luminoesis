@@ -13,6 +13,7 @@ import {
 import { extractKeywords, keywordOverlapScore } from '../domain/textRelevance'
 import {
   getSharedTutorWorker,
+  resetSharedTutorWorker,
   type TutorWorkerClient,
 } from '../workers/tutorWorkerClient'
 import { settingsRepository } from '#/shared/repositories/settingsRepository'
@@ -21,6 +22,7 @@ let cachedPipelines = new Map<string, unknown>()
 let failedPipelines = new Set<string>()
 
 const MODEL_LOAD_TIMEOUT_MS = 600000
+const WORKER_LOAD_BUDGET_MS = 120000
 const INFERENCE_TIMEOUT_MS = 30000
 const MAX_NEW_TOKENS = 120
 
@@ -677,10 +679,18 @@ export class LocalTutorProvider implements TutorProvider {
     if (!worker) return null
 
     try {
-      await ensureWorkerLoaded(worker, tier)
+      // A wedged load must not hold the answer hostage: budget the
+      // worker path, then fall back to the main thread, which is
+      // slower per token but never silently stalls.
+      await Promise.race([
+        ensureWorkerLoaded(worker, tier),
+        timeoutPromise<void>(WORKER_LOAD_BUDGET_MS, 'Worker model load'),
+      ])
       return await worker.generate(messages, MAX_NEW_TOKENS, onToken)
     } catch (error) {
       console.warn('[tutor] worker inference failed, trying main thread', error)
+      resetSharedTutorWorker()
+      workerLoadedTier = null
       return null
     }
   }
