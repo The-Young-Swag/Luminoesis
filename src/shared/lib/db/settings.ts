@@ -4,6 +4,8 @@ export const SETTINGS_KEYS = {
   adaptiveOptIn: 'adaptiveOptIn',
   calibrationSessions: 'calibrationSessions',
   hasSeenOnboarding: 'hasSeenOnboarding',
+  localModelTier: 'localModelTier',
+  tutorEscalation: 'tutorEscalation',
 } as const
 
 export async function getSetting<T>(

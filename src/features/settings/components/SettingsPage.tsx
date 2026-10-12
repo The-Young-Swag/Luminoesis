@@ -4,14 +4,17 @@ import { Moon, Sun, ShieldCheck, Download, Trash2 } from 'lucide-react'
 
 import { useTheme } from '#/shared/hooks/useTheme'
 import { downloadJson } from '#/shared/lib/download'
+import { settingsRepository } from '#/shared/repositories/settingsRepository'
 import { deleteAllData, exportAllData, loadPrivacyData, setAdaptiveOptIn } from '#/features/privacy/privacyService'
 
 export function SettingsPage() {
   const { theme, toggleTheme } = useTheme()
   const [optIn, setOptIn] = useState<boolean | null>(null)
+  const [modelTier, setModelTier] = useState<'standard' | 'capable'>('standard')
 
   useEffect(() => {
     loadPrivacyData().then((data) => setOptIn(data.optIn)).catch(() => {})
+    settingsRepository.getLocalModelTier().then(setModelTier).catch(() => {})
   }, [])
 
   const handleOptIn = async (value: boolean) => {
@@ -99,6 +102,45 @@ export function SettingsPage() {
             <Trash2 size={16} aria-hidden="true" /> Delete all data
           </button>
         </div>
+      </div>
+
+      <div className="card-flat mt-4 p-5">
+        <h2 className="text-sm font-semibold">On-device AI model</h2>
+        <p className="mt-1 text-sm text-(--ink-soft)">
+          Standard is fast and always available offline. Capable answers harder
+          questions but downloads about 1 GB on first use.
+        </p>
+        <div
+          className="mt-3 flex gap-2"
+          role="radiogroup"
+          aria-label="On-device AI model"
+        >
+          {(
+            [
+              { value: 'standard', label: 'Standard · 360M' },
+              { value: 'capable', label: 'Capable · 1.7B' },
+            ] as const
+          ).map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              role="radio"
+              aria-checked={modelTier === option.value}
+              onClick={() => {
+                setModelTier(option.value)
+                void settingsRepository.setLocalModelTier(option.value)
+              }}
+              className={`card-flat px-4 py-2 text-sm transition ${
+                modelTier === option.value ? 'ring-2 ring-(--veridian)' : ''
+              }`}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+        <p className="mt-2 text-xs text-(--ink-faint)">
+          If the capable build fails to load, answers silently fall back to Standard.
+        </p>
       </div>
 
       <div className="card-flat mt-4 p-5">

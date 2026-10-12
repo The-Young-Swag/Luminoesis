@@ -78,7 +78,7 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
       }
 
       void localTutorProvider
-        .preload('standard', (fraction, file) => {
+        .preload(undefined, (fraction, file) => {
           setModelProgress(fraction)
           setModelFile(file)
         })

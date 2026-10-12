@@ -7,6 +7,7 @@ import type {
 } from '../domain/tutor'
 import { buildTutorContext } from '../domain/tutorContext'
 import { localTutorProvider } from '../providers/localTutorProvider'
+import { settingsRepository } from '#/shared/repositories/settingsRepository'
 
 /**
  * TutorService — provider-agnostic orchestration.
@@ -76,6 +77,8 @@ export class TutorService {
 
     const request: TutorRequest = { context }
     const timeoutMs = options.localTimeoutMs ?? DEFAULT_LOCAL_TIMEOUT_MS
+    const tier =
+      options.modelTier ?? (await settingsRepository.getLocalModelTier().catch(() => 'standard' as const))
 
     // Local AI is the active provider. No Gemini fallback.
     const localAvailable = await this.localProvider.isAvailable()
@@ -91,7 +94,7 @@ export class TutorService {
       // Race local provider against timeout
       const localPromise = this.localProvider.respond(request, {
         onToken: options.onToken,
-        tier: options.modelTier ?? 'standard',
+        tier,
       })
       const timeoutPromise = new Promise<never>((_, reject) => {
         setTimeout(

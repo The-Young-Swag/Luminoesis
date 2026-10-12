@@ -22,6 +22,22 @@ export const settingsRepository = {
     )
   },
 
+  getLocalModelTier(): Promise<'standard' | 'capable'> {
+    return getSetting<'standard' | 'capable'>(
+      SETTINGS_KEYS.localModelTier,
+      'standard',
+    ).then((tier) => (tier === 'capable' ? 'capable' : 'standard'))
+  },
+
+  setLocalModelTier(
+    value: 'standard' | 'capable',
+  ): Promise<void> {
+    return setSetting(
+      SETTINGS_KEYS.localModelTier,
+      value,
+    )
+  },
+
   getAllSettings() {
     return db.appSettings.toArray()
   },
