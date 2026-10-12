@@ -3,17 +3,8 @@ import { Link } from '@tanstack/react-router'
 import { Moon, Sun, ShieldCheck, Download, Trash2 } from 'lucide-react'
 
 import { useTheme } from '#/shared/hooks/useTheme'
+import { downloadJson } from '#/shared/lib/download'
 import { deleteAllData, exportAllData, loadPrivacyData, setAdaptiveOptIn } from '#/features/privacy/privacyService'
-
-function downloadJson(filename: string, data: unknown): void {
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
-  const url = URL.createObjectURL(blob)
-  const anchor = document.createElement('a')
-  anchor.href = url
-  anchor.download = filename
-  anchor.click()
-  URL.revokeObjectURL(url)
-}
 
 export function SettingsPage() {
   const { theme, toggleTheme } = useTheme()
@@ -113,8 +104,8 @@ export function SettingsPage() {
       <div className="card-flat mt-4 p-5">
         <h2 className="text-sm font-semibold">Sync (optional)</h2>
         <p className="mt-1 text-sm text-(--ink-soft)">
-          Core study never needs sync. If you run the optional Express + SQLite backend on <code className="rounded bg-(--surface-muted) px-1 py-0.5 font-mono text-xs">:4901</code>, it caches
-          locally and syncs when reachable. No account required.
+          Core study never needs sync. If you run the optional Express + SQLite backend on <code className="rounded bg-(--surface-muted) px-1 py-0.5 font-mono text-xs">:4901</code>, this device can
+          push snapshots for your other devices. Cross-device sync controls are still being connected — everything here works fully offline.
         </p>
       </div>
     </div>
