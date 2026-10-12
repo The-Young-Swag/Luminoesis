@@ -19,6 +19,148 @@ function getGeminiKey(): string | undefined {
   return process.env.GEMINI_API_KEY?.trim() || undefined
 }
 
+/*
+ * Model ID is a config value, not a constant. Gemini 2.5 models shut
+ * down 16 October 2026 — use a current 3.x Flash ID verified in AI
+ * Studio. The free tier covers Flash-class models with rate limits.
+ */
+function getGeminiModel(): string {
+  return process.env.GEMINI_MODEL?.trim() || 'gemini-3.5-flash'
+}
+
+const GEMINI_TIMEOUT_MS = 60000
+
+type TutorPromptInput = {
+  prompt: string
+  selectedText?: string
+  materialId?: string
+  materialTitle?: string
+  excerpt?: string
+  concepts?: Array<{ id: string; name: string; description?: string }>
+  weakSpots?: Array<{ conceptId: string; conceptName: string; rate: number; total: number }>
+}
+
+function buildGeminiPrompt(parsed: TutorPromptInput): string {
+  // Build Gemini prompt from provider-independent context
+  const contextParts: string[] = []
+  if (parsed.excerpt) contextParts.push(`Material excerpt:\n${parsed.excerpt.slice(0, 3000)}`)
+  if (parsed.selectedText) contextParts.push(`Selected text:\n${parsed.selectedText}`)
+  if (parsed.concepts && parsed.concepts.length > 0) {
+    contextParts.push(`Concepts: ${parsed.concepts.map((concept) => concept.name).join(', ')}`)
+  }
+  if (parsed.weakSpots && parsed.weakSpots.length > 0) {
+    const weakest = parsed.weakSpots[0]
+    if (weakest) {
+      contextParts.push(`Weak spot: ${weakest.conceptName} (${Math.round(weakest.rate * 100)}% recall)`)
+    }
+  }
+
+  return [
+    'You are Luminoesis Tutor — a helpful, private learning companion.',
+    'Ground answers in the provided material and concepts. Do not fabricate citations.',
+    'Keep answers concise and focused on understanding.',
+    contextParts.join('\n\n'),
+    `Question: ${parsed.prompt}`,
+  ].join('\n\n')
+}
+
+function geminiBody(prompt: string): Record<string, unknown> {
+  return {
+    contents: [{ parts: [{ text: prompt }] }],
+    generationConfig: { maxOutputTokens: 500, temperature: 0.7 },
+  }
+}
+
+async function callGemini(
+  systemPrompt: string,
+  stream: boolean,
+  onToken?: (text: string) => void,
+): Promise<string> {
+  const geminiKey = getGeminiKey()
+  if (!geminiKey) {
+    throw new Error('Online Tutor is not configured on this server.')
+  }
+
+  const model = getGeminiModel()
+  const endpoint = stream ? 'streamGenerateContent?alt=sse' : 'generateContent'
+  const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:${endpoint}?key=${geminiKey}`
+
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), GEMINI_TIMEOUT_MS)
+
+  try {
+    const gemResponse = await fetch(geminiUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(geminiBody(systemPrompt)),
+      signal: controller.signal,
+    })
+
+    if (!gemResponse.ok || !gemResponse.body) {
+      const errText = await gemResponse.text().catch(() => '')
+      console.error('[tutor] gemini error', gemResponse.status, errText.slice(0, 500))
+      throw new Error('Online Tutor is temporarily unavailable.')
+    }
+
+    if (!stream) {
+      const data = (await gemResponse.json()) as {
+        candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>
+      }
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ?? ''
+      if (!text) throw new Error('Online Tutor returned an empty response.')
+      return text
+    }
+
+    const reader = gemResponse.body.getReader()
+    const decoder = new TextDecoder()
+    let buffer = ''
+    let fullText = ''
+
+    for (;;) {
+      const { done, value } = await reader.read()
+      if (done) break
+      buffer += decoder.decode(value, { stream: true })
+
+      const lines = buffer.split('\n')
+      buffer = lines.pop() ?? ''
+
+      for (const line of lines) {
+        const trimmed = line.trim()
+        if (!trimmed.startsWith('data:')) continue
+        const payload = trimmed.slice(5).trim()
+        if (!payload || payload === '[DONE]') continue
+
+        try {
+          const data = JSON.parse(payload) as {
+            candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>
+          }
+          const chunk = data.candidates?.[0]?.content?.parts
+            ?.map((part) => part.text ?? '')
+            .join('') ?? ''
+          if (chunk) {
+            fullText += chunk
+            onToken?.(chunk)
+          }
+        } catch {
+          // Partial JSON across chunk boundaries — keep buffering.
+          buffer = `${line}\n${buffer}`
+        }
+      }
+    }
+
+    const text = fullText.trim()
+    if (!text) throw new Error('Online Tutor returned an empty response.')
+    return text
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error('Online Tutor timed out. Try again or use local preview.')
+    }
+    throw error
+  } finally {
+    clearTimeout(timeout)
+  }
+}
+
 // GET /tutor/quota — remaining uploads for this anonymous user
 tutorRouter.get('/quota', (req, res) => {
   const fingerprint = getFingerprint(req, res)
@@ -45,8 +187,7 @@ tutorRouter.post('/chat', async (req, res) => {
   }
 
   // Honest: require key server-side; never expose to browser
-  const geminiKey = getGeminiKey()
-  if (!geminiKey) {
+  if (!getGeminiKey()) {
     res.status(503).json({
       error:
         'Online Tutor is not configured on this server. Local preview is still available, and all non-AI features continue working.',
@@ -56,55 +197,10 @@ tutorRouter.post('/chat', async (req, res) => {
     return
   }
 
-  // Build Gemini prompt from provider-independent context
-  const contextParts: string[] = []
-  if (parsed.excerpt) contextParts.push(`Material excerpt:\n${parsed.excerpt.slice(0, 3000)}`)
-  if (parsed.selectedText) contextParts.push(`Selected text:\n${parsed.selectedText}`)
-  if (parsed.concepts && parsed.concepts.length > 0) {
-    contextParts.push(`Concepts: ${parsed.concepts.map((concept) => concept.name).join(', ')}`)
-  }
-  if (parsed.weakSpots && parsed.weakSpots.length > 0) {
-    const weakest = parsed.weakSpots[0]
-    contextParts.push(`Weak spot: ${weakest.conceptName} (${Math.round(weakest.rate * 100)}% recall)`)
-  }
-
-  const systemPrompt = [
-    'You are Luminoesis Tutor — a helpful, private learning companion.',
-    'Ground answers in the provided material and concepts. Do not fabricate citations.',
-    'Keep answers concise and focused on understanding.',
-    contextParts.join('\n\n'),
-    `Question: ${parsed.prompt}`,
-  ].join('\n\n')
-
-  // Payload limits already enforced by zod. Now enforce quota before external call.
-  consumeUpload(fingerprint)
-
   try {
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${geminiKey}`
-    const gemResponse = await fetch(geminiUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: systemPrompt }] }],
-        generationConfig: { maxOutputTokens: 500, temperature: 0.7 },
-      }),
-    })
-
-    if (!gemResponse.ok) {
-      const errText = await gemResponse.text().catch(() => '')
-      console.error('[tutor] gemini error', gemResponse.status, errText.slice(0, 500))
-      res.status(502).json({ error: 'Online Tutor is temporarily unavailable. Please try local preview or try again later.' })
-      return
-    }
-
-    const data = await gemResponse.json() as {
-      candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>
-    }
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ?? ''
-    if (!text) {
-      res.status(502).json({ error: 'Online Tutor returned an empty response. Try again or use local preview.' })
-      return
-    }
+    const text = await callGemini(buildGeminiPrompt(parsed), false)
+    // Quota counts only successful answers — failures stay free.
+    consumeUpload(fingerprint)
 
     res.json({
       text,
@@ -117,6 +213,65 @@ tutorRouter.post('/chat', async (req, res) => {
     })
   } catch (error) {
     console.error('[tutor] unexpected', error)
-    res.status(500).json({ error: 'Online Tutor failed. Local preview and all non-AI features remain available.' })
+    res.status(502).json({
+      error: error instanceof Error ? error.message : 'Online Tutor failed. Local preview and all non-AI features remain available.',
+    })
+  }
+})
+
+// POST /tutor/chat/stream — same contract, Server-Sent Events of tokens
+tutorRouter.post('/chat/stream', async (req, res) => {
+  const parsed = TutorChatSchema.parse(req.body)
+  const fingerprint = getFingerprint(req, res)
+
+  const remaining = getRemaining(fingerprint)
+  if (remaining <= 0) {
+    res.status(429).json({
+      error: `You've used all ${MAX_ONLINE_UPLOADS} online Tutor uploads available for this demo.`,
+      remaining: 0,
+      limit: MAX_ONLINE_UPLOADS,
+    })
+    return
+  }
+
+  if (!getGeminiKey()) {
+    res.status(503).json({
+      error: 'Online Tutor is not configured on this server.',
+      remaining,
+      limit: MAX_ONLINE_UPLOADS,
+    })
+    return
+  }
+
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    Connection: 'keep-alive',
+  })
+
+  const send = (event: Record<string, unknown>) => {
+    res.write(`data: ${JSON.stringify(event)}\n\n`)
+  }
+
+  try {
+    await callGemini(buildGeminiPrompt(parsed), true, (token) => {
+      send({ token })
+    })
+    // Quota counts only successful answers — failures stay free.
+    consumeUpload(fingerprint)
+    send({
+      done: true,
+      citation: parsed.materialId
+        ? { materialId: parsed.materialId, materialTitle: parsed.materialTitle ?? 'Material', excerpt: parsed.selectedText?.slice(0, 120) }
+        : undefined,
+      remaining: getRemaining(fingerprint),
+      limit: MAX_ONLINE_UPLOADS,
+    })
+    res.end()
+  } catch (error) {
+    send({
+      error: error instanceof Error ? error.message : 'Online Tutor failed.',
+    })
+    res.end()
   }
 })
