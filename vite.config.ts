@@ -25,7 +25,7 @@ const config = defineConfig({
         description:
           'Offline-first adaptive spaced-repetition that senses rhythm, adapts review, surfaces insight.',
         theme_color: '#0A2018',
-        background_color: '#EAF3EE',
+        background_color: '#E6E8F7',
         display: 'standalone',
         icons: [
           {
@@ -41,7 +41,7 @@ const config = defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,svg,woff2}'],
+        globPatterns: ['**/*.{js,mjs,css,html,ico,svg,woff2,webp,png,webmanifest}'],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,

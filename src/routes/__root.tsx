@@ -21,6 +21,14 @@ const THEME_INIT_SCRIPT = `
     var theme = localStorage.getItem('theme')
     var mode = theme === 'light' ? 'light' : 'dark'
     document.documentElement.classList.toggle('dark', mode === 'dark')
+    // Preload the ACTIVE background only — keeps first paint light.
+    var href = mode === 'dark' ? '/assets/dark.webp' : '/assets/light.webp'
+    var link = document.createElement('link')
+    link.rel = 'preload'
+    link.as = 'image'
+    link.href = href
+    link.fetchPriority = 'high'
+    document.head.appendChild(link)
   } catch (error) {}
 })()
 `
@@ -45,7 +53,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       },
       {
         name: 'theme-color',
-        content: '#05130d',
+        content: '#080A1C',
       },
       {
         name: 'color-scheme',
@@ -106,6 +114,10 @@ function RootDocument({
           aria-hidden="true"
           className="grain-overlay"
         />
+
+        <div aria-hidden="true" className="app-bg app-bg-dark" />
+        <div aria-hidden="true" className="app-bg app-bg-light" />
+        <div aria-hidden="true" className="app-bg-wash" />
 
         <div className="app-shell">
           <Sidebar />

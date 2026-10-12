@@ -10,18 +10,21 @@
 
 :root {
   color-scheme: light;
-  /* Brand — one emerald ramp (+ gold reserved for calibration highlights) */
-  --accent: #0e7a54;
+  /* Primary by role: viridian (light) / emerald (dark) for actions + selection.
+     Champagne gold is reserved for the hero light source + logo spark only.
+     Rose is the single overdue/status tone. */
+  --accent: #0f6b54;
   --accent-ink: #ffffff;
-  --accent-soft: rgba(14, 122, 84, 0.12);
-  --accent-line: rgba(14, 122, 84, 0.35);
+  --accent-soft: rgba(15, 107, 84, 0.12);
+  --accent-line: rgba(15, 107, 84, 0.35);
 
   --gold: #b7791f;
   --gold-soft: rgba(183, 121, 31, 0.14);
+  --gold-hero: #ffd978;
 
   /* Legacy aliases — point at the ramp, do not extend */
   --veridian: var(--accent);
-  --veridian-strong: #0e5a3e;
+  --veridian-strong: #0d5c47;
   --veridian-muted: var(--accent-soft);
   --veridian-small-dark: var(--accent);
 
@@ -33,10 +36,15 @@
   --racing-strong: #002a16;
   --racing-muted: #e6f0eb;
 
-  /* Semantic performance tone */
-  --warning: #8a5300;
-  --warning-strong: #8a5300;
-  --warning-muted: rgba(200, 130, 0, 0.14);
+  /* Overdue / status: rose only (mockup v5 warn). */
+  --warning: #a3304f;
+  --warning-strong: #a3304f;
+  --warning-muted: rgba(214, 70, 105, 0.12);
+
+  /* Rose alias for overdue chips + status dots */
+  --rose: var(--warning);
+  --rose-strong: var(--warning-strong);
+  --rose-muted: var(--warning-muted);
 
   /* Legacy aliases */
   --amber: var(--warning);
@@ -46,12 +54,12 @@
   --purple: var(--destructive);
   --purple-strong: #b91c1c;
 
-  /* Typography / surfaces */
-  --ink: #0a2018;
-  --ink-soft: #475f54;
+  /* Typography / surfaces — heavenly pearl glass over cotton-candy bg */
+  --ink: #14302b;
+  --ink-soft: #4a625c;
   --ink-faint: #6b8175;
 
-  --line: #cfded5;
+  --line: rgba(92, 82, 170, 0.16);
   --line-strong: #b3c9bd;
 
   --surface: #ffffff;
@@ -60,7 +68,7 @@
 
   --nav-bg: #ffffff;
 
-  --background: #eaf3ee;
+  --background: #e6e8f7;
   --foreground: var(--ink);
 
   /* Semantic UI tokens */
@@ -107,28 +115,29 @@
   --sidebar-border: var(--line);
   --sidebar-ring: var(--accent);
 
-  /* Glass L1 chrome / L2 overlays */
+  /* Glass L1 chrome / L2 overlays — pearl glass */
   --glass-bg: rgba(255, 255, 255, 0.58);
   --glass-bg-strong: rgba(255, 255, 255, 0.82);
-  --glass-border: rgba(8, 60, 40, 0.12);
-  --glass-edge-top: rgba(255, 255, 255, 0.95);
+  --glass-border: rgba(92, 82, 170, 0.16);
   --glass-edge-top: rgba(255, 255, 255, 0.95);
 
   --glass-shadow:
-    0 18px 40px -22px rgba(8, 60, 40, 0.35);
+    0 1px 2px rgba(70, 62, 150, 0.1),
+    0 18px 40px -22px rgba(76, 70, 140, 0.4);
 
   --scrim: rgba(10, 32, 24, 0.34);
 }
 
 .dark {
   color-scheme: dark;
-  --accent: #4fe0a3;
-  --accent-ink: #04200f;
-  --accent-soft: rgba(79, 224, 163, 0.14);
-  --accent-line: rgba(79, 224, 163, 0.35);
+  --accent: #46e3a6;
+  --accent-ink: #04180f;
+  --accent-soft: rgba(70, 227, 166, 0.14);
+  --accent-line: rgba(70, 227, 166, 0.35);
 
   --gold: #ffd978;
   --gold-soft: rgba(255, 217, 120, 0.14);
+  --gold-hero: #ffd978;
 
   --veridian: var(--accent);
   --veridian-strong: var(--accent);
@@ -139,31 +148,35 @@
   --emerald-strong: var(--accent);
   --emerald-muted: var(--accent-soft);
 
-  --warning: #ffc266;
-  --warning-strong: #ffc266;
-  --warning-muted: rgba(255, 194, 102, 0.14);
+  --warning: #ffa9c4;
+  --warning-strong: #ffa9c4;
+  --warning-muted: rgba(255, 140, 180, 0.15);
 
-  --ink: #eaf6ef;
-  --ink-soft: #a3bdb0;
+  --rose: var(--warning);
+  --rose-strong: var(--warning-strong);
+  --rose-muted: var(--warning-muted);
+
+  --ink: #f1eeff;
+  --ink-soft: #b7b1d8;
   --ink-faint: #7e9a8d;
 
-  --line: rgba(255, 255, 255, 0.1);
-  --line-strong: rgba(255, 255, 255, 0.18);
+  --line: rgba(196, 181, 253, 0.15);
+  --line-strong: rgba(196, 181, 253, 0.28);
 
-  --surface: #0c1f17;
-  --surface-muted: #12291e;
-  --surface-raised: #143325;
+  --surface: #12102a;
+  --surface-muted: #1a1834;
+  --surface-raised: #1e1b3d;
 
-  --nav-bg: #0c1f17;
+  --nav-bg: #12102a;
 
-  --background: #05130d;
-  --foreground: #eaf6ef;
+  --background: #080a1c;
+  --foreground: #f1eeff;
 
-  --card: #0c1f17;
-  --card-foreground: #eaf6ef;
+  --card: #12102a;
+  --card-foreground: #f1eeff;
 
-  --popover: #0c1f17;
-  --popover-foreground: #eaf6ef;
+  --popover: #12102a;
+  --popover-foreground: #f1eeff;
 
   --primary: var(--accent);
   --primary-foreground: var(--accent-ink);
@@ -189,22 +202,23 @@
   --chart-4: #eaf6ef;
   --chart-5: #7e9a8d;
 
-  --sidebar: #0c1f17;
-  --sidebar-foreground: #eaf6ef;
+  --sidebar: #12102a;
+  --sidebar-foreground: #f1eeff;
   --sidebar-primary: var(--accent);
   --sidebar-primary-foreground: var(--accent-ink);
   --sidebar-accent: rgba(255, 255, 255, 0.06);
-  --sidebar-accent-foreground: #eaf6ef;
-  --sidebar-border: rgba(255, 255, 255, 0.1);
+  --sidebar-accent-foreground: #f1eeff;
+  --sidebar-border: rgba(196, 181, 253, 0.15);
   --sidebar-ring: var(--accent);
 
-  --glass-bg: rgba(20, 48, 38, 0.52);
-  --glass-bg-strong: rgba(14, 34, 27, 0.8);
-  --glass-border: rgba(255, 255, 255, 0.1);
-  --glass-edge-top: rgba(255, 255, 255, 0.22);
+  --glass-bg: rgba(26, 24, 52, 0.56);
+  --glass-bg-strong: rgba(18, 17, 40, 0.86);
+  --glass-border: rgba(196, 181, 253, 0.15);
+  --glass-edge-top: rgba(224, 218, 255, 0.28);
 
   --glass-shadow:
-    0 18px 40px -18px rgba(0, 0, 0, 0.65);
+    0 1px 2px rgba(6, 3, 30, 0.45),
+    0 18px 40px -18px rgba(6, 3, 30, 0.72);
 
   --scrim: rgba(4, 6, 8, 0.5);
 }
@@ -294,30 +308,69 @@ body {
 }
 
 /*
-  Ambient background: deep green-black with soft radial washes.
-  Glass reads only because this sits behind it. Fixed, non-interactive,
-  never a scrolling container.
+  Page backgrounds: dark.webp / light.webp ONLY. Fixed, non-interactive,
+  never a scrolling container. Two layers crossfade on theme change
+  (opacity transition only). Kept visually light: the image sits under a
+  theme-tinted wash so glass + text hold contrast in both themes.
 */
-body::before {
-  content: '';
-
+.app-bg {
   position: fixed;
   inset: 0;
   z-index: 0;
 
   pointer-events: none;
 
-  background:
-    radial-gradient(60% 50% at 12% 8%, rgba(31, 163, 122, 0.22), transparent 70%),
-    radial-gradient(45% 40% at 92% 20%, rgba(255, 217, 120, 0.12), transparent 70%),
-    radial-gradient(50% 45% at 70% 100%, rgba(31, 163, 122, 0.16), transparent 70%);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+
+  transition: opacity 350ms ease;
 }
 
-.dark body::before {
-  background:
-    radial-gradient(60% 50% at 12% 8%, rgba(31, 163, 122, 0.3), transparent 70%),
-    radial-gradient(45% 40% at 92% 20%, rgba(255, 217, 120, 0.1), transparent 70%),
-    radial-gradient(50% 45% at 70% 100%, rgba(31, 163, 122, 0.22), transparent 70%);
+.app-bg-dark {
+  background-image: url('/assets/dark.webp');
+  opacity: 0;
+}
+
+.app-bg-light {
+  background-image: url('/assets/light.webp');
+  opacity: 1;
+}
+
+.dark .app-bg-dark {
+  opacity: 1;
+}
+
+.dark .app-bg-light {
+  opacity: 0;
+}
+
+/* Soft theme wash over the photo so text keeps 4.5:1 + glass stays legible */
+.app-bg-wash {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+
+  pointer-events: none;
+
+  background: color-mix(in oklab, var(--background) 42%, transparent);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .app-bg-dark,
+  .app-bg-light {
+    opacity: 0;
+  }
+
+  .app-bg-wash {
+    background: var(--background);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-bg {
+    transition: none;
+  }
 }
 
 a {
@@ -327,6 +380,11 @@ a {
 
 a:hover {
   color: var(--veridian-strong);
+}
+
+button,
+a {
+  touch-action: manipulation;
 }
 
 /* ==========================================================================
@@ -350,6 +408,8 @@ a:hover {
 */
 
 .app-shell {
+  position: relative;
+  z-index: 1;
   width: 100%;
   min-height: 100dvh;
 }
@@ -489,16 +549,23 @@ a:hover {
 
 /* ==========================================================================
    GLASS — floating layers only (chrome, overlays, spotlight)
+   Halo fix (single place): semi-transparent backgrounds used to bleed
+   under their own 1px translucent border, so dark mode showed a light
+   fringe OUTSIDE the border + the top edge read as a double ring
+   (border-top-color light + inset highlight light). Fix once here:
+   uniform border, background-clip so fill never slides under the border,
+   and the top highlight lives ONLY as an inset shadow INSIDE the box.
    ========================================================================== */
 
 .glass-surface {
   background: var(--glass-bg-strong);
+  background-clip: padding-box;
+  isolation: isolate;
 
   backdrop-filter: blur(22px) saturate(150%);
   -webkit-backdrop-filter: blur(22px) saturate(150%);
 
   border: 1px solid var(--glass-border);
-  border-top-color: var(--glass-edge-top);
 
   box-shadow:
     var(--glass-shadow),
@@ -507,12 +574,16 @@ a:hover {
 
 .glass-panel {
   background: var(--glass-bg);
+  background-clip: padding-box;
+  isolation: isolate;
 
   backdrop-filter: blur(22px) saturate(150%);
   -webkit-backdrop-filter: blur(22px) saturate(150%);
 
   border: 1px solid var(--glass-border);
-  border-top-color: var(--glass-edge-top);
+
+  box-shadow:
+    inset 0 1px 0 var(--glass-edge-top);
 }
 
 .glass-scrim {
@@ -524,6 +595,8 @@ a:hover {
 
 .glass-nav {
   background: var(--glass-bg);
+  background-clip: padding-box;
+  isolation: isolate;
 
   backdrop-filter: blur(22px) saturate(150%);
   -webkit-backdrop-filter: blur(22px) saturate(150%);
@@ -545,15 +618,18 @@ a:hover {
   display: flex;
 
   background: var(--glass-bg);
+  background-clip: padding-box;
+  isolation: isolate;
 
   backdrop-filter: blur(22px) saturate(150%);
   -webkit-backdrop-filter: blur(22px) saturate(150%);
 
   border: 1px solid var(--glass-border);
-  border-top-color: var(--glass-edge-top);
   border-radius: 28px;
 
-  box-shadow: var(--glass-shadow);
+  box-shadow:
+    var(--glass-shadow),
+    inset 0 1px 0 var(--glass-edge-top);
 
   overflow: hidden;
 }
@@ -611,13 +687,15 @@ a:hover {
 
 .sidebar-link.is-active {
   background: var(--glass-bg-strong);
+  background-clip: padding-box;
   border-color: var(--glass-border);
 
   color: var(--ink);
 
+  /* Single accent bar inside the box. No top inset here: border + top
+     inset together rendered as a double ring at zoom. */
   box-shadow:
-    inset 3px 0 0 var(--accent),
-    inset 0 1px 0 var(--glass-edge-top);
+    inset 3px 0 0 var(--accent);
 }
 
 /*
@@ -656,6 +734,7 @@ a:hover {
 
 .glass-pill {
   background: var(--glass-bg-strong);
+  background-clip: padding-box;
 
   backdrop-filter: blur(16px) saturate(1.6);
   -webkit-backdrop-filter: blur(16px) saturate(1.6);
@@ -665,7 +744,7 @@ a:hover {
 
   box-shadow:
     0 1px 2px rgba(15, 23, 42, 0.06),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    inset 0 1px 0 var(--glass-edge-top);
 
   transition:
     background-color 150ms ease,
@@ -682,6 +761,7 @@ a:hover {
 
 .btn-glass {
   background: var(--glass-bg-strong);
+  background-clip: padding-box;
 
   backdrop-filter: blur(16px) saturate(1.6);
   -webkit-backdrop-filter: blur(16px) saturate(1.6);
@@ -697,7 +777,7 @@ a:hover {
   color: var(--ink);
 
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    inset 0 1px 0 var(--glass-edge-top);
 
   transition: background-color 150ms ease;
 }
@@ -747,6 +827,7 @@ a:hover {
 
 .card-flat {
   background: var(--surface);
+  background-clip: padding-box;
 
   border: 1px solid var(--line);
   border-radius: 24px;
@@ -761,15 +842,18 @@ a:hover {
 
 .card-glass {
   background: var(--glass-bg);
+  background-clip: padding-box;
+  isolation: isolate;
 
   backdrop-filter: blur(22px) saturate(150%);
   -webkit-backdrop-filter: blur(22px) saturate(150%);
 
   border: 1px solid var(--glass-border);
-  border-top-color: var(--glass-edge-top);
   border-radius: 24px;
 
-  box-shadow: var(--glass-shadow);
+  box-shadow:
+    var(--glass-shadow),
+    inset 0 1px 0 var(--glass-edge-top);
 }
 
 /* ==========================================================================
@@ -817,19 +901,28 @@ a:hover {
   border: 0;
   border-radius: 9999px;
 
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0) 40%),
-    #f2fbf6;
-  color: #06301f;
+  background: var(--accent);
+  color: var(--accent-ink);
 
   font-weight: 700;
   font-size: 1rem;
 
   box-shadow:
     0 10px 30px -10px rgba(0, 0, 0, 0.5),
-    inset 0 1px 0 #fff;
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
 
   transition: transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.dark .island {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0) 40%),
+    #f2fbf6;
+  color: #06301f;
+
+  box-shadow:
+    0 10px 30px -10px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 #fff;
 }
 
 .island:hover {
@@ -849,10 +942,15 @@ a:hover {
 
   border-radius: 9999px;
 
-  background: #0e7a54;
-  color: #fff;
+  background: #ddf4ea;
+  color: #0f6b54;
 
   transition: transform 250ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.dark .island > .island-arrow {
+  background: #0e7a54;
+  color: #fff;
 }
 
 .island:hover > .island-arrow {
@@ -1177,22 +1275,60 @@ h2[id], h3[id], section[id] {
 }
 
 /* ==========================================================================
-   HERO SPOTLIGHT (L3) — the single dark device per page
+   HERO SPOTLIGHT (L3) — theme-driven per mockup v5.
+   Light: pearl glass with champagne-gold rays (gold ONLY here + logo).
+   Dark: galactic navy-violet spotlight. Ring motif stays inside.
    ========================================================================== */
 
 .hero-card {
+  position: relative;
+  isolation: isolate;
+
   background:
-    linear-gradient(150deg, rgba(18, 125, 90, 0.92), rgba(7, 64, 46, 0.96));
+    linear-gradient(155deg, rgba(255, 255, 255, 0.84), rgba(238, 249, 244, 0.78) 55%, rgba(206, 236, 223, 0.76));
+  background-clip: padding-box;
+  color: #12342c;
 
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-top-color: rgba(255, 255, 255, 0.35);
+  border: 1px solid rgba(15, 107, 84, 0.22);
 
-  box-shadow: var(--glass-shadow);
+  box-shadow:
+    var(--glass-shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+
+.hero-card::before {
+  content: '';
+
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+
+  border-radius: inherit;
+
+  background: radial-gradient(60% 80% at 92% 0%, rgba(250, 228, 160, 0.6), rgba(250, 228, 160, 0.2) 38%, transparent 70%);
+
+  -webkit-mask-image: radial-gradient(85% 100% at 90% 0%, #000 30%, transparent 78%);
+  mask-image: radial-gradient(85% 100% at 90% 0%, #000 30%, transparent 78%);
+
+  pointer-events: none;
 }
 
 .dark .hero-card {
   background:
-    linear-gradient(150deg, rgba(40, 170, 124, 0.42), rgba(8, 44, 31, 0.78));
+    linear-gradient(150deg, rgba(109, 40, 217, 0.58), rgba(14, 80, 70, 0.64));
+  color: #f2fbf6;
+
+  border: 1px solid rgba(255, 255, 255, 0.16);
+
+  box-shadow:
+    var(--glass-shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+.dark .hero-card::before {
+  background: none;
+  -webkit-mask-image: none;
+  mask-image: none;
 }
 
 .hero-card::after {
@@ -1201,18 +1337,32 @@ h2[id], h3[id], section[id] {
   position: absolute;
   right: -70px;
   top: -70px;
+  z-index: 0;
 
   width: 300px;
   height: 300px;
 
   border-radius: 9999px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(15, 107, 84, 0.28);
+
+  box-shadow:
+    inset 0 0 0 38px rgba(15, 107, 84, 0.06),
+    inset 0 0 0 39px rgba(15, 107, 84, 0.28);
+
+  pointer-events: none;
+}
+
+.dark .hero-card::after {
+  border-color: rgba(255, 255, 255, 0.14);
 
   box-shadow:
     inset 0 0 0 38px rgba(255, 255, 255, 0.035),
     inset 0 0 0 39px rgba(255, 255, 255, 0.1);
+}
 
-  pointer-events: none;
+.hero-card > * {
+  position: relative;
+  z-index: 1;
 }
 
 .ghost-btn {
@@ -1223,10 +1373,10 @@ h2[id], h3[id], section[id] {
   padding: 0 22px;
 
   border-radius: 9999px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(15, 107, 84, 0.38);
 
-  background: rgba(255, 255, 255, 0.08);
-  color: #f2fbf6;
+  background: rgba(255, 255, 255, 0.55);
+  color: #0b4f3e;
 
   font-weight: 600;
 
@@ -1234,6 +1384,17 @@ h2[id], h3[id], section[id] {
 }
 
 .ghost-btn:hover {
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.dark .ghost-btn {
+  border-color: rgba(255, 255, 255, 0.3);
+
+  background: rgba(255, 255, 255, 0.08);
+  color: #f2fbf6;
+}
+
+.dark .ghost-btn:hover {
   background: rgba(255, 255, 255, 0.16);
 }
 
@@ -1243,15 +1404,17 @@ h2[id], h3[id], section[id] {
 
 dialog.app-dialog {
   border: 1px solid var(--glass-border);
-  border-top-color: var(--glass-edge-top);
   border-radius: 24px;
 
   padding: 0;
 
   background: var(--surface);
+  background-clip: padding-box;
   color: var(--ink);
 
-  box-shadow: var(--glass-shadow);
+  box-shadow:
+    var(--glass-shadow),
+    inset 0 1px 0 var(--glass-edge-top);
 
   max-width: min(560px, calc(100vw - 2rem));
   max-height: calc(100dvh - 4rem);

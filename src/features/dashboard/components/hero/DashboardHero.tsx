@@ -30,14 +30,14 @@ export function DashboardHero({
   return (
     <section
       aria-labelledby="dashboard-headline"
-      className="hero-card relative flex h-full min-h-90 flex-col justify-between gap-7 overflow-hidden rounded-[32px] p-6 text-[#F2FBF6] md:p-9"
+      className="hero-card relative flex h-full min-h-90 flex-col justify-between gap-7 overflow-hidden rounded-[32px] p-6 md:p-9"
     >
       <div>
         {isEmpty ? (
           <>
             <h1
               id="dashboard-headline"
-              className="display max-w-[20ch] text-balance text-4xl tracking-tight text-white md:text-5xl"
+              className="display max-w-[20ch] text-balance text-4xl tracking-tight md:text-5xl"
             >
               {headlineForState(
                 learningState.state,
@@ -45,7 +45,7 @@ export function DashboardHero({
                 totalCards,
               )}
             </h1>
-            <p className="mt-3.5 max-w-[46ch] text-base leading-6 text-[#F2FBF6]/80">
+            <p className="mt-3.5 max-w-[46ch] text-base leading-6 opacity-80">
               Add study cards to your library and Luminoesis will schedule
               focused reviews around your rhythm.
             </p>
@@ -55,15 +55,15 @@ export function DashboardHero({
             <div className="flex flex-wrap items-baseline gap-x-3.5">
               <b
                 id="dashboard-headline"
-                className="display text-[clamp(4.5rem,9vw,7rem)] font-bold leading-none tracking-[-0.04em] text-white tabular-nums"
+                className="display text-[clamp(4.5rem,9vw,7rem)] font-bold leading-none tracking-[-0.04em] tabular-nums"
               >
                 <AnimatedNumber value={dueTodayCount} />
               </b>
-              <span className="display text-[22px] font-semibold text-white">
+              <span className="display text-[22px] font-semibold">
                 {dueTodayCount === 1 ? 'card ready to review' : 'cards ready to review'}
               </span>
             </div>
-            <p className="mt-3.5 max-w-[46ch] text-base leading-6 text-[#F2FBF6]/80">
+            <p className="mt-3.5 max-w-[46ch] text-base leading-6 opacity-80">
               {learningState.reason}
             </p>
           </>
@@ -117,7 +117,7 @@ function CalibrationSteps({
 
   return (
     <div
-      className="flex items-center gap-1.5 text-[13px] text-[#F2FBF6]/80"
+      className="flex items-center gap-1.5 text-[13px] opacity-80"
       role="img"
       aria-label={`Calibrating: session ${Math.min(sessionCount + 1, total)} of ${total}`}
     >
@@ -125,7 +125,7 @@ function CalibrationSteps({
         <i
           key={index}
           aria-hidden="true"
-          className={`h-[5px] w-[26px] rounded-full ${index < done ? 'bg-[#FFD978]' : 'bg-white/25'}`}
+          className={`h-[5px] w-[26px] rounded-full ${index < done ? 'bg-(--gold-hero)' : 'bg-current opacity-25'}`}
         />
       ))}
       <span className="ml-1">Calibrating</span>
