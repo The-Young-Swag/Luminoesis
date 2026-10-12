@@ -28,6 +28,7 @@ export type TutorServiceOptions = {
   localTimeoutMs?: number
   onToken?: (text: string) => void
   modelTier?: 'standard' | 'capable'
+  onEscalationStart?: () => void
 }
 
 const DEFAULT_LOCAL_TIMEOUT_MS = 20000
@@ -64,6 +65,7 @@ async function maybeEscalate(
   request: TutorRequest,
   localResponse: TutorResponse,
   onToken?: (text: string) => void,
+  onEscalationStart?: () => void,
 ): Promise<TutorResponse | null> {
   if (localResponse.confidence !== 'low') return null
 
@@ -71,6 +73,8 @@ async function maybeEscalate(
     .getTutorEscalation()
     .catch(() => false)
   if (!escalationOn) return null
+
+  onEscalationStart?.()
 
   try {
     return await fetchGeminiTutor(request, { onToken })
@@ -129,12 +133,21 @@ export class TutorService {
       })
       const response = await Promise.race([localPromise, timeoutPromise])
 
-      const escalated = await maybeEscalate(request, response, options.onToken)
+      const escalated = await maybeEscalate(
+        request,
+        response,
+        options.onToken,
+        options.onEscalationStart,
+      )
       if (escalated) {
         return escalated
       }
 
-      rememberResponse(options, response)
+      // Low-confidence answers stay out of the cache so a repeat visit
+      // still gets its chance at escalation.
+      if (response.confidence !== 'low') {
+        rememberResponse(options, response)
+      }
       return response
     } catch (error) {
       console.warn('[tutor] local provider failed/timed out', error)

@@ -20,7 +20,7 @@ import { settingsRepository } from '#/shared/repositories/settingsRepository'
 let cachedPipelines = new Map<string, unknown>()
 let failedPipelines = new Set<string>()
 
-const MODEL_LOAD_TIMEOUT_MS = 60000
+const MODEL_LOAD_TIMEOUT_MS = 600000
 const INFERENCE_TIMEOUT_MS = 30000
 const MAX_NEW_TOKENS = 120
 

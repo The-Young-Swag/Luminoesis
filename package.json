@@ -14,6 +14,7 @@
     "preview": "vite preview --host 0.0.0.0 --port 3000",
     "test": "vitest run",
     "test:watch": "vitest",
+    "eval:tutor": "tsx src/features/tutor/eval/manual-eval.ts",
     "lint": "eslint",
     "format": "prettier --write . && eslint --fix",
     "check": "prettier --check ."

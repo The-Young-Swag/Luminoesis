@@ -21,8 +21,13 @@ function getGeminiKey(): string | undefined {
 
 /*
  * Model ID is a config value, not a constant. Gemini 2.5 models shut
- * down 16 October 2026 — use a current 3.x Flash ID verified in AI
- * Studio. The free tier covers Flash-class models with rate limits.
+ * down 16 October 2026 — never use a 2.5 ID here.
+ *
+ * Default verified against Google's published pricing (free input/output
+ * rows for gemini-3.6-flash, gemini-3.5-flash, gemini-3.5-flash-lite,
+ * gemini-3.1-flash-lite as of Aug/Sep 2026; gemini-3.8-flash GA Sep 2026).
+ * Model rows are volatile — confirm the exact ID and its free-tier RPM/RPD
+ * in AI Studio before relying on it, and override via GEMINI_MODEL.
  */
 function getGeminiModel(): string {
   return process.env.GEMINI_MODEL?.trim() || 'gemini-3.5-flash'

@@ -15,7 +15,7 @@ type PendingCall = {
   timer: number
 }
 
-const LOAD_TIMEOUT_MS = 60000
+const LOAD_TIMEOUT_MS = 600000
 const GENERATE_TIMEOUT_MS = 30000
 const EMBED_TIMEOUT_MS = 60000
 

@@ -55,10 +55,13 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
     const [draft, setDraft] = useState('')
     const [sending, setSending] = useState(false)
     const [streamingId, setStreamingId] = useState<string | null>(null)
+    const [escalating, setEscalating] = useState(false)
+    const escalatingRef = useRef(false)
     const [modelStatus, setModelStatus] = useState<'idle' | 'loading' | 'ready' | 'unavailable'>('idle')
     const [modelProgress, setModelProgress] = useState(0)
     const [modelFile, setModelFile] = useState('')
     const [escalationOn, setEscalationOn] = useState(false)
+    const escalationOnRef = useRef(false)
     const preloadedRef = useRef(false)
     const textareaRef = useRef<HTMLTextAreaElement>(null)
     const endRef = useRef<HTMLDivElement>(null)
@@ -81,7 +84,10 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
 
       void settingsRepository
         .getTutorEscalation()
-        .then(setEscalationOn)
+        .then((value) => {
+          setEscalationOn(value)
+          escalationOnRef.current = value
+        })
         .catch(() => {})
 
       void localTutorProvider
@@ -183,6 +189,10 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
           conversationHistory,
           localTimeoutMs: 60000,
           onToken: (chunk) => {
+            // Escalation armed: hold local tokens back so a weak answer
+            // never flashes first. Tokens arriving after escalation
+            // starts are Gemini's — stream those.
+            if (!escalatingRef.current && escalationOnRef.current) return
             setMessages((previousMessages) =>
               previousMessages.map((message) =>
                 message.id === assistantId
@@ -190,6 +200,10 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
                   : message,
               ),
             )
+          },
+          onEscalationStart: () => {
+            escalatingRef.current = true
+            setEscalating(true)
           },
         })
 
@@ -220,6 +234,8 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
           ),
         )
       } finally {
+        escalatingRef.current = false
+        setEscalating(false)
         setStreamingId(null)
         setSending(false)
       }
@@ -255,6 +271,8 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
       !messages.some(
         (message) => message.id === streamingId && message.text.length > 0,
       )
+
+    const showEscalationStatus = escalating && waitingForFirstToken
 
     return (
       <div className="flex h-full min-h-0 flex-col bg-transparent">
@@ -306,14 +324,14 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
               className="flex items-start gap-3"
               role="status"
               aria-live="polite"
-              aria-label="Tutor is thinking"
+              aria-label={showEscalationStatus ? 'Checking with the cloud tutor' : 'Tutor is thinking'}
             >
               <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-(--surface-muted) text-(--blue)">
                 <Sparkles size={12} aria-hidden="true" />
               </span>
 
-              <p className="pt-0.5 text-[14px] leading-relaxed text-(--ink-soft)">
-                Thinking…
+              <p className="pt-0.5 text-[14px] leading-relaxed text-(--ink-faint)">
+                {showEscalationStatus ? 'Checking with the cloud tutor…' : 'Thinking…'}
               </p>
             </div>
           )}
