@@ -103,7 +103,7 @@ export function CardDialog({
               rows={3}
               autoFocus
               className="mt-1.5 w-full rounded-xl border border-(--line) bg-(--surface) p-3 text-[15px] outline-none focus:border-(--blue) focus:ring-2 focus:ring-(--blue)/20"
-              placeholder="e.g. What is the primary neurotransmitter at the neuromuscular junction?"
+              placeholder="e.g. Which neurotransmitter drives the neuromuscular junction?…"
             />
           </label>
 
@@ -119,7 +119,7 @@ export function CardDialog({
               onChange={(event) => setBack(event.target.value)}
               rows={3}
               className="mt-1.5 w-full rounded-xl border border-(--line) bg-(--surface) p-3 text-[15px] outline-none focus:border-(--blue) focus:ring-2 focus:ring-(--blue)/20"
-              placeholder="e.g. Acetylcholine — released at the neuromuscular junction"
+              placeholder="e.g. Acetylcholine — released at the junction…"
             />
           </label>
 

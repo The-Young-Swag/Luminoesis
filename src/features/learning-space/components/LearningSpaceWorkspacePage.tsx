@@ -174,7 +174,7 @@ export function LearningSpaceWorkspacePage({
     },
     {
       id: 'flashcards',
-      node: <FlashcardsSection concepts={concepts} materials={materials} />,
+      node: <FlashcardsSection learningSpaceId={learningSpaceId} concepts={concepts} materials={materials} />,
     },
     {
       id: 'practice',
@@ -376,7 +376,11 @@ function MaterialsSection({ materials, onAddMaterial }: MaterialsSectionProps) {
                 <span className="text-xs text-(--ink-soft)">
                   Status:{' '}
                   <span className="font-medium text-(--ink)">
-                    {material.extractionStatus}
+                    {material.extractionStatus === 'ready'
+                      ? 'Ready'
+                      : material.extractionStatus === 'failed'
+                        ? 'Needs attention'
+                        : 'Extracting…'}
                   </span>
                 </span>
               </div>

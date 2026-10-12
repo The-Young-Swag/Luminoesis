@@ -105,7 +105,7 @@ export function ConceptsSection({
                       aria-label={`Delete concept ${concept.name}`}
                       onClick={() => setConfirmingId(concept.id)}
                       disabled={busy}
-                      className="shrink-0 rounded-lg p-1.5 text-(--ink-faint) opacity-0 transition group-hover:opacity-100 hover:bg-red-50 hover:text-red-600 disabled:opacity-50 dark:hover:bg-red-950/40"
+                      className="shrink-0 rounded-lg p-1.5 text-(--ink-faint) opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100 hover:bg-red-50 hover:text-red-600 disabled:opacity-50 dark:hover:bg-red-950/40"
                     >
                       <Trash2 size={15} aria-hidden="true" />
                     </button>
@@ -169,7 +169,7 @@ export function ConceptsSection({
         <AddConceptDialog
           learningSpaceId={learningSpaceId}
           materials={materials}
-          onCreated={() => undefined}
+          onCreated={() => setShowAdd(false)}
           onClose={() => setShowAdd(false)}
         />
       )}

@@ -109,7 +109,7 @@ export function AddConceptDialog({
               }}
               autoFocus
               className="mt-2 w-full rounded-full border border-(--line) bg-(--surface) px-4 py-3 text-sm outline-none focus:border-(--blue) focus:ring-2 focus:ring-(--blue)/20"
-              placeholder="e.g. Cardiac output"
+              placeholder="e.g. Cardiac output…"
             />
           </label>
 

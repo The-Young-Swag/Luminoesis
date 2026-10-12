@@ -8,9 +8,11 @@ import { deleteFlashcard } from '#/features/flashcard/application/flashcard'
 import { SectionHeader } from '#/shared/components/ui/SectionHeader'
 import { EmptyState } from '#/shared/components/ui/EmptyState'
 import { AddFlashcardDialog } from './AddFlashcardDialog'
+import { AddConceptDialog } from '#/features/learning-space/components/AddConceptDialog'
 import { FlashcardReviewOverlay } from './FlashcardReviewOverlay'
 
 type FlashcardsSectionProps = {
+  learningSpaceId: string
   concepts: Concept[]
   materials: Material[]
 }
@@ -19,12 +21,13 @@ function isDue(dueDate: string, today = new Date()): boolean {
   return today.toISOString().slice(0, 10) >= dueDate
 }
 
-export function FlashcardsSection({ concepts, materials }: FlashcardsSectionProps) {
+export function FlashcardsSection({ learningSpaceId, concepts, materials }: FlashcardsSectionProps) {
   const conceptIds = useMemo(() => concepts.map((concept) => concept.id), [concepts])
 
   const { flashcards, ready } = useFlashcards(conceptIds)
 
   const [showAdd, setShowAdd] = useState(false)
+  const [showAddConcept, setShowAddConcept] = useState(false)
   const [editing, setEditing] = useState<Flashcard | null>(null)
   const [confirmingId, setConfirmingId] = useState<string | null>(null)
   const [busyId, setBusyId] = useState<string | null>(null)
@@ -104,6 +107,11 @@ export function FlashcardsSection({ concepts, materials }: FlashcardsSectionProp
           icon={Layers}
           title="Concepts come first"
           description="Flashcards are tied to concepts. Add a concept to this Learning Space, then create flashcards for it."
+          action={
+            <button type="button" onClick={() => setShowAddConcept(true)} className="btn-primary">
+              Add concept
+            </button>
+          }
         />
       ) : flashcards.length === 0 ? (
         <EmptyState
@@ -134,7 +142,7 @@ export function FlashcardsSection({ concepts, materials }: FlashcardsSectionProp
                     {flashcard.front}
                   </p>
 
-                  <div className="flex shrink-0 items-center gap-1 opacity-0 transition group-hover:opacity-100">
+                  <div className="flex shrink-0 items-center gap-1 opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100">
                     <button
                       type="button"
                       aria-label="Edit flashcard"
@@ -147,7 +155,8 @@ export function FlashcardsSection({ concepts, materials }: FlashcardsSectionProp
                     {!confirming && (
                       <button
                         type="button"
-                        aria-label="Delete flashcard"
+                        aria-label={`Delete flashcard: ${flashcard.front}`}
+                        title="Delete flashcard"
                         onClick={() => setConfirmingId(flashcard.id)}
                         disabled={busy}
                         className="rounded-lg p-1.5 text-(--ink-faint) transition hover:bg-red-50 hover:text-red-600 disabled:opacity-50 dark:hover:bg-red-950/40"
@@ -203,8 +212,17 @@ export function FlashcardsSection({ concepts, materials }: FlashcardsSectionProp
         <AddFlashcardDialog
           concepts={concepts}
           materials={materials}
-          onCreated={() => undefined}
+          onCreated={() => setShowAdd(false)}
           onClose={() => setShowAdd(false)}
+        />
+      )}
+
+      {showAddConcept && (
+        <AddConceptDialog
+          learningSpaceId={learningSpaceId}
+          materials={materials}
+          onCreated={() => setShowAddConcept(false)}
+          onClose={() => setShowAddConcept(false)}
         />
       )}
 

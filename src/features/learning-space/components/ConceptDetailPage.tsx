@@ -62,7 +62,18 @@ export function ConceptDetailPage({ conceptId }: ConceptDetailPageProps) {
 
       <Section title="Source materials" count={linkedMaterials.length}>
         {linkedMaterials.length === 0 ? (
-          <Empty>No linked materials yet.</Empty>
+          <Empty>
+            No linked materials yet.{' '}
+            {learningSpace && (
+              <Link
+                to="/learning-spaces/$learningSpaceId"
+                params={{ learningSpaceId: learningSpace.id }}
+                className="link font-medium"
+              >
+                Open {learningSpace.title} to add some.
+              </Link>
+            )}
+          </Empty>
         ) : (
           <div className="flex flex-wrap gap-2.5">
             {linkedMaterials.map((material) => (
@@ -81,7 +92,7 @@ export function ConceptDetailPage({ conceptId }: ConceptDetailPageProps) {
 
       <Section title="Highlights" count={highlights.length}>
         {highlights.length === 0 ? (
-          <Empty>No highlights linked to this concept yet.</Empty>
+          <Empty>No highlights yet. Select text in the reader to highlight it here.</Empty>
         ) : (
           <ul className="space-y-3">
             {highlights.map((highlight) => (
@@ -95,7 +106,18 @@ export function ConceptDetailPage({ conceptId }: ConceptDetailPageProps) {
 
       <Section title="Flashcards" count={flashcards.length}>
         {flashcards.length === 0 ? (
-          <Empty>No flashcards for this concept yet.</Empty>
+          <Empty>
+            No flashcards for this concept yet.{' '}
+            {learningSpace && (
+              <Link
+                to="/learning-spaces/$learningSpaceId"
+                params={{ learningSpaceId: learningSpace.id }}
+                className="link font-medium"
+              >
+                Open {learningSpace.title} to create some.
+              </Link>
+            )}
+          </Empty>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2">
             {flashcards.map((flashcard) => (
@@ -112,7 +134,18 @@ export function ConceptDetailPage({ conceptId }: ConceptDetailPageProps) {
 
       <Section title="Quiz questions" count={questions.length}>
         {questions.length === 0 ? (
-          <Empty>No quiz questions for this concept yet.</Empty>
+          <Empty>
+            No quiz questions for this concept yet.{' '}
+            {learningSpace && (
+              <Link
+                to="/learning-spaces/$learningSpaceId"
+                params={{ learningSpaceId: learningSpace.id }}
+                className="link font-medium"
+              >
+                Open {learningSpace.title} to write some.
+              </Link>
+            )}
+          </Empty>
         ) : (
           <ul className="space-y-3">
             {questions.map((question) => (
@@ -126,8 +159,11 @@ export function ConceptDetailPage({ conceptId }: ConceptDetailPageProps) {
 
       <div className="mt-12">
         <Link to="/review" className="btn-primary">
-          Train this concept
+          Start a review session
         </Link>
+        <p className="mt-2 text-xs text-(--ink-faint)">
+          Due cards across your library, scheduled by SM-2 and your rhythm.
+        </p>
       </div>
     </main>
   )

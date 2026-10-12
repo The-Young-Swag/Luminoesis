@@ -91,6 +91,14 @@ export function LearningSpaceListPage() {
             Create one for a subject or lesson you&apos;re
             studying, then bring its materials together.
           </p>
+
+          <button
+            type="button"
+            onClick={() => setIsDialogOpen(true)}
+            className="btn-primary mt-5"
+          >
+            Create a learning space
+          </button>
         </div>
       ) : (
         <div className="rise grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -161,12 +169,13 @@ function LearningSpaceCard({
       </p>
 
       <div className="mt-5 flex items-center justify-between border-t border-(--line) pt-4">
-        <span className="text-xs font-medium text-(--ink-soft)">
+        <span className="inline-flex items-center gap-1 text-xs font-medium text-(--ink-soft) transition-colors group-hover:text-(--ink)">
           Open space
-        </span>
-
-        <span className="text-xs text-(--ink-soft)">
-          View materials
+          <ArrowRight
+            size={13}
+            className="transition-transform group-hover:translate-x-0.5"
+            aria-hidden="true"
+          />
         </span>
       </div>
     </button>

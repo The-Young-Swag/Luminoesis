@@ -70,7 +70,7 @@ export function CreateLearningSpaceDialog({
               onChange={(event) => setTitle(event.target.value)}
               autoFocus
               className="mt-1.5 w-full rounded-full border border-(--line) bg-(--surface) px-3.5 py-2.5 text-sm outline-none focus:border-(--blue) focus:ring-2 focus:ring-(--blue)/20"
-              placeholder="e.g. Cellular Respiration"
+              placeholder="e.g. Cellular respiration…"
             />
           </label>
 
