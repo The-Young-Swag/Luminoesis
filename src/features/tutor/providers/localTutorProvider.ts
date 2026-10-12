@@ -569,6 +569,7 @@ function getSharedWorker(): TutorWorkerClient | null {
 async function ensureWorkerLoaded(
   worker: TutorWorkerClient,
   tier: LocalModelTier,
+  onProgress?: (fraction: number, file: string) => void,
 ): Promise<void> {
   if (workerLoadedTier === tier) return
 
@@ -576,7 +577,7 @@ async function ensureWorkerLoaded(
 
   if (hasWebGpu()) {
     try {
-      await worker.load(modelId, 'webgpu', 'q4')
+      await worker.load(modelId, 'webgpu', 'q4', onProgress)
       workerLoadedTier = tier
       return
     } catch (error) {
@@ -584,7 +585,7 @@ async function ensureWorkerLoaded(
     }
   }
 
-  await worker.load(modelId, 'wasm', 'q8')
+  await worker.load(modelId, 'wasm', 'q8', onProgress)
   workerLoadedTier = tier
 }
 
@@ -625,6 +626,26 @@ export class LocalTutorProvider implements TutorProvider {
 
   isAvailable(): boolean {
     return typeof WebAssembly !== 'undefined' || typeof Worker !== 'undefined'
+  }
+
+  /*
+   * Warm the model without asking anything — call when the tutor panel
+   * opens so the first question starts instantly. Never throws: a failed
+   * preload just means the first ask loads on demand or falls back.
+   */
+  async preload(
+    tier: LocalModelTier = 'standard',
+    onProgress?: (fraction: number, file: string) => void,
+  ): Promise<boolean> {
+    const worker = getSharedWorker()
+    if (!worker) return false
+
+    try {
+      await ensureWorkerLoaded(worker, tier, onProgress)
+      return true
+    } catch {
+      return false
+    }
   }
 
   async respond(

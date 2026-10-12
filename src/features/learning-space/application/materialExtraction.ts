@@ -254,6 +254,11 @@ export async function processMaterialExtraction(file: File, material: Material):
 
     await saveMaterialContent({ materialId: material.id, source: 'extracted', blocks: truncated })
     await materialRepository.update(material.id, { extractionStatus: 'ready', updatedAt: Date.now() })
+
+    // Warm the tutor's retrieval index in the background so the first
+    // question never pays tokenization.
+    const { precomputeChunkIndex } = await import('#/features/tutor/domain/materialRetrieval')
+    precomputeChunkIndex(material.id, truncated)
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
     console.warn(`[extraction] ${material.id} failed:`, message)

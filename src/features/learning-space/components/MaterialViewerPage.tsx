@@ -595,6 +595,7 @@ export function MaterialViewerPage({ materialId }: { materialId: string }) {
                 context={tutorContext}
                 onContextConsumed={handleTutorContextConsumed}
                 hideHeader
+                active={!rightCollapsed}
               />
               </div>
             </div>

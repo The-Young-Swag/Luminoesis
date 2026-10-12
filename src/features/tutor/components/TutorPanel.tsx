@@ -11,6 +11,7 @@ import {
 import { CornerDownLeft, Info, Sparkles } from 'lucide-react'
 
 import { tutorService } from '#/features/tutor/application/tutorService'
+import { localTutorProvider } from '#/features/tutor/providers/localTutorProvider'
 import type { TutorMessage } from '#/features/tutor/domain/tutor'
 
 type TutorPanelProps = {
@@ -21,6 +22,7 @@ type TutorPanelProps = {
   onContextConsumed?: () => void
   headerAction?: React.ReactNode
   hideHeader?: boolean
+  active?: boolean
 }
 
 export type TutorPanelHandle = {
@@ -37,6 +39,7 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
       onContextConsumed,
       headerAction,
       hideHeader = false,
+      active = true,
     },
     ref,
   ) {
@@ -51,8 +54,37 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
     const [draft, setDraft] = useState('')
     const [sending, setSending] = useState(false)
     const [streamingId, setStreamingId] = useState<string | null>(null)
+    const [modelStatus, setModelStatus] = useState<'idle' | 'loading' | 'ready' | 'unavailable'>('idle')
+    const [modelProgress, setModelProgress] = useState(0)
+    const [modelFile, setModelFile] = useState('')
+    const preloadedRef = useRef(false)
     const textareaRef = useRef<HTMLTextAreaElement>(null)
     const endRef = useRef<HTMLDivElement>(null)
+
+    /*
+     * Load the on-device model when the panel opens — not when the
+     * material view mounts — so the first question starts instantly.
+     * Persist storage so weights survive eviction and never re-download.
+     */
+    useEffect(() => {
+      if (!active || preloadedRef.current) return
+      preloadedRef.current = true
+      setModelStatus('loading')
+
+      try {
+        void navigator.storage?.persist?.()?.catch(() => {})
+      } catch {
+        // Persistence is a nicety, never a blocker.
+      }
+
+      void localTutorProvider
+        .preload('standard', (fraction, file) => {
+          setModelProgress(fraction)
+          setModelFile(file)
+        })
+        .then((ready) => setModelStatus(ready ? 'ready' : 'unavailable'))
+        .catch(() => setModelStatus('unavailable'))
+    }, [active])
 
     /*
      * Titles load async, but the intro is snapshotted at mount. Refresh it
@@ -283,6 +315,32 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
         </div>
 
         <div className="shrink-0 border-t border-(--glass-border) p-5">
+          {modelStatus === 'loading' && (
+            <div className="mb-3" role="status" aria-live="polite">
+              <div className="flex items-baseline justify-between gap-2 font-mono text-[10px] text-(--ink-faint)">
+                <span className="truncate">
+                  Downloading on-device model{modelFile ? ` · ${modelFile}` : ''}…
+                </span>
+                <span className="shrink-0 tabular-nums">
+                  {Math.round(modelProgress * 100)}%
+                </span>
+              </div>
+              <div
+                role="progressbar"
+                aria-label="Model download progress"
+                aria-valuenow={Math.round(modelProgress * 100)}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                className="mt-1.5 h-1 overflow-hidden rounded-full bg-(--surface-muted)"
+              >
+                <div
+                  className="h-full rounded-full bg-(--veridian) transition-[width] duration-300"
+                  style={{ width: `${Math.round(modelProgress * 100)}%` }}
+                />
+              </div>
+            </div>
+          )}
+
           {context && (
             <div className="mb-3 flex gap-3 rounded-xl bg-(--surface-muted)/60 px-4 py-3.5">
               <Info

@@ -30,6 +30,29 @@ export type TutorServiceOptions = {
 }
 
 const DEFAULT_LOCAL_TIMEOUT_MS = 20000
+const RESPONSE_CACHE_LIMIT = 50
+
+const responseCache = new Map<string, TutorResponse>()
+
+function cacheKey(options: TutorServiceOptions): string {
+  const history = options.conversationHistory ?? []
+  return [
+    options.modelTier ?? 'standard',
+    options.materialId ?? '',
+    options.selectedText ?? '',
+    options.prompt,
+    history.length,
+    history.at(-1)?.text ?? '',
+  ].join('|')
+}
+
+function rememberResponse(options: TutorServiceOptions, response: TutorResponse): void {
+  if (responseCache.size >= RESPONSE_CACHE_LIMIT) {
+    const oldest = responseCache.keys().next()
+    if (!oldest.done) responseCache.delete(oldest.value)
+  }
+  responseCache.set(cacheKey(options), response)
+}
 
 export class TutorService {
   constructor(
@@ -37,6 +60,11 @@ export class TutorService {
   ) {}
 
   async ask(options: TutorServiceOptions): Promise<TutorResponse> {
+    const cached = responseCache.get(cacheKey(options))
+    if (cached) {
+      return cached
+    }
+
     const context: TutorContext = await buildTutorContext({
       materialId: options.materialId,
       materialTitle: options.materialTitle,
@@ -71,7 +99,9 @@ export class TutorService {
           timeoutMs,
         )
       })
-      return await Promise.race([localPromise, timeoutPromise])
+      const response = await Promise.race([localPromise, timeoutPromise])
+      rememberResponse(options, response)
+      return response
     } catch (error) {
       console.warn('[tutor] local provider failed/timed out', error)
       return {

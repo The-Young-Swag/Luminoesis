@@ -10,7 +10,7 @@ import {
   MAX_CONVERSATION_MESSAGES,
 } from './tutor'
 import { resolveEffectiveTopic } from './tutorTopic'
-import { selectRelevantMaterialExcerpt } from './materialRetrieval'
+import { precomputeChunkIndex, selectRelevantMaterialExcerpt } from './materialRetrieval'
 import { materialContentRepository } from '#/features/learning-space/repositories/materialContentRepository'
 import { conceptRepository } from '#/features/learning-space/repositories/conceptRepository'
 import { highlightRepository } from '#/features/learning-space/repositories/highlightRepository'
@@ -75,8 +75,13 @@ export async function buildTutorContext(
         materialContent.blocks,
         effectiveTopic,
         MAX_CONTEXT_CHARS,
+        materialId,
       )
     : ''
+
+  if (materialId && materialContent) {
+    precomputeChunkIndex(materialId, materialContent.blocks)
+  }
 
   const truncatedSelected = selectedText
     ? truncate(selectedText.trim(), MAX_SELECTED_TEXT_CHARS)

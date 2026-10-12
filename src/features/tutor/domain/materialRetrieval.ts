@@ -1,7 +1,62 @@
 import type { MaterialContentBlock } from '#/features/learning-space/domain/materialContent'
-import { extractKeywords, keywordOverlapScore } from './textRelevance'
+import { extractKeywords, keywordOverlapScore, keywordOverlapScoreSets } from './textRelevance'
 
 const MAX_RELEVANT_BLOCKS = 3
+const MAX_CACHED_MATERIALS = 20
+
+type ChunkIndex = {
+  fingerprint: string
+  keywords: Set<string>[]
+}
+
+const chunkIndexes = new Map<string, ChunkIndex>()
+
+function fingerprintBlocks(blocks: MaterialContentBlock[]): string {
+  const first = blocks[0]?.text.slice(0, 64) ?? ''
+  const last = blocks[blocks.length - 1]?.text.slice(-64) ?? ''
+  return `${blocks.length}:${first.length}:${last.length}:${first}:${last}`
+}
+
+const scheduleWork: (work: () => void) => void =
+  typeof requestIdleCallback === 'function'
+    ? (work) => requestIdleCallback(() => work())
+    : (work) => {
+        window.setTimeout(work, 0)
+      }
+
+/*
+ * Pre-tokenize a material's blocks in the background (called after
+ * extraction) so asking never pays tokenization twice. Bounded and
+ * self-invalidating via fingerprint — content edits rebuild on next ask.
+ */
+export function precomputeChunkIndex(key: string, blocks: MaterialContentBlock[]): void {
+  scheduleWork(() => {
+    if (chunkIndexes.size >= MAX_CACHED_MATERIALS) {
+      const oldest = chunkIndexes.keys().next()
+      if (!oldest.done) chunkIndexes.delete(oldest.value)
+    }
+    chunkIndexes.set(key, {
+      fingerprint: fingerprintBlocks(blocks),
+      keywords: blocks.map((block) => extractKeywords(block.text)),
+    })
+  })
+}
+
+function blockKeywords(
+  key: string | undefined,
+  blocks: MaterialContentBlock[],
+): Set<string>[] | null {
+  if (!key) return null
+  const entry = chunkIndexes.get(key)
+  if (
+    !entry ||
+    entry.fingerprint !== fingerprintBlocks(blocks) ||
+    entry.keywords.length !== blocks.length
+  ) {
+    return null
+  }
+  return entry.keywords
+}
 
 /**
  * Turns raw, extracted material content into the excerpt that's actually
@@ -20,6 +75,7 @@ export function selectRelevantMaterialExcerpt(
   blocks: MaterialContentBlock[],
   topic: string,
   maxChars: number,
+  materialKey?: string,
 ): string {
   const topicKeywords = extractKeywords(topic)
 
@@ -27,12 +83,19 @@ export function selectRelevantMaterialExcerpt(
     return ''
   }
 
+  const cached = blockKeywords(materialKey, blocks)
+
   const scoredBlocks = blocks
-    .map((block, index) => ({
-      block,
-      index,
-      score: keywordOverlapScore(topicKeywords, block.text),
-    }))
+    .map((block, index) => {
+      const cachedSet = cached?.[index]
+      return {
+        block,
+        index,
+        score: cachedSet
+          ? keywordOverlapScoreSets(topicKeywords, cachedSet)
+          : keywordOverlapScore(topicKeywords, block.text),
+      }
+    })
     .filter((entry) => entry.score > 0)
 
   if (scoredBlocks.length === 0) {

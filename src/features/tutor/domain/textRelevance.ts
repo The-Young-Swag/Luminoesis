@@ -36,15 +36,21 @@ export function keywordOverlapScore(
   queryKeywords: Set<string>,
   text: string,
 ): number {
+  return keywordOverlapScoreSets(queryKeywords, extractKeywords(text))
+}
+
+/** Set-against-set variant for pre-tokenized blocks (see chunk index). */
+export function keywordOverlapScoreSets(
+  queryKeywords: Set<string>,
+  docKeywords: Set<string>,
+): number {
   if (queryKeywords.size === 0) {
     return 0
   }
 
-  const textKeywords = extractKeywords(text)
-
   let matches = 0
   for (const word of queryKeywords) {
-    if (textKeywords.has(word)) {
+    if (docKeywords.has(word)) {
       matches += 1
     }
   }
