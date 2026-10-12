@@ -12,9 +12,10 @@ import {
 } from '../domain/tutorTopic'
 import { extractKeywords, keywordOverlapScore } from '../domain/textRelevance'
 import {
-  createTutorWorker,
+  getSharedTutorWorker,
   type TutorWorkerClient,
 } from '../workers/tutorWorkerClient'
+import { settingsRepository } from '#/shared/repositories/settingsRepository'
 
 let cachedPipelines = new Map<string, unknown>()
 let failedPipelines = new Set<string>()
@@ -172,7 +173,7 @@ const WHY_PATTERN = /\bwhy\b/i
 
 const HOW_PATTERN = /\bhow\b/i
 
-function classifyIntent(question: string): TutorIntent {
+export function classifyIntent(question: string): TutorIntent {
   if (COMPARE_PATTERN.test(question)) {
     return 'compare'
   }
@@ -243,7 +244,7 @@ function getPreviousSelectedText(
   return undefined
 }
 
-function learnerIsRejectingPreviousAnswer(question: string): boolean {
+export function learnerIsRejectingPreviousAnswer(question: string): boolean {
   const normalized = question.toLowerCase()
 
   const correctionPatterns = [
@@ -404,7 +405,7 @@ function buildMessages(request: TutorRequest): ChatMessage[] {
   return messages
 }
 
-function isStructurallyInvalid(
+export function isStructurallyInvalid(
   generated: string,
   question: string,
 ): boolean {
@@ -439,7 +440,7 @@ function isStructurallyInvalid(
   return invalidPhrases.some((phrase) => normalized.includes(phrase))
 }
 
-function looksLikeSourceRepetition(
+export function looksLikeSourceRepetition(
   generated: string,
   selectedText: string | undefined,
 ): boolean {
@@ -478,7 +479,7 @@ function looksLikeSourceRepetition(
   return overlapRatio >= 0.78
 }
 
-function mentionsPreviousTopicInstead(
+export function mentionsPreviousTopicInstead(
   generated: string,
   selectedText: string | undefined,
   previousSelectedText: string | undefined,
@@ -557,13 +558,10 @@ export type { TutorRespondOptions } from '../domain/tutor'
  * question after that reuses it. Null where Workers are unavailable —
  * the provider then runs on the main thread instead.
  */
-let sharedWorker: TutorWorkerClient | null | undefined
 let workerLoadedTier: LocalModelTier | null = null
 
 function getSharedWorker(): TutorWorkerClient | null {
-  if (sharedWorker !== undefined) return sharedWorker
-  sharedWorker = createTutorWorker()
-  return sharedWorker
+  return getSharedTutorWorker()
 }
 
 async function ensureWorkerLoaded(
@@ -634,14 +632,17 @@ export class LocalTutorProvider implements TutorProvider {
    * preload just means the first ask loads on demand or falls back.
    */
   async preload(
-    tier: LocalModelTier = 'standard',
+    tier?: LocalModelTier,
     onProgress?: (fraction: number, file: string) => void,
   ): Promise<boolean> {
+    const resolved =
+      tier ??
+      (await settingsRepository.getLocalModelTier().catch(() => 'standard' as const))
     const worker = getSharedWorker()
     if (!worker) return false
 
     try {
-      await ensureWorkerLoaded(worker, tier, onProgress)
+      await ensureWorkerLoaded(worker, resolved, onProgress)
       return true
     } catch {
       return false
