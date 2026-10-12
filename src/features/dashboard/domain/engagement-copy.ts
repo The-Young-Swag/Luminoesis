@@ -30,6 +30,17 @@ export function formatDeltaPercent(
   return `${Math.round(currentRate * 100)}% ${arrow} ${delta}`
 }
 
+// Count deltas — plain counts, never fake precision
+export function formatCountDelta(
+  current: number,
+  previous: number,
+): string {
+  const diff = current - previous
+  if (diff === 0) return 'steady vs last week'
+  const sign = diff > 0 ? '+' : '−'
+  return `${sign}${Math.abs(diff)} vs last week`
+}
+
 // Gain-framing — "lock in what you've learned" not "you'll forget"
 export function gainFrameRetention(
   topic: string,

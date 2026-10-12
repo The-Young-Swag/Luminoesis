@@ -6,6 +6,7 @@ import {
   retentionPeriodComparisonEvents,
   sessionSummaries,
 } from '#/features/insights/domain/analytics'
+import { formatCountDelta } from '#/features/dashboard/domain/engagement-copy'
 import { classifyLearningState } from '#/features/learning-state/domain/classifyState'
 import { MIN_SAMPLES_FOR_BASELINE, peakWindow, zScore } from '#/features/learning-state/domain/baseline'
 
@@ -152,7 +153,34 @@ export function useDashboardAnalytics({
     )
   }, [summaries])
 
+  const studyMinutesDelta = useMemo(() => {
+    const now = Date.now()
+    const weekAgo = now - RETENTION_COMPARISON_WINDOW_DAYS * MILLISECONDS_PER_DAY
+    const twoWeeksAgo = now - 2 * RETENTION_COMPARISON_WINDOW_DAYS * MILLISECONDS_PER_DAY
+
+    const previous = Math.round(
+      summaries
+        .filter((session) => {
+          const started = new Date(session.startedAt).getTime()
+          return started >= twoWeeksAgo && started < weekAgo
+        })
+        .reduce((total, session) => total + session.durationMinutes, 0),
+    )
+
+    if (studyMinutesThisWeek === 0 && previous === 0) return null
+    return formatCountDelta(studyMinutesThisWeek, previous)
+  }, [summaries, studyMinutesThisWeek])
+
   const recentReviewCount = retentionComparison.currentReviews
+
+  const recentReviewDelta =
+    retentionComparison.currentReviews === 0 &&
+    retentionComparison.previousReviews === 0
+      ? null
+      : formatCountDelta(
+          retentionComparison.currentReviews,
+          retentionComparison.previousReviews,
+        )
 
   const learningState = classifyLearningState({ baseline, recent: recentSignals })
 
@@ -185,9 +213,9 @@ export function useDashboardAnalytics({
       ? '—'
       : `${Math.round(retentionComparison.current * 100)}%`
 
-  const recallHint =
+  const recallDelta =
     retentionComparison.delta === null
-      ? 'More history needed for delta'
+      ? null
       : `${formatSignedPoints(retentionComparison.delta)} vs last week`
 
   const calibrationProgress = useMemo(() => {
@@ -210,12 +238,14 @@ export function useDashboardAnalytics({
     summaries,
     retentionComparison,
     studyMinutesThisWeek,
+    studyMinutesDelta,
     recentReviewCount,
+    recentReviewDelta,
     learningState,
     isCalibrating,
     retentionChartData,
     recallValue,
-    recallHint,
+    recallDelta,
     calibrationProgress,
   }
 }

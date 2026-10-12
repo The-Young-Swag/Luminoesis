@@ -7,10 +7,11 @@ type StatCardProps = {
   label: string
   value: string
   hint: string
+  delta?: string | null
   to?: string
 }
 
-export function StatCard({ icon, label, value, hint, to }: StatCardProps) {
+export function StatCard({ icon, label, value, hint, delta, to }: StatCardProps) {
   const inner = (
     <>
       <div
@@ -35,6 +36,15 @@ export function StatCard({ icon, label, value, hint, to }: StatCardProps) {
 
       <div className="display relative mt-3 text-2xl tabular-nums">{value}</div>
       <div className="relative mt-1 truncate text-xs text-(--ink-soft)">{hint}</div>
+
+      {delta && (
+        <div className="relative mt-2 inline-flex items-center gap-1 rounded-full border border-(--line) bg-(--surface-muted) px-2 py-0.5 font-mono text-[10px] font-semibold tabular-nums text-(--ink-soft)">
+          <span aria-hidden="true">
+            {delta.startsWith('+') ? '↑' : delta.startsWith('−') || delta.startsWith('-') ? '↓' : '→'}
+          </span>
+          {delta}
+        </div>
+      )}
     </>
   )
 
