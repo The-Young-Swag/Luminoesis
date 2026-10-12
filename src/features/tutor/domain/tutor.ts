@@ -87,6 +87,13 @@ export type TutorResponse = {
   execution?: TutorExecution
   citation?: TutorCitation
   /*
+   * Local confidence in the answer. 'low' means validators rejected the
+   * generation and the text is a safe fallback — the signal escalation
+   * uses to decide whether the cloud is worth asking. Absent on provider
+   * paths that predate the signal; treat absent as 'high'.
+   */
+  confidence?: 'high' | 'low'
+  /*
    * Populated only by Online Mode when web retrieval contributed to the
    * answer. Always the real sources webRetrieval.ts returned — titles and
    * URLs are never fabricated. Lets the UI attribute material vs. web vs.

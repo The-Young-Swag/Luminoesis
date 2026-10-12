@@ -516,6 +516,7 @@ function buildFallbackResponse(
         .replace(/[.]+$/, '')}. In simpler terms, this passage is explaining the main idea and how its supporting facts relate to it.`,
       provider: 'local',
       execution: 'fallback',
+      confidence: 'low',
       citation: material
         ? {
             materialId: material.id,
@@ -536,6 +537,7 @@ function buildFallbackResponse(
       text: `Based on the material, the relevant idea is: ${excerptPreview}.`,
       provider: 'local',
       execution: 'fallback',
+      confidence: 'low',
       citation: {
         materialId: material.id,
         materialTitle: material.title,
@@ -548,6 +550,7 @@ function buildFallbackResponse(
     text: `I couldn't generate a reliable explanation for "${prompt}".`,
     provider: 'local',
     execution: 'fallback',
+    confidence: 'low',
   }
 }
 
@@ -603,6 +606,7 @@ function finishResponse(request: TutorRequest, generated: string): TutorResponse
       text: generated,
       provider: 'local',
       execution: 'on-device',
+      confidence: 'high',
       citation: material
         ? {
             materialId: material.id,

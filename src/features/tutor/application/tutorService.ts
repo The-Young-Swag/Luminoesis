@@ -55,6 +55,31 @@ function rememberResponse(options: TutorServiceOptions, response: TutorResponse)
   responseCache.set(cacheKey(options), response)
 }
 
+/*
+ * Opt-in cloud escalation, off by default. Only low-confidence local
+ * answers go to Gemini — everything else never leaves the device.
+ * Escalated answers are never cached as local ones.
+ */
+async function maybeEscalate(
+  request: TutorRequest,
+  localResponse: TutorResponse,
+  onToken?: (text: string) => void,
+): Promise<TutorResponse | null> {
+  if (localResponse.confidence !== 'low') return null
+
+  const escalationOn = await settingsRepository
+    .getTutorEscalation()
+    .catch(() => false)
+  if (!escalationOn) return null
+
+  try {
+    return await fetchGeminiTutor(request, { onToken })
+  } catch (error) {
+    console.warn('[tutor] escalation failed, keeping local answer', error)
+    return null
+  }
+}
+
 export class TutorService {
   constructor(
     private readonly localProvider: TutorProvider = localTutorProvider,
@@ -103,6 +128,12 @@ export class TutorService {
         )
       })
       const response = await Promise.race([localPromise, timeoutPromise])
+
+      const escalated = await maybeEscalate(request, response, options.onToken)
+      if (escalated) {
+        return escalated
+      }
+
       rememberResponse(options, response)
       return response
     } catch (error) {
@@ -123,34 +154,125 @@ export const tutorService = new TutorService()
  * Preserved but frozen for future release.
  * Keeps GEMINI_API_KEY server-side; browser only talks to our /tutor/chat.
  */
-export async function fetchGeminiTutor(request: TutorRequest): Promise<TutorResponse> {
+const GEMINI_STREAM_TIMEOUT_MS = 90000
+
+export async function fetchGeminiTutor(
+  request: TutorRequest,
+  options?: { onToken?: (text: string) => void },
+): Promise<TutorResponse> {
   const base = import.meta.env.VITE_SYNC_URL ?? 'http://localhost:4901'
   const url = `${base.replace(/\/$/, '')}/tutor/chat`
+
+  const body = JSON.stringify({
+    prompt: request.context.prompt,
+    selectedText: request.context.selectedText,
+    materialId: request.context.material?.id,
+    materialTitle: request.context.material?.title,
+    excerpt: request.context.material?.excerpt.slice(0, 4000),
+    concepts: request.context.concepts.slice(0, 8),
+    weakSpots: request.context.weakSpots,
+  })
+
+  const streamed = await tryGeminiStream(`${url}/stream`, body, options?.onToken)
+  if (streamed !== null) return streamed
 
   const response = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
-    body: JSON.stringify({
-      prompt: request.context.prompt,
-      selectedText: request.context.selectedText,
-      materialId: request.context.material?.id,
-      materialTitle: request.context.material?.title,
-      excerpt: request.context.material?.excerpt.slice(0, 4000),
-      concepts: request.context.concepts.slice(0, 8),
-      weakSpots: request.context.weakSpots,
-    }),
+    body,
   })
 
   if (!response.ok) {
-    const body = await response.json().catch(() => ({}))
-    throw new Error(body.error ?? `Tutor request failed: ${response.status}`)
+    const data = await response.json().catch(() => ({}))
+    throw new Error(
+      (data as { error?: string }).error ?? `Tutor request failed: ${response.status}`,
+    )
   }
 
-  const data = await response.json()
+  const data = (await response.json()) as {
+    text: string
+    citation?: TutorResponse['citation']
+  }
   return {
     text: data.text,
     provider: 'gemini',
+    confidence: 'high',
     citation: data.citation,
+  }
+}
+
+async function tryGeminiStream(
+  url: string,
+  body: string,
+  onToken?: (text: string) => void,
+): Promise<TutorResponse | null> {
+  const controller = new AbortController()
+  const timer = window.setTimeout(() => controller.abort(), GEMINI_STREAM_TIMEOUT_MS)
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'text/event-stream' },
+      credentials: 'include',
+      body,
+      signal: controller.signal,
+    })
+
+    if (!response.ok || !response.body) return null
+
+    const reader = response.body.getReader()
+    const decoder = new TextDecoder()
+    let buffer = ''
+    let fullText = ''
+    let citation: TutorResponse['citation']
+
+    for (;;) {
+      const { done, value } = await reader.read()
+      if (done) break
+      buffer += decoder.decode(value, { stream: true })
+
+      const lines = buffer.split('\n')
+      buffer = lines.pop() ?? ''
+
+      for (const line of lines) {
+        const trimmed = line.trim()
+        if (!trimmed.startsWith('data:')) continue
+        const payload = trimmed.slice(5).trim()
+        if (!payload) continue
+
+        let event: {
+          token?: string
+          done?: boolean
+          error?: string
+          citation?: TutorResponse['citation']
+        }
+        try {
+          event = JSON.parse(payload)
+        } catch {
+          // Split across TCP chunks — put the line back and keep buffering.
+          buffer = `${line}\n${buffer}`
+          continue
+        }
+
+        if (event.error) throw new Error(event.error)
+        if (event.token) {
+          fullText += event.token
+          onToken?.(event.token)
+        }
+        if (event.citation) citation = event.citation
+        if (event.done) {
+          const text = fullText.trim()
+          if (!text) throw new Error('Online Tutor returned an empty response.')
+          return { text, provider: 'gemini', confidence: 'high', citation }
+        }
+      }
+    }
+
+    return null
+  } catch {
+    return null
+  } finally {
+    window.clearTimeout(timer)
   }
 }

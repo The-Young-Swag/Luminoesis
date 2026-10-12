@@ -14,6 +14,7 @@ import {
   setAdaptiveOptIn,
 } from '#/features/privacy/privacyService'
 import { downloadJson } from '#/shared/lib/download'
+import { settingsRepository } from '#/shared/repositories/settingsRepository'
 
 const FEATURE_LABEL: Record<FeatureName, string> = {
   interKeyLatency: 'Time between keystrokes',
@@ -60,6 +61,7 @@ export function PrivacyPage() {
   const [optIn, setOptIn] = useState<boolean | null>(null)
   const [signals, setSignals] = useState<SessionSignal[]>([])
   const [baseline, setBaseline] = useState<BaselineFeature[]>([])
+  const [escalationOn, setEscalationOn] = useState(false)
 
   const refresh = async () => {
     const data = await loadPrivacyData()
@@ -67,6 +69,7 @@ export function PrivacyPage() {
     setOptIn(data.optIn)
     setSignals(data.signals)
     setBaseline(data.baseline)
+    setEscalationOn(await settingsRepository.getTutorEscalation().catch(() => false))
   }
 
   useEffect(() => {
@@ -120,7 +123,10 @@ export function PrivacyPage() {
         <em>timing</em> — how you type, not what you write. That protection is
         built in: the instant a key is pressed, only a number (the timing) is
         kept, and the actual character is thrown away before anything is ever
-        stored. Nothing is sent to a server.
+        stored.{' '}
+        {escalationOn
+          ? 'Tutor escalation is on: questions the on-device model answers poorly are sent to Gemini with your excerpt. Turn it off in Settings.'
+          : 'Nothing is sent to a server.'}
       </p>
 
       <div className="card-flat mt-6 p-5">

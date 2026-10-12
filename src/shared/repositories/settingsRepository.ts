@@ -38,6 +38,22 @@ export const settingsRepository = {
     )
   },
 
+  getTutorEscalation(): Promise<boolean> {
+    return getSetting<boolean>(
+      SETTINGS_KEYS.tutorEscalation,
+      false,
+    )
+  },
+
+  setTutorEscalation(
+    value: boolean,
+  ): Promise<void> {
+    return setSetting(
+      SETTINGS_KEYS.tutorEscalation,
+      value,
+    )
+  },
+
   getAllSettings() {
     return db.appSettings.toArray()
   },

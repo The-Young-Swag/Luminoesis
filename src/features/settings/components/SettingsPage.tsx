@@ -11,10 +11,12 @@ export function SettingsPage() {
   const { theme, toggleTheme } = useTheme()
   const [optIn, setOptIn] = useState<boolean | null>(null)
   const [modelTier, setModelTier] = useState<'standard' | 'capable'>('standard')
+  const [escalation, setEscalation] = useState(false)
 
   useEffect(() => {
     loadPrivacyData().then((data) => setOptIn(data.optIn)).catch(() => {})
     settingsRepository.getLocalModelTier().then(setModelTier).catch(() => {})
+    settingsRepository.getTutorEscalation().then(setEscalation).catch(() => {})
   }, [])
 
   const handleOptIn = async (value: boolean) => {
@@ -141,6 +143,46 @@ export function SettingsPage() {
         <p className="mt-2 text-xs text-(--ink-faint)">
           If the capable build fails to load, answers silently fall back to Standard.
         </p>
+      </div>
+
+      <div className="card-flat mt-4 p-5">
+        <h2 className="text-sm font-semibold">Online tutor escalation</h2>
+        <p className="mt-1 text-sm text-(--ink-soft)">
+          Off by default. When on, only questions the on-device model answers
+          poorly are sent to Gemini — with your excerpt and question leaving
+          this device. Everything else stays local.
+        </p>
+        <div className="mt-3 flex items-center gap-2">
+          <span
+            className={`rounded-full border px-2.5 py-1 text-xs ${
+              escalation ? 'border-(--emerald)/30 bg-(--emerald-muted) text-(--veridian-strong)' : 'border-(--line) bg-(--surface-muted) text-(--ink-faint)'
+            }`}
+          >
+            {escalation ? 'On' : 'Off'}
+          </span>
+          <div className="ml-auto flex gap-2">
+            <button
+              type="button"
+              className="btn-ghost text-xs"
+              onClick={() => {
+                setEscalation(true)
+                void settingsRepository.setTutorEscalation(true)
+              }}
+            >
+              Turn on
+            </button>
+            <button
+              type="button"
+              className="btn-ghost text-xs"
+              onClick={() => {
+                setEscalation(false)
+                void settingsRepository.setTutorEscalation(false)
+              }}
+            >
+              Turn off
+            </button>
+          </div>
+        </div>
       </div>
 
       <div className="card-flat mt-4 p-5">

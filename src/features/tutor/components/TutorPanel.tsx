@@ -12,6 +12,7 @@ import { CornerDownLeft, Info, Sparkles } from 'lucide-react'
 
 import { tutorService } from '#/features/tutor/application/tutorService'
 import { localTutorProvider } from '#/features/tutor/providers/localTutorProvider'
+import { settingsRepository } from '#/shared/repositories/settingsRepository'
 import type { TutorMessage } from '#/features/tutor/domain/tutor'
 
 type TutorPanelProps = {
@@ -57,6 +58,7 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
     const [modelStatus, setModelStatus] = useState<'idle' | 'loading' | 'ready' | 'unavailable'>('idle')
     const [modelProgress, setModelProgress] = useState(0)
     const [modelFile, setModelFile] = useState('')
+    const [escalationOn, setEscalationOn] = useState(false)
     const preloadedRef = useRef(false)
     const textareaRef = useRef<HTMLTextAreaElement>(null)
     const endRef = useRef<HTMLDivElement>(null)
@@ -76,6 +78,11 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
       } catch {
         // Persistence is a nicety, never a blocker.
       }
+
+      void settingsRepository
+        .getTutorEscalation()
+        .then(setEscalationOn)
+        .catch(() => {})
 
       void localTutorProvider
         .preload(undefined, (fraction, file) => {
@@ -315,6 +322,13 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
         </div>
 
         <div className="shrink-0 border-t border-(--glass-border) p-5">
+          {escalationOn && (
+            <p className="mb-3 rounded-xl border border-(--warning)/30 bg-(--warning-muted) px-3 py-2 text-xs leading-5 text-(--warning-strong)">
+              Escalation is on — questions the on-device model answers poorly
+              are sent to Gemini with your excerpt. Turn it off in Settings.
+            </p>
+          )}
+
           {modelStatus === 'loading' && (
             <div className="mb-3" role="status" aria-live="polite">
               <div className="flex items-baseline justify-between gap-2 font-mono text-[10px] text-(--ink-faint)">
