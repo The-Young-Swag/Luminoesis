@@ -95,10 +95,6 @@ export function ReviewPage() {
 
   const current = queue[idx]
 
-  const progress = queue.length
-    ? `${Math.min(idx + 1, queue.length)} / ${queue.length}`
-    : '0 / 0'
-
   const load = useCallback(async () => {
     try {
       setIsLoading(true)
@@ -451,7 +447,8 @@ export function ReviewPage() {
       )}
 
       <ReviewHeader
-        progress={progress}
+        done={Math.min(idx + 1, queue.length)}
+        total={queue.length}
         topic={current.topic}
         dueDate={current.dueDate}
         captureEnabled={captureEnabled}
@@ -490,7 +487,8 @@ export function ReviewPage() {
 }
 
 type ReviewHeaderProps = {
-  progress: string
+  done: number
+  total: number
   topic: string
   dueDate: string
   captureEnabled: boolean
@@ -501,7 +499,8 @@ type ReviewHeaderProps = {
 }
 
 function ReviewHeader({
-  progress,
+  done,
+  total,
   topic,
   dueDate,
   captureEnabled,
@@ -511,17 +510,19 @@ function ReviewHeader({
   onToggleBreak,
 }: ReviewHeaderProps) {
   const overdueDays = daysOverdue(dueDate)
+  const percent = total > 0 ? Math.round((done / total) * 100) : 0
 
   return (
+    <div>
     <div className="flex items-center justify-between">
       <div className="text-sm tabular-nums text-(--ink-faint)">
         <span
           className="font-medium text-(--ink)"
           role="status"
           aria-live="polite"
-          aria-label={`Card ${progress} in queue`}
+          aria-label={`Card ${done} of ${total} in queue`}
         >
-          {progress}
+          {done} / {total}
         </span>{' '}
         · {topic} ·{' '}
         <time dateTime={dueDate}>due {formatDueDate(dueDate)}</time>{' '}
@@ -563,6 +564,21 @@ function ReviewHeader({
           </button>
         ) : null}
       </div>
+    </div>
+
+    <div
+      role="progressbar"
+      aria-label="Session progress"
+      aria-valuenow={done}
+      aria-valuemin={0}
+      aria-valuemax={total}
+      className="mt-3 h-1 overflow-hidden rounded-full bg-(--surface-muted)"
+    >
+      <div
+        className="h-full rounded-full bg-(--veridian) transition-[width] duration-500 ease-out"
+        style={{ width: `${percent}%` }}
+      />
+    </div>
     </div>
   )
 }
