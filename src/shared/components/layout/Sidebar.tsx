@@ -7,82 +7,45 @@ import {
   LineChart,
   Menu,
   Moon,
-  MoreHorizontal,
   PanelLeftClose,
   PanelLeftOpen,
   Search,
   Settings2,
-  ShieldCheck,
   Sun,
   X,
-  Brain,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 
 import { useTheme } from '#/shared/hooks/useTheme'
+import { db } from '#/shared/lib/db/dexie'
 import { CommandPalette } from '#/shared/components/command/CommandPalette'
 
 type NavItem = {
   to: string
   label: string
   icon: LucideIcon
-  meta?: string
 }
 
 const PRIMARY_NAV_ITEMS: NavItem[] = [
-  {
-    to: '/',
-    label: 'Dashboard',
-    icon: LayoutDashboard,
-  },
-  {
-    to: '/learning-spaces',
-    label: 'Learning Spaces',
-    icon: Layers3,
-  },
-  {
-    to: '/review',
-    label: 'Review',
-    icon: GraduationCap,
-  },
-  {
-    to: '/library',
-    label: 'Library',
-    icon: Library,
-  },
-  {
-    to: '/insights',
-    label: 'Insights',
-    icon: LineChart,
-  },
-  {
-    to: '/flashcards',
-    label: 'Flashcards',
-    icon: Brain,
-  },
+  { to: '/', label: 'Today', icon: LayoutDashboard },
+  { to: '/learning-spaces', label: 'Spaces', icon: Layers3 },
+  { to: '/review', label: 'Review', icon: GraduationCap },
+  { to: '/library', label: 'Library', icon: Library },
+  { to: '/insights', label: 'Insights', icon: LineChart },
 ]
 
-const SECONDARY_NAV_ITEMS: NavItem[] = [
-  {
-    to: '/privacy',
-    label: 'Privacy',
-    icon: ShieldCheck,
-  },
-  {
-    to: '/settings',
-    label: 'Settings',
-    icon: Settings2,
-  },
+const SYSTEM_NAV_ITEMS: NavItem[] = [
+  { to: '/settings', label: 'Settings', icon: Settings2 },
 ]
 
-const MOBILE_TAB_COUNT = 3
+const MOBILE_TABS = PRIMARY_NAV_ITEMS
 
 const RECENT_ROUTES_KEY = 'luminoesis:recent-routes'
 const RECENT_ROUTES_LIMIT = 5
 
 export function recordRouteVisit(pathname: string): void {
-  const known = [...PRIMARY_NAV_ITEMS, ...SECONDARY_NAV_ITEMS].some(
+  const known = [...PRIMARY_NAV_ITEMS, ...SYSTEM_NAV_ITEMS].some(
     (item) => item.to === pathname,
   )
   if (!known) return
@@ -110,23 +73,40 @@ export function readRecentRoutes(): string[] {
   }
 }
 
-const MOBILE_PRIMARY_ITEMS = PRIMARY_NAV_ITEMS.slice(
-  0,
-  MOBILE_TAB_COUNT,
-)
-
-const MOBILE_MORE_ITEMS = [
-  ...PRIMARY_NAV_ITEMS.slice(MOBILE_TAB_COUNT),
-  ...SECONDARY_NAV_ITEMS,
-]
-
 function cx(...classes: Array<string | false | undefined>) {
   return classes.filter(Boolean).join(' ')
 }
 
+function todayKey(): string {
+  return new Date().toISOString().slice(0, 10)
+}
+
+function useDueCount(pathname: string): number | null {
+  const [count, setCount] = useState<number | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function load() {
+      try {
+        const due = await db.cards.where('dueDate').belowOrEqual(todayKey()).count()
+        if (!cancelled) setCount(due)
+      } catch {
+        if (!cancelled) setCount(null)
+      }
+    }
+
+    void load()
+    return () => {
+      cancelled = true
+    }
+  }, [pathname])
+
+  return count
+}
+
 export default function Sidebar() {
   const [mobileOpen, setMobileOpen] = useState(false)
-  const [moreOpen, setMoreOpen] = useState(false)
   const [paletteOpen, setPaletteOpen] = useState(false)
 
   const pathname = useRouterState({
@@ -137,52 +117,44 @@ export default function Sidebar() {
 
   useEffect(() => {
     setMobileOpen(false)
-    setMoreOpen(false)
     setPaletteOpen(false)
     recordRouteVisit(pathname)
   }, [pathname])
 
   useEffect(() => {
+    const toggle = () => setPaletteOpen((open) => !open)
     const onKeyDown = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
         event.preventDefault()
-        setPaletteOpen((open) => !open)
+        toggle()
       }
     }
+    const onOpenEvent = () => setPaletteOpen(true)
     window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
+    window.addEventListener('luminoesis:open-palette', onOpenEvent)
+    return () => {
+      window.removeEventListener('keydown', onKeyDown)
+      window.removeEventListener('luminoesis:open-palette', onOpenEvent)
+    }
   }, [])
 
   const openPalette = () => setPaletteOpen(true)
 
   return (
     <>
-      {/* Mobile */}
       <MobileHeader
         focusMode={isFocusMode}
         onOpenNavigation={() => setMobileOpen(true)}
         onOpenPalette={openPalette}
       />
 
-      <MobileBottomNavigation
-        focusMode={isFocusMode}
-        moreOpen={moreOpen}
-        onToggleMore={() => setMoreOpen((open) => !open)}
-      />
-
-      {moreOpen && (
-        <MobileMoreSheet
-          items={MOBILE_MORE_ITEMS}
-          onClose={() => setMoreOpen(false)}
-        />
-      )}
+      <MobileTabBar focusMode={isFocusMode} />
 
       {mobileOpen && (
         <MobileDrawer onClose={() => setMobileOpen(false)} />
       )}
 
-      {/* Desktop */}
-      <DesktopSidebar focusMode={isFocusMode} onOpenPalette={openPalette} />
+      <DesktopSidebar focusMode={isFocusMode} pathname={pathname} />
 
       <CommandPalette
         open={paletteOpen}
@@ -221,7 +193,7 @@ function MobileHeader({
         to="/"
         className="flex items-center gap-2.5 no-underline"
       >
-        <BrandMark />
+        <BrandMark size={32} />
 
         <span className="display text-lg tracking-tight text-(--ink)">
           Luminoesis
@@ -229,13 +201,11 @@ function MobileHeader({
       </Link>
 
       <div className="flex items-center gap-2">
-        <ThemeToggle />
-
         <button
           type="button"
           aria-label="Open command palette"
           onClick={onOpenPalette}
-          className="glass-pill grid h-9 w-9 place-items-center"
+          className="glass-pill grid h-11 w-11 place-items-center"
         >
           <Search size={16} aria-hidden="true" />
         </button>
@@ -244,7 +214,7 @@ function MobileHeader({
           type="button"
           aria-label="Open navigation"
           onClick={onOpenNavigation}
-          className="grid h-9 w-9 place-items-center rounded-full bg-(--racing) text-white"
+          className="grid h-11 w-11 place-items-center rounded-full bg-(--accent) text-(--accent-ink)"
         >
           <Menu size={18} aria-hidden="true" />
         </button>
@@ -254,150 +224,64 @@ function MobileHeader({
 }
 
 /* -------------------------------------------------------------------------- */
-/* Mobile bottom navigation */
+/* Mobile bottom tab bar — the 5 primary destinations */
 /* -------------------------------------------------------------------------- */
 
-type MobileBottomNavigationProps = {
-  focusMode: boolean
-  moreOpen: boolean
-  onToggleMore: () => void
-}
+function MobileTabBar({ focusMode }: { focusMode: boolean }) {
+  const pathname = useRouterState({
+    select: (state) => state.location.pathname,
+  })
+  const due = useDueCount(pathname)
 
-function MobileBottomNavigation({
-  focusMode,
-  moreOpen,
-  onToggleMore,
-}: MobileBottomNavigationProps) {
   return (
     <nav
-      aria-label="Mobile navigation"
+      aria-label="Primary"
       inert={focusMode}
       aria-hidden={focusMode}
       className={cx(
-        'safe-area-pb glass-nav fixed inset-x-0 bottom-0 z-40 flex items-center justify-around border-t border-(--line) px-2 py-2 lg:hidden',
+        'glass-nav fixed inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom,0px))] z-40 flex items-center rounded-3xl border border-(--glass-border) px-1 py-1.5 lg:hidden',
         focusMode &&
           'pointer-events-none translate-y-full opacity-0',
       )}
     >
-      {MOBILE_PRIMARY_ITEMS.map((item) => (
-        <MobileTab key={item.to} item={item} />
+      {MOBILE_TABS.map((item) => (
+        <MobileTab key={item.to} item={item} badge={item.to === '/review' ? due : null} />
       ))}
-
-      <button
-        type="button"
-        aria-label="More navigation options"
-        aria-expanded={moreOpen}
-        onClick={onToggleMore}
-        className="flex flex-col items-center gap-1 rounded-xl px-3 py-1.5 text-(--ink-soft)"
-      >
-        <MoreHorizontal size={20} aria-hidden="true" />
-
-        <span className="mono-label text-[10px]">
-          More
-        </span>
-      </button>
     </nav>
   )
 }
 
-function MobileTab({ item }: { item: NavItem }) {
+function MobileTab({ item, badge }: { item: NavItem; badge: number | null }) {
   const Icon = item.icon
 
   return (
     <Link
       to={item.to}
-      className="flex flex-col items-center gap-1 rounded-xl px-3 py-1.5 text-(--ink-soft)"
+      className="relative flex min-h-12 flex-1 flex-col items-center justify-center gap-0.5 rounded-2xl px-1 py-1.5 text-(--ink-soft)"
       activeProps={{
         className:
-          'flex flex-col items-center gap-1 rounded-xl bg-(--racing) px-3 py-1.5 text-white',
+          'relative flex min-h-12 flex-1 flex-col items-center justify-center gap-0.5 rounded-2xl bg-(--accent-soft) px-1 py-1.5 text-(--ink)',
         'aria-current': 'page',
       }}
     >
       <Icon size={20} aria-hidden="true" />
 
-      <span className="mono-label text-[10px]">
+      <span className="text-[10px] font-semibold leading-none">
         {item.label}
       </span>
+
+      {typeof badge === 'number' && badge > 0 && (
+        <span className="absolute right-1/2 top-0.5 translate-x-4 rounded-full bg-(--accent) px-1.5 py-px font-mono text-[10px] font-semibold tabular-nums text-(--accent-ink)">
+          {badge > 99 ? '99+' : badge}
+        </span>
+      )}
     </Link>
   )
 }
 
 /* -------------------------------------------------------------------------- */
-/* Mobile overlays */
+/* Mobile drawer — full navigation */
 /* -------------------------------------------------------------------------- */
-
-function MobileMoreSheet({
-  items,
-  onClose,
-}: {
-  items: NavItem[]
-  onClose: () => void
-}) {
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose()
-    }
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [onClose])
-
-  return (
-    <div className="fixed inset-0 z-50 flex flex-col justify-end lg:hidden">
-      <button
-        type="button"
-        aria-label="Close more navigation"
-        onClick={onClose}
-        className="glass-scrim flex-1"
-      />
-
-      <div className="glass-panel space-y-2 rounded-t-2xl border-t border-(--line) p-4">
-        {items.map((item) => (
-          <MoreNavLink
-            key={item.to}
-            item={item}
-            onNavigate={onClose}
-          />
-        ))}
-
-        <button
-          type="button"
-          onClick={onClose}
-          className="btn-ghost mt-2 w-full"
-        >
-          Close
-        </button>
-      </div>
-    </div>
-  )
-}
-
-function MoreNavLink({
-  item,
-  onNavigate,
-}: {
-  item: NavItem
-  onNavigate: () => void
-}) {
-  const Icon = item.icon
-
-  return (
-    <Link
-      to={item.to}
-      onClick={onNavigate}
-      className="flex items-center gap-3 rounded-xl border border-(--line) px-3 py-3 no-underline"
-    >
-      <Icon
-        size={18}
-        aria-hidden="true"
-        className="text-(--ink-soft)"
-      />
-
-      <span className="font-medium text-(--ink)">
-        {item.label}
-      </span>
-    </Link>
-  )
-}
 
 function MobileDrawer({
   onClose,
@@ -423,7 +307,7 @@ function MobileDrawer({
 
       <aside className="glass-nav flex w-75 max-w-[84vw] flex-col border-l border-sidebar-border shadow-2xl">
         <div className="flex h-14 shrink-0 items-center justify-between border-b border-sidebar-border px-4">
-          <span className="mono-label text-(--ink-faint)">
+          <span className="eyebrow">
             Navigation
           </span>
 
@@ -431,7 +315,7 @@ function MobileDrawer({
             type="button"
             aria-label="Close navigation"
             onClick={onClose}
-            className="glass-pill grid h-8 w-8 place-items-center"
+            className="glass-pill grid h-11 w-11 place-items-center"
           >
             <X size={16} aria-hidden="true" />
           </button>
@@ -439,12 +323,15 @@ function MobileDrawer({
 
         <nav
           aria-label="Sidebar navigation"
-          className="min-h-0 flex-1 overflow-y-auto p-4"
+          className="sidebar-scroll min-h-0 flex-1 overflow-y-auto p-4"
         >
           <SidebarNav onNavigate={onClose} />
         </nav>
 
-        <SidebarFooter />
+        <div className="flex shrink-0 items-center justify-between border-t border-sidebar-border p-4">
+          <span className="text-sm font-medium text-(--ink-soft)">Theme</span>
+          <ThemeToggle />
+        </div>
       </aside>
     </div>
   )
@@ -475,103 +362,89 @@ function usePersistentBoolean(key: string, initial: boolean): readonly [boolean,
 
 function DesktopSidebar({
   focusMode,
-  onOpenPalette,
+  pathname,
 }: {
   focusMode: boolean
-  onOpenPalette: () => void
+  pathname: string
 }) {
   const [collapsed, setCollapsed] = usePersistentBoolean('app-sidebar:collapsed', false)
+  const due = useDueCount(pathname)
 
-  // Expose collapse state to CSS via data attribute for app-main offset
   useEffect(() => {
     document.documentElement.setAttribute('data-sidebar-collapsed', collapsed ? '1' : '0')
   }, [collapsed])
 
   return (
     <aside
-    style={{ width: collapsed ? '64px' : '280px' }}
+      style={{ width: collapsed ? '76px' : '248px' }}
       className={cx(
-        'sidebar-shell fixed inset-y-0 left-0 z-50 hidden lg:flex flex-col overflow-hidden border-r border-(--line)/60 bg-(--surface)/90 backdrop-blur-xl transition-[width] duration-300 ease-out',
+        'sidebar-shell fixed bottom-5 left-5 top-5 z-50 hidden lg:flex flex-col overflow-hidden rounded-[28px] transition-[width] duration-300 ease-out',
         focusMode && 'focus-sidebar',
       )}
     >
       <div className="flex min-h-0 w-full flex-col">
-        {/* Brand */}
-        <div className={cx('flex h-14 shrink-0 items-center border-b border-sidebar-border', collapsed ? 'justify-center px-2' : 'gap-3 px-4')}>
-          <Link to="/" className={cx('flex items-center no-underline', collapsed ? 'justify-center' : 'min-w-0 flex-1 gap-3')}>
-            <BrandMark />
+        <div className={cx('flex h-14 shrink-0 items-center border-b border-sidebar-border', collapsed ? 'justify-center px-2' : 'gap-2.5 px-4')}>
+          <Link to="/" className={cx('flex items-center no-underline', collapsed ? 'justify-center' : 'min-w-0 flex-1 gap-2.5')} aria-label="Luminoesis home">
+            <BrandMark size={34} />
             {!collapsed && (
-              <div className="min-w-0 leading-none">
-                <div className="display truncate text-[17px] font-semibold tracking-tight">Luminoesis</div>
-                <div className="mono-label mt-0.5 truncate text-[10px] text-(--ink-faint)">Adaptive study</div>
-              </div>
+              <span className="display truncate text-[19px] font-semibold tracking-tight">Luminoesis</span>
             )}
           </Link>
-          {!collapsed && (
-            <button
-              type="button"
-              aria-label="Collapse sidebar"
-              onClick={() => setCollapsed(true)}
-              className="grid h-7 w-7 place-items-center rounded-md text-(--ink-faint) hover:bg-(--surface-muted) hover:text-(--ink)"
-            >
-              <PanelLeftClose size={14} aria-hidden="true" />
-            </button>
-          )}
         </div>
-        {collapsed && (
-          <button
-            type="button"
-            aria-label="Expand sidebar"
-            onClick={() => setCollapsed(false)}
-            className="mx-auto mt-2 grid h-8 w-8 place-items-center rounded-md text-(--ink-faint) hover:bg-(--surface-muted) hover:text-(--ink)"
-          >
-            <PanelLeftOpen size={14} aria-hidden="true" />
-          </button>
-        )}
 
-        {/* Navigation */}
         <nav
-          aria-label="Sidebar navigation"
-          className={cx('sidebar-scroll min-h-0 flex-1 overflow-y-auto py-4', collapsed ? 'px-2' : 'px-3')}
+          aria-label="Primary"
+          className={cx('sidebar-scroll min-h-0 flex-1 overflow-y-auto py-3', collapsed ? 'px-2' : 'px-3')}
         >
-          {collapsed ? (
-            <button
-              type="button"
-              aria-label="Open command palette"
-              title="Search and commands (Ctrl K)"
-              onClick={onOpenPalette}
-              className="mx-auto grid h-10 w-10 place-items-center rounded-xl text-(--ink-soft) transition hover:bg-sidebar-accent hover:text-(--ink)"
-            >
-              <Search size={18} aria-hidden="true" />
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={onOpenPalette}
-              className="mb-4 flex w-full items-center gap-2.5 rounded-xl border border-(--line) bg-(--surface-muted) px-3 py-2 text-sm text-(--ink-faint) transition-colors hover:border-(--line-strong) hover:text-(--ink-soft)"
-            >
-              <Search size={15} aria-hidden="true" className="shrink-0" />
-              <span className="flex-1 truncate text-left">Jump to…</span>
-              <kbd
-                aria-hidden="true"
-                className="shrink-0 rounded border border-(--line) bg-(--surface) px-1.5 py-0.5 font-mono text-[10px]"
-              >
-                ⌘K
-              </kbd>
-            </button>
-          )}
-          <SidebarNav collapsed={collapsed} />
+          <SidebarNav collapsed={collapsed} dueCount={due} />
         </nav>
 
-        {/* Footer */}
-        <div className={cx(collapsed && 'hidden lg:hidden')}>
-          <SidebarFooter />
-        </div>
-        {collapsed && (
-          <div className="flex flex-col items-center gap-2 border-t border-sidebar-border p-2">
+        <div className={cx('shrink-0 space-y-1 border-t border-sidebar-border p-3', collapsed && 'flex flex-col items-center')}>
+          {!collapsed && (
+            <p className="flex items-center gap-2 rounded-[14px] bg-(--surface-muted)/60 px-3 py-2.5 text-[13px] text-(--ink-soft)">
+              <span className="pulse-dot" aria-hidden="true" />
+              On-device only
+            </p>
+          )}
+
+          <div className={cx('flex items-center gap-1.5', collapsed ? 'flex-col' : 'flex-row')}>
+            <Link
+              to="/settings"
+              aria-label="Settings"
+              title="Settings"
+              className={cx(
+                'grid h-11 place-items-center rounded-[14px] text-(--ink-soft) transition-colors hover:bg-(--surface-muted) hover:text-(--ink)',
+                collapsed ? 'w-11' : 'flex-1',
+              )}
+              activeProps={{
+                className: cx(
+                  'grid h-11 place-items-center rounded-[14px] bg-(--accent-soft) text-(--ink)',
+                  collapsed ? 'w-11' : 'flex-1',
+                ),
+                'aria-current': 'page',
+              }}
+            >
+              <Settings2 size={18} aria-hidden="true" />
+            </Link>
+
             <ThemeToggle />
+
+            <button
+              type="button"
+              onClick={() => setCollapsed(!collapsed)}
+              aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+              aria-expanded={!collapsed}
+              title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+              className="grid h-11 w-11 place-items-center rounded-[14px] text-(--ink-faint) transition-colors hover:bg-(--surface-muted) hover:text-(--ink)"
+            >
+              {collapsed ? (
+                <PanelLeftOpen size={17} aria-hidden="true" />
+              ) : (
+                <PanelLeftClose size={17} aria-hidden="true" />
+              )}
+            </button>
           </div>
-        )}
+        </div>
       </div>
     </aside>
   )
@@ -584,24 +457,25 @@ function DesktopSidebar({
 type SidebarNavProps = {
   onNavigate?: () => void
   collapsed?: boolean
+  dueCount?: number | null
 }
 
 function SidebarNav({
   onNavigate,
   collapsed = false,
+  dueCount = null,
 }: SidebarNavProps) {
   return (
-    <div className={cx('space-y-7', collapsed && 'space-y-6')}>
+    <div className="space-y-6">
       <NavSection
-        label="Workspace"
         items={PRIMARY_NAV_ITEMS}
         onNavigate={onNavigate}
         collapsed={collapsed}
+        dueCount={dueCount}
       />
 
       <NavSection
-        label="System"
-        items={SECONDARY_NAV_ITEMS}
+        items={SYSTEM_NAV_ITEMS}
         onNavigate={onNavigate}
         collapsed={collapsed}
       />
@@ -610,44 +484,43 @@ function SidebarNav({
 }
 
 type NavSectionProps = {
-  label: string
   items: NavItem[]
   onNavigate?: () => void
   collapsed?: boolean
+  dueCount?: number | null
 }
 
 function NavSection({
-  label,
   items,
   onNavigate,
   collapsed = false,
+  dueCount = null,
 }: NavSectionProps) {
   return (
-    <section>
-      {!collapsed && <div className="sidebar-kicker mb-2 px-2">{label}</div>}
-
-      <div className={cx('space-y-1', collapsed && 'space-y-2')}>
-        {items.map((item) => (
-          <SidebarNavLink
-            key={item.to}
-            item={item}
-            onNavigate={onNavigate}
-            collapsed={collapsed}
-          />
-        ))}
-      </div>
-    </section>
+    <div className={cx('flex flex-col gap-1', collapsed && 'items-center')}>
+      {items.map((item) => (
+        <SidebarNavLink
+          key={item.to}
+          item={item}
+          badge={item.to === '/review' ? dueCount : null}
+          onNavigate={onNavigate}
+          collapsed={collapsed}
+        />
+      ))}
+    </div>
   )
 }
 
 type SidebarNavLinkProps = {
   item: NavItem
+  badge: number | null
   onNavigate?: () => void
   collapsed?: boolean
 }
 
 function SidebarNavLink({
   item,
+  badge,
   onNavigate,
   collapsed = false,
 }: SidebarNavLinkProps) {
@@ -660,14 +533,13 @@ function SidebarNavLink({
         onClick={onNavigate}
         aria-label={item.label}
         title={item.label}
-        className="grid h-10 w-10 place-items-center rounded-xl text-(--ink-soft) transition hover:bg-sidebar-accent hover:text-(--ink) data-[status=active]:bg-sidebar-primary data-[status=active]:text-white"
+        className="sidebar-link grid h-11 w-11 place-items-center"
         activeProps={{
-          className:
-            'grid h-10 w-10 place-items-center rounded-xl bg-(--sidebar-primary) text-white shadow-sm',
+          className: 'sidebar-link is-active grid h-11 w-11 place-items-center',
           'aria-current': 'page',
         } as unknown as Record<string, unknown>}
       >
-        <Icon size={18} aria-hidden="true" />
+        <Icon size={19} aria-hidden="true" />
       </Link>
     )
   }
@@ -676,63 +548,24 @@ function SidebarNavLink({
     <Link
       to={item.to}
       onClick={onNavigate}
-      className="sidebar-link group"
+      className="sidebar-link"
       activeProps={{
-        className: 'sidebar-link is-active group',
+        className: 'sidebar-link is-active',
         'aria-current': 'page',
       }}
     >
-      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-(--line) bg-(--surface-muted) transition-colors group-[.is-active]:border-white/20 group-[.is-active]:bg-white/15">
-        <Icon
-          size={17}
-          aria-hidden="true"
-          className="text-(--ink-soft) group-[.is-active]:text-white"
-        />
+      <Icon size={19} aria-hidden="true" />
+
+      <span className="min-w-0 flex-1 truncate text-[15px] font-medium">
+        {item.label}
       </span>
 
-      <span className="min-w-0 flex-1 leading-none">
-        <span className="block truncate text-sm font-medium">
-          {item.label}
+      {typeof badge === 'number' && badge > 0 && (
+        <span className="shrink-0 rounded-full bg-(--accent) px-2 py-0.5 font-mono text-xs font-semibold tabular-nums text-(--accent-ink)">
+          {badge > 99 ? '99+' : badge}
         </span>
-      </span>
+      )}
     </Link>
-  )
-}
-
-/* -------------------------------------------------------------------------- */
-/* Sidebar footer */
-/* -------------------------------------------------------------------------- */
-
-function SidebarFooter() {
-  return (
-    <div className="shrink-0 space-y-3 border-t border-sidebar-border p-4">
-      <div className="rounded-xl border border-(--line) bg-(--surface-muted) p-3">
-        <div className="flex items-center gap-1.5">
-          <span
-            className="pulse-dot"
-            aria-hidden="true"
-            title="On-device signal active"
-          />
-          <span className="text-[11px] font-semibold text-(--ink)">
-            On-device signal
-          </span>
-        </div>
-
-        <div
-          role="status"
-          aria-live="polite"
-          className="mono-label mt-1 opacity-70"
-        >
-          Timing only · never content
-        </div>
-      </div>
-
-      <ThemeToggle expanded />
-
-      <div className="mono-label text-center opacity-60">
-        © 2026 Luminoesis
-      </div>
-    </div>
   )
 }
 
@@ -740,45 +573,21 @@ function SidebarFooter() {
 /* Theme */
 /* -------------------------------------------------------------------------- */
 
-function ThemeToggle({
-  expanded = false,
-}: {
-  expanded?: boolean
-}) {
+function ThemeToggle() {
   const { theme, toggleTheme } = useTheme()
   const isDark = theme === 'dark'
 
   const Icon = isDark ? Sun : Moon
-  const label = isDark ? 'Light mode' : 'Dark mode'
-
-  if (!expanded) {
-    return (
-      <button
-        type="button"
-        aria-label={`Switch to ${label.toLowerCase()}`}
-        onClick={toggleTheme}
-        className="glass-pill grid h-8 w-8 place-items-center"
-      >
-        <Icon size={14} aria-hidden="true" />
-      </button>
-    )
-  }
 
   return (
     <button
       type="button"
-      aria-label={`Switch to ${label.toLowerCase()}`}
+      aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+      title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
       onClick={toggleTheme}
-      className="glass-pill flex w-full items-center justify-between px-3 py-2 text-sm font-medium"
+      className="icon-btn shrink-0"
     >
-      <span className="flex items-center gap-2">
-        <Icon size={16} aria-hidden="true" />
-        {label}
-      </span>
-
-      <span className="chip">
-        {theme}
-      </span>
+      <Icon size={17} aria-hidden="true" />
     </button>
   )
 }
@@ -787,19 +596,15 @@ function ThemeToggle({
 /* Brand */
 /* -------------------------------------------------------------------------- */
 
-function BrandMark() {
+function BrandMark({ size = 34 }: { size?: number }) {
   return (
-    <span className="relative grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-(--racing) text-white shadow-sm">
-      <span
-        className="pointer-events-none absolute inset-0 rounded-xl opacity-40 blur-md"
-        style={{ background: 'var(--emerald)' }}
-        aria-hidden="true"
-      />
-
-      <span
-        className="relative h-3 w-3 rounded-full bg-(--emerald)"
-        aria-hidden="true"
-      />
-    </span>
+    <img
+      src="/assets/luminoesis-mark-64.png"
+      alt=""
+      width={size}
+      height={size}
+      style={{ width: size, height: size }}
+      className="shrink-0 rounded-[10px]"
+    />
   )
 }

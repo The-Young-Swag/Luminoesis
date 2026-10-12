@@ -1,10 +1,11 @@
 import { Search } from 'lucide-react'
 
+import { openCommandPalette } from '#/shared/components/command/CommandPalette'
+
 type PageHeaderProps = {
   title: string
   context: string
   action?: React.ReactNode
-  onOpenPalette: () => void
 }
 
 /*
@@ -16,7 +17,6 @@ export function PageHeader({
   title,
   context,
   action,
-  onOpenPalette,
 }: PageHeaderProps) {
   return (
     <div className="flex items-center justify-between gap-4">
@@ -31,7 +31,7 @@ export function PageHeader({
         {action}
         <button
           type="button"
-          onClick={onOpenPalette}
+          onClick={openCommandPalette}
           aria-label="Jump to any page"
           className="glass-pill hidden h-11 min-w-52 items-center gap-2.5 px-4 text-sm text-(--ink-soft) transition-colors hover:text-(--ink) sm:inline-flex"
         >

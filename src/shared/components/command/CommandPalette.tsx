@@ -52,6 +52,10 @@ function buildCommands(toggleTheme: () => void, isDark: boolean): Command[] {
   ]
 }
 
+export function openCommandPalette(): void {
+  window.dispatchEvent(new CustomEvent('luminoesis:open-palette'))
+}
+
 export function CommandPalette({
   open,
   onClose,

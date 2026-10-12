@@ -24,17 +24,17 @@ const config = defineConfig({
         name: 'luminoesis — Adaptive Study',        short_name: 'luminoesis',
         description:
           'Offline-first adaptive spaced-repetition that senses rhythm, adapts review, surfaces insight.',
-        theme_color: '#0f172a',
-        background_color: '#f8fafc',
+        theme_color: '#0A2018',
+        background_color: '#EAF3EE',
         display: 'standalone',
         icons: [
           {
-            src: 'pwa-192.png',
+            src: 'assets/luminoesis-mark-192.png',
             sizes: '192x192',
             type: 'image/png',
           },
           {
-            src: 'pwa-512.png',
+            src: 'assets/luminoesis-mark-512.png',
             sizes: '512x512',
             type: 'image/png',
           },

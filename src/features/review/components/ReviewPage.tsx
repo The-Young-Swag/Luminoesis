@@ -6,7 +6,9 @@ import {
 } from 'react'
 
 import { GraduationCap, Keyboard, Pause } from 'lucide-react'
-import { Link } from '@tanstack/react-router'
+import { Link, getRouteApi } from '@tanstack/react-router'
+
+import { FlashcardDecks } from '#/features/flashcard/components/FlashcardReviewPage'
 
 import type { Card } from '#/features/library/domain/card'
 import type { Grade } from '#/features/review/domain/sm2'
@@ -44,6 +46,49 @@ import {
 } from '#/features/dashboard/domain/metrics'
 
 export function ReviewPage() {
+  const { tab = 'cards', topic } = getRouteApi('/review').useSearch()
+
+  return (
+    <div className="page-wrap space-y-6 py-6 md:py-8">
+      <ReviewTabs tab={tab} />
+
+      {tab === 'flashcards' ? <FlashcardDecks /> : <ReviewSession topic={topic} />}
+    </div>
+  )
+}
+
+function ReviewTabs({ tab }: { tab: 'cards' | 'flashcards' }) {
+  const base =
+    'rounded-xl px-4 py-2.5 text-sm font-medium transition-colors min-h-11 inline-flex items-center'
+  const active = 'bg-(--surface) text-(--ink) shadow-sm'
+  const idle = 'text-(--ink-soft) hover:text-(--ink)'
+
+  return (
+    <nav
+      aria-label="Review modes"
+      className="flex w-fit items-center gap-1 rounded-2xl bg-(--surface-muted) p-1.5"
+    >
+      <Link
+        to="/review"
+        search={{ tab: 'cards' }}
+        aria-current={tab === 'cards' ? 'page' : undefined}
+        className={`${base} ${tab === 'cards' ? active : idle} no-underline`}
+      >
+        Study cards
+      </Link>
+      <Link
+        to="/review"
+        search={{ tab: 'flashcards' }}
+        aria-current={tab === 'flashcards' ? 'page' : undefined}
+        className={`${base} ${tab === 'flashcards' ? active : idle} no-underline`}
+      >
+        Flashcard decks
+      </Link>
+    </nav>
+  )
+}
+
+function ReviewSession({ topic }: { topic?: string }) {
   const [cards, setCards] = useState<Card[]>([])
   const [queue, setQueue] = useState<Card[]>([])
   const [idx, setIdx] = useState(0)
@@ -99,17 +144,22 @@ export function ReviewPage() {
     try {
       setIsLoading(true)
       setError(null)
-
       const {
         cards: loadedCards,
         adaptiveOptIn,
         calibrationSessions,
       } = await loadReview()
 
-      setCards(loadedCards)
-      setOptIn(adaptiveOptIn)
-      setCalibrationN(calibrationSessions)
-      setQueue(buildQueue(loadedCards))
+        setCards(loadedCards)
+        setOptIn(adaptiveOptIn)
+        setCalibrationN(calibrationSessions)
+        setQueue(
+          buildQueue(
+            topic
+              ? loadedCards.filter((card) => card.topic === topic)
+              : loadedCards,
+          ),
+        )
     } catch (cause) {
       console.error(
         'Failed to load review:',
@@ -124,7 +174,7 @@ export function ReviewPage() {
     } finally {
       setIsLoading(false)
     }
-  }, [])
+  }, [topic])
 
   useEffect(() => {
     void load()
@@ -206,7 +256,34 @@ export function ReviewPage() {
 
   const handleGrade = useCallback(
     async (grade: Grade) => {
-      if (idx >= queue.length) {
+  if (topic && queue.length === 0) {
+    return (
+      <div className="py-6">
+        <div className="card-flat p-8 text-center sm:p-12">
+          <p className="eyebrow">Filtered review</p>
+
+          <h1 className="display mt-2 text-2xl">
+            Nothing due for {topic}
+          </h1>
+
+          <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-(--ink-soft)">
+            No cards in this topic are waiting. Clear the filter to review
+            everything due.
+          </p>
+
+          <Link
+            to="/review"
+            search={{ tab: 'cards' }}
+            className="btn-primary mt-6 inline-flex no-underline"
+          >
+            Review everything due
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
+  if (idx >= queue.length) {
         return
       }
 
@@ -254,7 +331,6 @@ export function ReviewPage() {
   if (isLoading) {
     return (
       <div
-        className="page-wrap py-6"
         aria-busy="true"
         aria-live="polite"
       >
@@ -278,7 +354,7 @@ export function ReviewPage() {
 
   if (error) {
     return (
-      <div className="page-wrap py-12">
+      <div className="py-6">
         <div className="card-flat p-8 text-center sm:p-12">
           <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-(--surface-muted)">
             <GraduationCap
@@ -310,7 +386,7 @@ export function ReviewPage() {
 
   if (!cards.length) {
     return (
-      <div className="page-wrap py-12">
+      <div className="py-6">
         <div className="card-flat p-8 text-center sm:p-12">
           <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-(--surface-muted)">
             <GraduationCap
@@ -390,7 +466,7 @@ export function ReviewPage() {
   }
 
   return (
-    <div className="page-wrap py-6">
+    <>
       {isCalibrating && (
         <CalibrationBanner
           calibrationN={calibrationN}
@@ -482,7 +558,7 @@ export function ReviewPage() {
       )}
 
       <ReviewNavigation />
-    </div>
+    </>
   )
 }
 

@@ -1,7 +1,10 @@
-import { createFileRoute } from '@tanstack/react-router'
-
-import { FlashcardReviewPage } from '#/features/flashcard/components/FlashcardReviewPage'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/flashcards')({
-  component: FlashcardReviewPage,
+  beforeLoad: () => {
+    throw redirect({
+      to: '/review',
+      search: { tab: 'flashcards' },
+    })
+  },
 })

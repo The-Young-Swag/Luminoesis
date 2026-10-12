@@ -7,7 +7,6 @@ import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 import type { QueryClient } from '@tanstack/react-query'
 
-import Footer from '../shared/components/layout/Footer'
 import Sidebar from '../shared/components/layout/Sidebar'
 import TanStackQueryDevtools from '../integrations/tanstack-query/devtools'
 import appCss from '../styles/app.css?url'
@@ -115,21 +114,11 @@ function RootDocument({
             <main id="main-content" tabIndex={-1} className="app-content">
               {children}
             </main>
-
-            {/*
-              Full-height, self-scrolling pages (e.g. the Material Viewer)
-              set data-hide-footer="1" on <html> for as long as they're
-              mounted. This arbitrary variant hides the footer for exactly
-              that window without the root layout needing to special-case
-              any specific route.
-            */}
-            <div className="[html[data-hide-footer='1']_&]:hidden">
-              <Footer />
-            </div>
           </div>
         </div>
 
-        <TanStackDevtools
+        {import.meta.env.DEV && (
+          <TanStackDevtools
           config={{
             position: 'bottom-right',
           }}
@@ -141,6 +130,7 @@ function RootDocument({
             TanStackQueryDevtools,
           ]}
         />
+        )}
 
         <Scripts />
       </body>
