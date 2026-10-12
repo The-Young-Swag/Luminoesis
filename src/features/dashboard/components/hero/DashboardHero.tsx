@@ -68,31 +68,13 @@ export function DashboardHero({
 
           <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:items-center">
             {isEmpty ? (
-              <Link
-                to="/library"
-                className="group inline-flex items-center justify-center gap-2 rounded-full bg-[#f2f7f3] px-5 py-2.5 text-sm font-semibold text-[#004225] no-underline transition-colors hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-              >
-                <Library size={16} aria-hidden="true" />
+              <HeroCta to="/library" icon={<Library size={16} aria-hidden="true" />}>
                 Add your first cards
-                <ArrowUpRight
-                  size={15}
-                  aria-hidden="true"
-                  className="transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
-                />
-              </Link>
+              </HeroCta>
             ) : (
-              <Link
-                to="/review"
-                className="group inline-flex items-center justify-center gap-2 rounded-full bg-[#f2f7f3] px-5 py-2.5 text-sm font-semibold text-[#004225] no-underline transition-colors hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-              >
-                <GraduationCap size={16} aria-hidden="true" />
+              <HeroCta to="/review" icon={<GraduationCap size={16} aria-hidden="true" />}>
                 Start focused review
-                <ArrowUpRight
-                  size={15}
-                  aria-hidden="true"
-                  className="transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
-                />
-              </Link>
+              </HeroCta>
             )}
 
             {!isEmpty && (
@@ -125,6 +107,32 @@ export function DashboardHero({
         </div>
       </div>
     </section>
+  )
+}
+
+function HeroCta({
+  to,
+  icon,
+  children,
+}: {
+  to: string
+  icon: React.ReactNode
+  children: React.ReactNode
+}) {
+  return (
+    <Link
+      to={to}
+      className="group inline-flex items-center justify-center gap-2 rounded-full bg-[#f2f7f3] py-2 pl-5 pr-2 text-sm font-semibold text-[#004225] no-underline transition-colors hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white active:scale-[0.98]"
+    >
+      {icon}
+      {children}
+      <span
+        aria-hidden="true"
+        className="grid h-8 w-8 place-items-center rounded-full bg-[#004225]/10 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+      >
+        <ArrowUpRight size={15} />
+      </span>
+    </Link>
   )
 }
 

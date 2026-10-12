@@ -1,5 +1,5 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
-import { useNavigate } from '@tanstack/react-router'
+import { useNavigate, useRouterState } from '@tanstack/react-router'
 import {
   Brain,
   GraduationCap,
@@ -17,6 +17,7 @@ import {
 import type { LucideIcon } from 'lucide-react'
 
 import { useTheme } from '#/shared/hooks/useTheme'
+import { readRecentRoutes } from '#/shared/components/layout/Sidebar'
 
 type Command = {
   id: string
@@ -59,6 +60,9 @@ export function CommandPalette({
   onClose: () => void
 }) {
   const navigate = useNavigate()
+  const pathname = useRouterState({
+    select: (state) => state.location.pathname,
+  })
   const { theme, toggleTheme } = useTheme()
   const listId = useId()
   const [query, setQuery] = useState('')
@@ -80,6 +84,16 @@ export function CommandPalette({
         .includes(q),
     )
   }, [commands, query])
+
+  const recentResults = useMemo(() => {
+    if (query.trim()) return []
+    const recent = readRecentRoutes().filter((to) => to !== pathname)
+    return recent
+      .map((to) => commands.find((command) => command.to === to && command.id.startsWith('go-')))
+      .filter((command): command is Command => command !== undefined)
+  }, [commands, query, pathname])
+
+  const allResults = [...recentResults, ...results.filter((command) => !recentResults.includes(command))]
 
   useEffect(() => {
     if (!open) return
@@ -120,15 +134,15 @@ export function CommandPalette({
   const onInputKeyDown = (event: React.KeyboardEvent) => {
     if (event.key === 'ArrowDown') {
       event.preventDefault()
-      setActive((index) => (results.length ? (index + 1) % results.length : 0))
+      setActive((index) => (allResults.length ? (index + 1) % allResults.length : 0))
     } else if (event.key === 'ArrowUp') {
       event.preventDefault()
       setActive((index) =>
-        results.length ? (index - 1 + results.length) % results.length : 0,
+        allResults.length ? (index - 1 + allResults.length) % allResults.length : 0,
       )
     } else if (event.key === 'Enter') {
       event.preventDefault()
-      const command = results[active]
+      const command = allResults[active]
       if (command) runCommand(command)
     }
   }
@@ -158,7 +172,7 @@ export function CommandPalette({
             role="combobox"
             aria-expanded="true"
             aria-controls={listId}
-            aria-activedescendant={results.length ? `${listId}-${active}` : undefined}
+            aria-activedescendant={allResults.length ? `${listId}-${active}` : undefined}
             aria-label="Type a command or search"
             placeholder="Type a command or search…"
             autoComplete="off"
@@ -179,13 +193,13 @@ export function CommandPalette({
           aria-label="Commands"
           className="sidebar-scroll max-h-[40vh] overflow-y-auto p-2"
         >
-          {results.length === 0 && (
+          {allResults.length === 0 && (
             <li className="px-3 py-6 text-center text-sm text-(--ink-faint)">
               No matches. Try “review”, “library” or “theme”.
             </li>
           )}
 
-          {results.map((command, index) => {
+          {allResults.map((command, index) => {
             const Icon = command.icon
             const selected = index === active
             return (

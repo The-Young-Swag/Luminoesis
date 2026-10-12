@@ -78,6 +78,38 @@ const SECONDARY_NAV_ITEMS: NavItem[] = [
 
 const MOBILE_TAB_COUNT = 3
 
+const RECENT_ROUTES_KEY = 'luminoesis:recent-routes'
+const RECENT_ROUTES_LIMIT = 5
+
+export function recordRouteVisit(pathname: string): void {
+  const known = [...PRIMARY_NAV_ITEMS, ...SECONDARY_NAV_ITEMS].some(
+    (item) => item.to === pathname,
+  )
+  if (!known) return
+
+  try {
+    const stored = window.localStorage.getItem(RECENT_ROUTES_KEY)
+    const previous = stored ? (JSON.parse(stored) as string[]) : []
+    const next = [pathname, ...previous.filter((entry) => entry !== pathname)].slice(
+      0,
+      RECENT_ROUTES_LIMIT,
+    )
+    window.localStorage.setItem(RECENT_ROUTES_KEY, JSON.stringify(next))
+  } catch {
+    // History is a nicety — never break navigation over storage.
+  }
+}
+
+export function readRecentRoutes(): string[] {
+  try {
+    const stored = window.localStorage.getItem(RECENT_ROUTES_KEY)
+    const parsed = stored ? (JSON.parse(stored) as unknown) : []
+    return Array.isArray(parsed) ? parsed.filter((entry): entry is string => typeof entry === 'string') : []
+  } catch {
+    return []
+  }
+}
+
 const MOBILE_PRIMARY_ITEMS = PRIMARY_NAV_ITEMS.slice(
   0,
   MOBILE_TAB_COUNT,
@@ -107,6 +139,7 @@ export default function Sidebar() {
     setMobileOpen(false)
     setMoreOpen(false)
     setPaletteOpen(false)
+    recordRouteVisit(pathname)
   }, [pathname])
 
   useEffect(() => {

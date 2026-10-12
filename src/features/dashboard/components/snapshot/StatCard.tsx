@@ -9,11 +9,55 @@ type StatCardProps = {
   hint: string
   delta?: string | null
   spark?: number[]
+  layout?: 'card' | 'wide'
   to?: string
 }
 
-export function StatCard({ icon, label, value, hint, delta, spark, to }: StatCardProps) {
-  const inner = (
+export function StatCard({ icon, label, value, hint, delta, spark, layout = 'card', to }: StatCardProps) {
+  const wide = layout === 'wide'
+
+  const inner = wide ? (
+    <>
+      <div
+        className="pointer-events-none absolute -right-6 -top-6 h-20 w-20 rounded-full bg-(--veridian) opacity-0 blur-2xl transition-opacity duration-300 group-hover:opacity-15"
+        aria-hidden="true"
+      />
+
+      <div className="relative flex items-center justify-between gap-4">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-(--surface-muted) text-(--ink-soft) transition-colors group-hover:bg-(--veridian-muted) group-hover:text-(--veridian)">
+              {icon}
+            </span>
+
+            <span className="mono-label truncate">{label}</span>
+          </div>
+
+          <div className="display mt-2 text-3xl tabular-nums">{value}</div>
+        </div>
+
+        <div className="flex shrink-0 flex-col items-end gap-1.5">
+          <span className="max-w-55 truncate text-xs text-(--ink-soft)">{hint}</span>
+
+          {delta && (
+            <span className="inline-flex items-center gap-1 rounded-full border border-(--line) bg-(--surface-muted) px-2 py-0.5 font-mono text-[10px] font-semibold tabular-nums text-(--ink-soft)">
+              <span aria-hidden="true">
+                {delta.startsWith('+') ? '↑' : delta.startsWith('−') || delta.startsWith('-') ? '↓' : '→'}
+              </span>
+              {delta}
+            </span>
+          )}
+
+          {to && (
+            <ArrowUpRight
+              size={14}
+              className="text-(--ink-faint) opacity-0 transition-opacity group-hover:opacity-100"
+            />
+          )}
+        </div>
+      </div>
+    </>
+  ) : (
     <>
       <div
         className="pointer-events-none absolute -right-6 -top-6 h-20 w-20 rounded-full bg-(--veridian) opacity-0 blur-2xl transition-opacity duration-300 group-hover:opacity-15"
@@ -74,7 +118,9 @@ export function StatCard({ icon, label, value, hint, delta, spark, to }: StatCar
   )
 
   const className =
-    'group relative block overflow-hidden rounded-2xl border border-(--line) bg-(--surface-raised) p-4 transition-colors hover:border-(--veridian)/40'
+    `group relative block overflow-hidden rounded-2xl border border-(--line) bg-(--surface-raised) p-4 transition-colors hover:border-(--veridian)/40 ${
+      wide ? 'col-span-2 md:col-span-3' : ''
+    }`
 
   if (to) {
     return (

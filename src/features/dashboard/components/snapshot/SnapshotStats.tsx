@@ -35,7 +35,7 @@ export function SnapshotStats({
         <span className="chip hidden sm:inline-flex">Last 7 days</span>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
         <StatCard icon={<Clock3 size={16} />} label="Study time" value={`${studyMinutesThisWeek}m`} hint="Last 7 days" delta={studyMinutesDelta} spark={minutesSpark} />
         <StatCard icon={<Layers size={16} />} label="Reviews" value={String(recentReviewCount)} hint="Last 7 days" delta={recentReviewDelta} spark={reviewsSpark} to="/review" />
         <StatCard icon={<TrendingUp size={16} />} label="Recall" value={recallValue} hint="Good or Easy share" delta={recallDelta} to="/insights" />
@@ -44,6 +44,7 @@ export function SnapshotStats({
           label="Due"
           value={String(dueTodayCount)}
           hint={dueTodayCount > 0 ? gainFrameDue(dueTodayCount) : 'Nothing waiting'}
+          layout="wide"
           to="/review"
         />
       </div>

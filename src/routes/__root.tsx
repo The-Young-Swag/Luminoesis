@@ -65,6 +65,10 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       },
       {
         rel: 'stylesheet',
+        href: 'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600&display=swap',
+      },
+      {
+        rel: 'stylesheet',
         href: appCss,
       },
       {
@@ -98,6 +102,11 @@ function RootDocument({
         <a href="#main-content" className="skip-link">
           Skip to content
         </a>
+
+        <div
+          aria-hidden="true"
+          className="grain-overlay"
+        />
 
         <div className="app-shell">
           <Sidebar />
