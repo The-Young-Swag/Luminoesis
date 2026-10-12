@@ -15,8 +15,12 @@ export function InsightBanner({ text, stat }: { text: string; stat: string }) {
           <p className="mt-1 text-xs leading-5 text-(--ink-soft)">{stat}</p>
         </div>
 
-        <Link to="/review" className="btn-primary shrink-0 no-underline">
-          Review now
+        <Link
+          to="/insights"
+          aria-label="View insight in analytics"
+          className="btn-ghost shrink-0 no-underline"
+        >
+          View insight
         </Link>
       </div>
     </section>

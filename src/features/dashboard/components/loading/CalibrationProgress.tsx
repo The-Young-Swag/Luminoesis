@@ -56,7 +56,7 @@ export function CalibrationProgress({
             aria-label="Calibration progress"
           >
             <div
-              className="h-full rounded-full bg-linear-to-r from-(--veridian) to-(--blue) transition-[width] duration-500"
+              className="h-full rounded-full bg-(--veridian) transition-[width] duration-500"
               style={{
                 width: `${percentComplete}%`,
               }}

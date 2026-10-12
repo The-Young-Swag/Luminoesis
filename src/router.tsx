@@ -1,4 +1,4 @@
-import { createRouter as createTanStackRouter } from '@tanstack/react-router'
+import { Link, createRouter as createTanStackRouter } from '@tanstack/react-router'
 import { routeTree } from './routeTree.gen'
 
 import { getContext } from './integrations/tanstack-query/root-provider'
@@ -13,9 +13,9 @@ function NotFound() {
         That link doesn’t exist. Try the navigation above or head back to the
         dashboard.
       </p>
-      <a href="/" className="btn-primary inline-flex mt-6 no-underline">
+      <Link to="/" className="btn-primary inline-flex mt-6 no-underline">
         Go to dashboard
-      </a>
+      </Link>
     </div>
   )
 }

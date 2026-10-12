@@ -27,10 +27,11 @@ export function QuestionView({
       <div className="mt-6">
         {!showBack ? (
           <button
+            type="button"
             className="btn-primary inline-flex items-center gap-2"
             onClick={onShowBack}
           >
-            <Eye size={16} /> Show answer
+            <Eye size={16} aria-hidden="true" /> Show answer
           </button>
         ) : (
           <div className="rounded-xl border border-(--line) bg-(--surface-muted) p-4">
@@ -39,10 +40,11 @@ export function QuestionView({
             </div>
             <div className="text-[16px] leading-relaxed mt-1">{back}</div>
             <button
-              className="mt-3 text-xs inline-flex items-center gap-1 text-(--ink-faint)"
+              type="button"
+              className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-(--ink-soft) underline-offset-2 hover:text-(--ink) hover:underline"
               onClick={onHideBack}
             >
-              <EyeOff size={12} /> Hide
+              <EyeOff size={12} aria-hidden="true" /> Hide
             </button>
           </div>
         )}

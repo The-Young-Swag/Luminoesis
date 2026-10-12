@@ -25,45 +25,39 @@ type NavItem = {
   to: string
   label: string
   icon: LucideIcon
-  meta: string
+  meta?: string
 }
 
 const PRIMARY_NAV_ITEMS: NavItem[] = [
   {
     to: '/',
-    label: 'Home',
+    label: 'Dashboard',
     icon: LayoutDashboard,
-    meta: 'OVERVIEW',
   },
   {
     to: '/learning-spaces',
     label: 'Learning Spaces',
     icon: Layers3,
-    meta: 'SPACES',
   },
   {
     to: '/review',
     label: 'Review',
     icon: GraduationCap,
-    meta: 'SESSION',
   },
   {
     to: '/library',
     label: 'Library',
     icon: Library,
-    meta: 'COLLECTION',
   },
   {
     to: '/insights',
     label: 'Insights',
     icon: LineChart,
-    meta: 'ANALYTICS',
   },
   {
     to: '/flashcards',
     label: 'Flashcards',
     icon: Brain,
-    meta: 'REVIEW',
   },
 ]
 
@@ -72,13 +66,11 @@ const SECONDARY_NAV_ITEMS: NavItem[] = [
     to: '/privacy',
     label: 'Privacy',
     icon: ShieldCheck,
-    meta: 'CONTROL',
   },
   {
     to: '/settings',
     label: 'Settings',
     icon: Settings2,
-    meta: 'PREFS',
   },
 ]
 
@@ -274,6 +266,14 @@ function MobileMoreSheet({
   items: NavItem[]
   onClose: () => void
 }) {
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [onClose])
+
   return (
     <div className="fixed inset-0 z-50 flex flex-col justify-end lg:hidden">
       <button
@@ -328,10 +328,6 @@ function MoreNavLink({
       <span className="font-medium text-(--ink)">
         {item.label}
       </span>
-
-      <span className="chip ml-auto">
-        {item.meta}
-      </span>
     </Link>
   )
 }
@@ -341,6 +337,14 @@ function MobileDrawer({
 }: {
   onClose: () => void
 }) {
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [onClose])
+
   return (
     <div className="fixed inset-0 z-50 flex lg:hidden">
       <button
@@ -494,14 +498,14 @@ function SidebarNav({
   return (
     <div className={cx('space-y-7', collapsed && 'space-y-6')}>
       <NavSection
-        label="Study"
+        label="Workspace"
         items={PRIMARY_NAV_ITEMS}
         onNavigate={onNavigate}
         collapsed={collapsed}
       />
 
       <NavSection
-        label="Intelligence"
+        label="System"
         items={SECONDARY_NAV_ITEMS}
         onNavigate={onNavigate}
         collapsed={collapsed}
@@ -595,10 +599,6 @@ function SidebarNavLink({
         <span className="block truncate text-sm font-medium">
           {item.label}
         </span>
-
-        <span className="mono-label mt-1 block truncate text-[10px] leading-none opacity-60 group-[.is-active]:opacity-80">
-          {item.meta}
-        </span>
       </span>
     </Link>
   )
@@ -613,13 +613,13 @@ function SidebarFooter() {
     <div className="shrink-0 space-y-3 border-t border-sidebar-border p-4">
       <div className="rounded-xl border border-(--line) bg-(--surface-muted) p-3">
         <div className="mono-label">
-          Personal signal
+          On-device signal
         </div>
 
         <SignalStatus showLabel />
 
         <div className="mono-label mt-1 opacity-70">
-          On this device · Never key content
+          Timing only · Private by design
         </div>
       </div>
 
@@ -639,6 +639,8 @@ function SignalStatus({
 }) {
   return (
     <div
+      role="status"
+      aria-live="polite"
       className={
         showLabel
           ? 'mt-1.5 flex items-center gap-1.5 text-[11px] font-mono text-(--ink-faint)'
@@ -648,10 +650,10 @@ function SignalStatus({
       <span
         className="pulse-dot"
         aria-hidden="true"
-        title="Personal signal active"
+        title="On-device signal active"
       />
 
-      {showLabel && 'Personal signal active'}
+      {showLabel && 'Signal active'}
     </div>
   )
 }

@@ -6,10 +6,13 @@ import {
 } from 'react'
 
 import { GraduationCap, Keyboard, Pause } from 'lucide-react'
+import { Link } from '@tanstack/react-router'
 
 import type { Card } from '#/features/library/domain/card'
 import type { Grade } from '#/features/review/domain/sm2'
 import type { AggregatedFeatures } from '#/features/learning-state/domain/signals'
+
+import { formatDueDate } from '#/shared/lib/dates'
 
 import { daysOverdue } from '#/features/review/domain/sm2'
 import {
@@ -96,40 +99,40 @@ export function ReviewPage() {
     ? `${Math.min(idx + 1, queue.length)} / ${queue.length}`
     : '0 / 0'
 
-  useEffect(() => {
-    async function load() {
-      try {
-        setIsLoading(true)
-        setError(null)
+  const load = useCallback(async () => {
+    try {
+      setIsLoading(true)
+      setError(null)
 
-        const {
-          cards: loadedCards,
-          adaptiveOptIn,
-          calibrationSessions,
-        } = await loadReview()
+      const {
+        cards: loadedCards,
+        adaptiveOptIn,
+        calibrationSessions,
+      } = await loadReview()
 
-        setCards(loadedCards)
-        setOptIn(adaptiveOptIn)
-        setCalibrationN(calibrationSessions)
-        setQueue(buildQueue(loadedCards))
-      } catch (cause) {
-        console.error(
-          'Failed to load review:',
-          cause,
-        )
+      setCards(loadedCards)
+      setOptIn(adaptiveOptIn)
+      setCalibrationN(calibrationSessions)
+      setQueue(buildQueue(loadedCards))
+    } catch (cause) {
+      console.error(
+        'Failed to load review:',
+        cause,
+      )
 
-        setError(
-          cause instanceof Error
-            ? cause
-            : new Error('Failed to load review'),
-        )
-      } finally {
-        setIsLoading(false)
-      }
+      setError(
+        cause instanceof Error
+          ? cause
+          : new Error('Failed to load review'),
+      )
+    } finally {
+      setIsLoading(false)
     }
-
-    void load()
   }, [])
+
+  useEffect(() => {
+    void load()
+  }, [load])
 
   useEffect(() => {
     if (
@@ -300,9 +303,7 @@ export function ReviewPage() {
           <button
             type="button"
             className="btn-primary mt-6"
-            onClick={() =>
-              window.location.reload()
-            }
+            onClick={() => void load()}
           >
             Try again
           </button>
@@ -333,12 +334,12 @@ export function ReviewPage() {
             review session.
           </p>
 
-          <a
-            href="/library"
+          <Link
+            to="/library"
             className="btn-primary mt-6 inline-flex no-underline"
           >
             Go to Library
-          </a>
+          </Link>
         </div>
       </div>
     )
@@ -359,6 +360,12 @@ export function ReviewPage() {
         minutes={minutes}
         totalCards={queue.length}
         live={live}
+        onRestart={() => {
+          setIdx(0)
+          setShowBack(false)
+          startedAtRef.current = Date.now()
+          void load()
+        }}
       />
     )
   }
@@ -484,11 +491,17 @@ function ReviewHeader({
 
   return (
     <div className="flex items-center justify-between">
-      <div className="text-sm text-(--ink-faint)">
-        <span className="font-medium text-(--ink)">
+      <div className="text-sm tabular-nums text-(--ink-faint)">
+        <span
+          className="font-medium text-(--ink)"
+          role="status"
+          aria-live="polite"
+          aria-label={`Card ${progress} in queue`}
+        >
           {progress}
         </span>{' '}
-        · {topic} · due {dueDate}{' '}
+        · {topic} ·{' '}
+        <time dateTime={dueDate}>due {formatDueDate(dueDate)}</time>{' '}
 
         {overdueDays > 0 ? (
           <span className="text-(--warning-strong)">
@@ -666,20 +679,20 @@ function SignalStatus({
 
 function ReviewNavigation() {
   return (
-    <div className="mt-4 flex gap-2">
-      <a
-        href="/library"
+    <nav aria-label="Review" className="mt-4 flex gap-2">
+      <Link
+        to="/library"
         className="btn-ghost no-underline text-xs"
       >
         Library
-      </a>
+      </Link>
 
-      <a
-        href="/"
+      <Link
+        to="/"
         className="btn-ghost no-underline text-xs"
       >
         Dashboard
-      </a>
-    </div>
+      </Link>
+    </nav>
   )
 }

@@ -62,7 +62,11 @@ export function DashboardPage() {
 
       <DashboardHero learningState={learningState} sessionCount={sessionCount} dueTodayCount={dueToday.length} />
 
-      {isCalibrating && <CalibrationProgress progress={calibrationProgress} />}
+      {isCalibrating && (
+        <div aria-live="polite">
+          <CalibrationProgress progress={calibrationProgress} />
+        </div>
+      )}
 
       <SnapshotStats
         studyMinutesThisWeek={studyMinutesThisWeek}
@@ -75,7 +79,10 @@ export function DashboardPage() {
       {/* Command deck — main feed (chart, insight, activity) alongside a
           HUD rail (current state, review queue). Mirrors a game launcher's
           center-feed + side-panel split more than a flat stack of cards. */}
-      <section className="grid items-start gap-4 lg:grid-cols-[minmax(0,1.65fr)_minmax(300px,0.85fr)]">
+      <section
+        aria-label="Study command deck"
+        className="grid items-start gap-4 lg:grid-cols-[minmax(0,1.65fr)_minmax(300px,0.85fr)]"
+      >
         <div className="space-y-4">
           <RhythmPanel
             hasBaseline={hasBaseline}
@@ -98,8 +105,8 @@ export function DashboardPage() {
       <RetentionPanel data={retentionChartData} />
 
       <p className="px-1 text-center font-mono text-[10px] leading-5 text-(--ink-faint)">
-        Luminoesis never records what you type — only timing deltas. Your baseline stays on this device.
-        Suggestions are optional — you decide.
+        <span translate="no">Luminoesis</span> never records what you type — only timing deltas. Your baseline stays on
+        this device. Suggestions are optional — you decide.
       </p>
     </div>
   )

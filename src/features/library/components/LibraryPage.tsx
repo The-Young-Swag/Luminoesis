@@ -148,7 +148,7 @@ export function LibraryPage() {
           <button
             type="button"
             onClick={handleCreate}
-            className="btn-primary inline-flex shrink-0 items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-(--blue)/30 focus:ring-offset-2 focus:ring-offset-background"
+            className="btn-primary inline-flex shrink-0 items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-(--veridian)/30 focus:ring-offset-2 focus:ring-offset-background"
           >
             <Plus size={16} aria-hidden="true" />
             Add card
@@ -169,10 +169,12 @@ export function LibraryPage() {
 
             <input
               type="search"
+              name="search"
+              autoComplete="off"
               value={search}
               onChange={(event) => handleSearchChange(event.target.value)}
               placeholder="Search your knowledge…"
-              className="w-full rounded-lg border border-(--line) bg-(--surface-muted) py-2.5 pl-9 pr-9 text-sm text-(--ink) outline-none transition duration-150 placeholder:text-(--ink-faint) focus:border-(--ink-soft) focus:bg-(--surface) focus:ring-2 focus:ring-(--blue)/10"
+              className="w-full rounded-lg border border-(--line) bg-(--surface-muted) py-2.5 pl-9 pr-9 text-base text-(--ink) outline-none transition duration-150 placeholder:text-(--ink-faint) focus:border-(--ink-soft) focus:bg-(--surface) focus:ring-2 focus:ring-(--veridian)/10 sm:text-sm"
             />
 
             {search && (
@@ -180,7 +182,7 @@ export function LibraryPage() {
                 type="button"
                 aria-label="Clear search"
                 onClick={() => handleSearchChange('')}
-                className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-(--ink-faint) transition-colors hover:text-(--ink) focus:outline-none focus:ring-2 focus:ring-(--blue)/20"
+                className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-(--ink-faint) transition-colors hover:text-(--ink) focus:outline-none focus:ring-2 focus:ring-(--veridian)/20"
               >
                 <X size={14} aria-hidden="true" />
               </button>
@@ -191,7 +193,7 @@ export function LibraryPage() {
             <button
               type="button"
               onClick={() => setIsImportOpen(true)}
-              className="btn-ghost inline-flex items-center justify-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-(--blue)/30"
+              className="btn-ghost inline-flex items-center justify-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-(--veridian)/30"
             >
               <Upload size={16} aria-hidden="true" />
               Import
@@ -200,7 +202,7 @@ export function LibraryPage() {
             <button
               type="button"
               onClick={handleExportJson}
-              className="btn-ghost inline-flex items-center justify-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-(--blue)/30"
+              className="btn-ghost inline-flex items-center justify-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-(--veridian)/30"
               title="Export JSON"
             >
               <Download size={16} aria-hidden="true" />
@@ -210,7 +212,7 @@ export function LibraryPage() {
             <button
               type="button"
               onClick={handleExportMarkdown}
-              className="btn-ghost inline-flex items-center justify-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-(--blue)/30"
+              className="btn-ghost inline-flex items-center justify-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-(--veridian)/30"
               title="Export Markdown"
             >
               <Download size={16} aria-hidden="true" />
@@ -220,7 +222,7 @@ export function LibraryPage() {
         </div>
 
         <div className="mt-3 flex items-center justify-between gap-3 px-1 text-xs text-(--ink-faint)">
-          <span>
+          <span aria-live="polite" className="tabular-nums">
             {total} {total === 1 ? 'card' : 'cards'}
             {search ? ' match your search' : ' in your library'}
           </span>
@@ -274,33 +276,41 @@ export function LibraryPage() {
               <span className="font-medium text-(--ink)">{total}</span>
             </p>
 
-            <div className="flex items-center gap-2">
+            <nav
+              aria-label="Library pages"
+              className="flex items-center gap-2"
+            >
               <button
                 type="button"
+                aria-label="Previous page"
                 onClick={() => setPage((current) => Math.max(0, current - 1))}
                 disabled={isFirstPage}
-                className="btn-ghost inline-flex items-center gap-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-(--blue)/30 disabled:cursor-not-allowed disabled:opacity-50"
+                className="btn-ghost inline-flex items-center gap-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-(--veridian)/30 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <ChevronLeft size={16} aria-hidden="true" />
                 Prev
               </button>
 
-              <span className="px-1 text-sm tabular-nums text-(--ink-soft)">
+              <span
+                className="px-1 text-sm tabular-nums text-(--ink-soft)"
+                aria-current="page"
+              >
                 Page {page + 1} of {totalPages}
               </span>
 
               <button
                 type="button"
+                aria-label="Next page"
                 onClick={() =>
                   setPage((current) => Math.min(totalPages - 1, current + 1))
                 }
                 disabled={isLastPage}
-                className="btn-ghost inline-flex items-center gap-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-(--blue)/30 disabled:cursor-not-allowed disabled:opacity-50"
+                className="btn-ghost inline-flex items-center gap-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-(--veridian)/30 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Next
                 <ChevronRight size={16} aria-hidden="true" />
               </button>
-            </div>
+            </nav>
           </div>
         )}
       </div>

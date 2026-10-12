@@ -84,14 +84,21 @@ export function InsightsPage() {
                       {item.topic}
                     </span>
 
-                    <div className="h-2 flex-1 overflow-hidden rounded-full bg-(--surface-muted)">
+                    <div
+                      role="progressbar"
+                      aria-label={`${item.topic} retention`}
+                      aria-valuenow={percentage}
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                      className="h-2 flex-1 overflow-hidden rounded-full bg-(--surface-muted)"
+                    >
                       <div
-                        className="h-full bg-(--blue)"
+                        className="h-full rounded-full bg-(--veridian)"
                         style={{ width: `${percentage}%` }}
                       />
                     </div>
 
-                    <span className="w-16 text-right text-xs text-(--ink-faint)">
+                    <span className="w-16 text-right text-xs tabular-nums text-(--ink-faint)">
                       {percentage}% · {item.correct}/{item.total}
                     </span>
                   </div>
@@ -116,30 +123,37 @@ export function InsightsPage() {
                 ? (item.averageGrade / 3) * 100
                 : 0
 
-              return (
-                <div
-                  key={item.sessionId}
-                  className="flex items-center gap-3 text-sm"
-                >
-                  <span className="w-16 text-xs font-medium text-(--ink-faint)">
-                    {item.durationMinutes.toFixed(0)}m
-                  </span>
+                return (
+                  <div
+                    key={item.sessionId}
+                    className="flex items-center gap-3 text-sm"
+                  >
+                    <span className="w-16 text-xs font-medium tabular-nums text-(--ink-faint)">
+                      {item.durationMinutes.toFixed(0)}m
+                    </span>
 
-                  <div className="h-2 flex-1 overflow-hidden rounded-full bg-(--surface-muted)">
                     <div
-                      className="h-full rounded-full bg-(--purple)"
-                      style={{ width: `${performance}%` }}
-                    />
-                  </div>
+                      role="progressbar"
+                      aria-label={`${item.durationMinutes.toFixed(0)} minute sessions performance`}
+                      aria-valuenow={Math.round(performance)}
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                      className="h-2 flex-1 overflow-hidden rounded-full bg-(--surface-muted)"
+                    >
+                      <div
+                        className="h-full rounded-full bg-(--veridian)"
+                        style={{ width: `${performance}%` }}
+                      />
+                    </div>
 
-                  <span className="text-xs text-(--ink-faint)">
-                    {item.reviewCount
-                      ? `${item.averageGrade.toFixed(1)}/3`
-                      : '—'}{' '}
-                    · {item.reviewCount} sessions
-                  </span>
-                </div>
-              )
+                    <span className="text-xs tabular-nums text-(--ink-faint)">
+                      {item.reviewCount
+                        ? `${item.averageGrade.toFixed(1)}/3`
+                        : '—'}{' '}
+                      · {item.reviewCount} sessions
+                    </span>
+                  </div>
+                )
             })}
           </div>
         </div>

@@ -1,5 +1,9 @@
+import { useEffect, useRef, useState } from 'react'
+
 import type { Card } from '#/features/library/domain/card'
 import { Pencil, SearchX, Trash2 } from 'lucide-react'
+
+import { formatDueDate } from '#/shared/lib/dates'
 
 type LibraryTableProps = {
   cards: Card[]
@@ -12,6 +16,56 @@ export function LibraryTable({
   onEdit,
   onDelete,
 }: LibraryTableProps) {
+  const [pendingDeleteId, setPendingDeleteId] =
+    useState<string | null>(null)
+  const resetTimer = useRef<number | null>(null)
+
+  useEffect(() => {
+    return () => {
+      if (resetTimer.current !== null) {
+        window.clearTimeout(resetTimer.current)
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    if (pendingDeleteId === null) {
+      return
+    }
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setPendingDeleteId(null)
+      }
+    }
+
+    window.addEventListener('keydown', onKeyDown)
+    return () =>
+      window.removeEventListener('keydown', onKeyDown)
+  }, [pendingDeleteId])
+
+  const requestDelete = (id: string) => {
+    if (resetTimer.current !== null) {
+      window.clearTimeout(resetTimer.current)
+    }
+
+    setPendingDeleteId(id)
+    resetTimer.current = window.setTimeout(() => {
+      setPendingDeleteId((current) =>
+        current === id ? null : current,
+      )
+    }, 4000)
+  }
+
+  const confirmDelete = (id: string) => {
+    if (resetTimer.current !== null) {
+      window.clearTimeout(resetTimer.current)
+      resetTimer.current = null
+    }
+
+    setPendingDeleteId(null)
+    onDelete(id)
+  }
   if (cards.length === 0) {
     return (
       <div className="px-5 py-16 text-center">
@@ -106,9 +160,12 @@ export function LibraryTable({
               </td>
 
               <td className="hidden px-4 py-3.5 text-(--ink-soft) md:table-cell">
-                <span className="font-mono whitespace-nowrap text-xs tabular-nums">
-                  {card.dueDate}
-                </span>
+                <time
+                  dateTime={card.dueDate}
+                  className="font-mono whitespace-nowrap text-xs tabular-nums"
+                >
+                  {formatDueDate(card.dueDate)}
+                </time>
               </td>
 
               <td className="px-4 py-3.5">
@@ -118,7 +175,7 @@ export function LibraryTable({
                     aria-label={`Edit card: ${card.front}`}
                     title="Edit card"
                     onClick={() => onEdit(card)}
-                    className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-transparent text-(--ink-faint) transition-colors duration-150 hover:border-(--line) hover:bg-(--surface) hover:text-(--ink) focus:outline-none focus:ring-2 focus:ring-(--blue)/20"
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-transparent text-(--ink-faint) transition-colors duration-150 hover:border-(--line) hover:bg-(--surface) hover:text-(--ink) focus:outline-none focus:ring-2 focus:ring-(--veridian)/20"
                   >
                     <Pencil
                       size={14}
@@ -126,18 +183,31 @@ export function LibraryTable({
                     />
                   </button>
 
-                  <button
-                    type="button"
-                    aria-label={`Delete card: ${card.front}`}
-                    title="Delete card"
-                    onClick={() => onDelete(card.id)}
-                    className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-transparent text-(--ink-faint) transition-colors duration-150 hover:border-(--destructive)/25 hover:bg-(--destructive)/10 hover:text-destructive focus:outline-none focus:ring-2 focus:ring-(--destructive)/20"
-                  >
-                    <Trash2
-                      size={14}
-                      aria-hidden="true"
-                    />
-                  </button>
+                  {pendingDeleteId === card.id ? (
+                    <button
+                      type="button"
+                      autoFocus
+                      aria-label={`Confirm delete: ${card.front}`}
+                      onClick={() => confirmDelete(card.id)}
+                      onBlur={() => setPendingDeleteId(null)}
+                      className="inline-flex h-8 items-center gap-1 rounded-full bg-(--destructive) px-3 text-xs font-semibold text-white focus:outline-none focus:ring-2 focus:ring-(--destructive)/40"
+                    >
+                      Confirm?
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      aria-label={`Delete card: ${card.front}`}
+                      title="Delete card"
+                      onClick={() => requestDelete(card.id)}
+                      className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-transparent text-(--ink-faint) transition-colors duration-150 hover:border-(--destructive)/25 hover:bg-(--destructive)/10 hover:text-destructive focus:outline-none focus:ring-2 focus:ring-(--destructive)/20"
+                    >
+                      <Trash2
+                        size={14}
+                        aria-hidden="true"
+                      />
+                    </button>
+                  )}
                 </div>
               </td>
             </tr>

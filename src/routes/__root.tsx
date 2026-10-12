@@ -44,8 +44,25 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
         content:
           'Offline-first adaptive spaced-repetition that senses rhythm, adapts review, surfaces insight. On-device, timing-only.',
       },
+      {
+        name: 'theme-color',
+        content: '#f6f7f3',
+      },
+      {
+        name: 'color-scheme',
+        content: 'light dark',
+      },
     ],
     links: [
+      {
+        rel: 'preconnect',
+        href: 'https://fonts.googleapis.com',
+      },
+      {
+        rel: 'preconnect',
+        href: 'https://fonts.gstatic.com',
+        crossOrigin: 'anonymous',
+      },
       {
         rel: 'stylesheet',
         href: appCss,
@@ -78,11 +95,15 @@ function RootDocument({
       </head>
 
       <body>
+        <a href="#main-content" className="skip-link">
+          Skip to content
+        </a>
+
         <div className="app-shell">
           <Sidebar />
 
           <div className="app-main">
-            <main className="app-content">
+            <main id="main-content" tabIndex={-1} className="app-content">
               {children}
             </main>
 

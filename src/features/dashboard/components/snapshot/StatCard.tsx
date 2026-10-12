@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { Link } from '@tanstack/react-router'
 import { ArrowUpRight } from 'lucide-react'
 
 type StatCardProps = {
@@ -32,8 +33,8 @@ export function StatCard({ icon, label, value, hint, to }: StatCardProps) {
         )}
       </div>
 
-      <div className="display relative mt-3 text-2xl">{value}</div>
-      <div className="relative mt-1 text-xs text-(--ink-soft)">{hint}</div>
+      <div className="display relative mt-3 text-2xl tabular-nums">{value}</div>
+      <div className="relative mt-1 truncate text-xs text-(--ink-soft)">{hint}</div>
     </>
   )
 
@@ -42,9 +43,13 @@ export function StatCard({ icon, label, value, hint, to }: StatCardProps) {
 
   if (to) {
     return (
-      <a href={to} className={`${className} no-underline`}>
+      <Link
+        to={to}
+        aria-label={`${label}: ${value} — ${hint}`}
+        className={`${className} no-underline focus-visible:outline-2`}
+      >
         {inner}
-      </a>
+      </Link>
     )
   }
 

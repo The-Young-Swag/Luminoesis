@@ -1,3 +1,4 @@
+import { Link } from '@tanstack/react-router'
 import { Keyboard } from 'lucide-react'
 import type { AggregatedFeatures } from '#/features/learning-state/domain/signals'
 
@@ -5,12 +6,14 @@ type SessionCompleteProps = {
   minutes: number
   totalCards: number
   live: AggregatedFeatures | null
+  onRestart: () => void
 }
 
 export function SessionComplete({
   minutes,
   totalCards,
   live,
+  onRestart,
 }: SessionCompleteProps) {
   return (
     <div className="page-wrap py-10">
@@ -22,12 +25,12 @@ export function SessionComplete({
           Come back tomorrow — due cards will be waiting.
         </p>
         <div className="flex justify-center gap-2 mt-6">
-          <button className="btn-primary" onClick={() => location.reload()}>
+          <button type="button" className="btn-primary" onClick={onRestart}>
             New session
           </button>
-          <a href="/insights" className="btn-ghost no-underline">
+          <Link to="/insights" className="btn-ghost no-underline">
             View insights
-          </a>
+          </Link>
         </div>
         {live && (
           <div className="mt-6 rounded-xl border border-(--line) bg-(--surface-muted) p-3 text-left text-xs">
