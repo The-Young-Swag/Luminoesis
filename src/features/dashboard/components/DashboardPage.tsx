@@ -1,4 +1,6 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
+import { Link } from '@tanstack/react-router'
+import { ArrowRight } from 'lucide-react'
 
 import { useBaseline } from '#/features/learning-state/hooks/useBaseline'
 import { trackCalibrationAttempt, trackCalibrationCompletion } from '#/features/dashboard/domain/metrics'
@@ -6,6 +8,8 @@ import { trackCalibrationAttempt, trackCalibrationCompletion } from '#/features/
 import { useDashboardAnalytics } from '#/features/dashboard/hooks/useDashboardAnalytics'
 import { useDashboardData } from '#/features/dashboard/hooks/useDashboardData'
 
+import { PageHeader } from '#/shared/components/ui/PageHeader'
+import { StatCard } from '#/features/dashboard/components/snapshot/StatCard'
 import { AdaptiveOptInBanner } from '#/features/dashboard/components/hero/AdaptiveOptInBanner'
 import { DashboardHero } from '#/features/dashboard/components/hero/DashboardHero'
 import { InsightBanner } from '#/features/dashboard/components/layout/InsightBanner'
@@ -13,11 +17,22 @@ import { DashboardSkeleton } from '#/features/dashboard/components/loading/Dashb
 import { ActivityHeatmap } from '#/features/dashboard/components/activity/ActivityHeatmap'
 import { RetentionPanel } from '#/features/dashboard/components/retention/RetentionPanel'
 import { RhythmPanel } from '#/features/dashboard/components/rhythm/RhythmPanel'
-import { SnapshotStats } from '#/features/dashboard/components/snapshot/SnapshotStats'
 import { StatePanel } from '#/features/dashboard/components/state/StatePanel'
 
 import { RecentActivity } from '#/features/dashboard/components/activity/RecentActivity'
 import { UpcomingDue } from '#/features/dashboard/components/activity/UpcomingDue'
+
+function todayKey(): string {
+  return new Date().toISOString().slice(0, 10)
+}
+
+function dashboardDate(): string {
+  return new Intl.DateTimeFormat(undefined, {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  }).format(new Date())
+}
 
 export function DashboardPage() {
   const { cards, sessions, signals, concepts, reviewEvents, ready, optIn, setOptIn } = useDashboardData()
@@ -27,8 +42,6 @@ export function DashboardPage() {
     recentSignals,
     rhythmChartData,
     peakLearningHour,
-    dueToday,
-    newCards,
     pattern,
     sessionCount,
     recentActivity,
@@ -36,16 +49,26 @@ export function DashboardPage() {
     studyMinutesThisWeek,
     studyMinutesDelta,
     recentReviewCount,
-    recentReviewDelta,
     learningState,
     isCalibrating,
     recallValue,
     recallDelta,
-    weekActivity,
     weekMinutes,
     heatmap,
     calibrationProgress,
   } = useDashboardAnalytics({ cards, sessions, signals, baseline, hasBaseline, concepts, reviewEvents })
+
+  const queue = useMemo(() => {
+    const today = todayKey()
+    const byDue = [...cards].sort((a, b) => a.dueDate.localeCompare(b.dueDate))
+    const dueCount = byDue.filter((card) => card.dueDate <= today).length
+    return {
+      overdue: byDue.filter((card) => card.dueDate < today).slice(0, 3),
+      today: byDue.filter((card) => card.dueDate === today).slice(0, 2),
+      upcoming: byDue.filter((card) => card.dueDate > today).slice(0, 2),
+      dueCount,
+    }
+  }, [cards])
 
   useEffect(() => {
     if (isCalibrating) {
@@ -59,67 +82,134 @@ export function DashboardPage() {
     return <DashboardSkeleton />
   }
 
+  if (cards.length === 0 && sessionCount === 0) {
+    return (
+      <div className="page-wrap space-y-5 py-6 md:py-8">
+        <PageHeader title="Today" context={dashboardDate()} />
+
+        <DashboardHero
+          learningState={learningState}
+          sessionCount={sessionCount}
+          dueTodayCount={0}
+          totalCards={0}
+          calibrationProgress={calibrationProgress}
+          isCalibrating={isCalibrating}
+        />
+
+        <section aria-labelledby="onboarding-heading" className="card-flat p-6 md:p-8">
+          <p className="eyebrow">Getting started</p>
+          <h2 id="onboarding-heading" className="display mt-2 text-2xl tracking-tight">
+            Complete 5 sessions to unlock your rhythm
+          </h2>
+          <p className="mt-2 max-w-xl text-sm leading-6 text-(--ink-soft)">
+            Luminoesis learns when you are sharpest by watching typing timing —
+            never what you type. Everything stays on this device.
+          </p>
+
+          <ol className="mt-6 grid gap-3 sm:grid-cols-3">
+            {[
+              { step: '1', title: 'Add cards', detail: 'Capture ideas in the library' },
+              { step: '2', title: 'Review daily', detail: 'Short sessions beat long ones' },
+              { step: '3', title: 'Watch rhythm', detail: 'Your peak window appears here' },
+            ].map((item) => (
+              <li key={item.step} className="rounded-2xl bg-(--surface-muted) p-4">
+                <span className="font-mono text-xs font-semibold tabular-nums text-(--accent)">
+                  {item.step}
+                </span>
+                <p className="mt-1 text-sm font-semibold text-(--ink)">{item.title}</p>
+                <p className="mt-0.5 text-xs leading-5 text-(--ink-soft)">{item.detail}</p>
+              </li>
+            ))}
+          </ol>
+
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <Link to="/library" className="btn-primary inline-flex items-center justify-center gap-2 no-underline">
+              Add your first cards
+              <ArrowRight size={15} aria-hidden="true" />
+            </Link>
+            <span className="font-mono text-xs tabular-nums text-(--ink-soft)">
+              {sessionCount} of 5 sessions
+            </span>
+          </div>
+        </section>
+      </div>
+    )
+  }
+
   return (
-    <div className="page-wrap space-y-5 py-6 md:py-8">
+    <div className="page-wrap space-y-4 py-6 md:py-8">
+      <PageHeader title="Today" context={dashboardDate()} />
+
       {optIn === null && (
         <AdaptiveOptInBanner onEnable={() => void setOptIn(true)} onDismiss={() => void setOptIn(false)} />
       )}
 
-      <DashboardHero
-        learningState={learningState}
-        sessionCount={sessionCount}
-        dueTodayCount={dueToday.length}
-        totalCards={cards.length}
-        calibrationProgress={calibrationProgress}
-        isCalibrating={isCalibrating}
-      />
-
-      <SnapshotStats
-        studyMinutesThisWeek={studyMinutesThisWeek}
-        studyMinutesDelta={studyMinutesDelta}
-        recentReviewCount={recentReviewCount}
-        recentReviewDelta={recentReviewDelta}
-        recallValue={recallValue}
-        recallDelta={recallDelta}
-        dueTodayCount={dueToday.length}
-        minutesSpark={weekMinutes}
-        reviewsSpark={weekActivity}
-      />
-
-      {/* Command deck — main feed (chart, insight, activity) alongside a
-          HUD rail (current state, review queue). Mirrors a game launcher's
-          center-feed + side-panel split more than a flat stack of cards. */}
       <section
-        aria-label="Study command deck"
-        className="grid items-start gap-4 lg:grid-cols-[minmax(0,1.65fr)_minmax(300px,0.85fr)]"
+        aria-label="Study overview"
+        className="grid grid-cols-12 items-stretch gap-4"
       >
-        <div className="space-y-4">
+        <div className="col-span-12 lg:col-span-7 lg:row-span-2">
+          <DashboardHero
+            learningState={learningState}
+            sessionCount={sessionCount}
+            dueTodayCount={queue.dueCount}
+            totalCards={cards.length}
+            calibrationProgress={calibrationProgress}
+            isCalibrating={isCalibrating}
+          />
+        </div>
+
+        <div className="col-span-12 sm:col-span-6 lg:col-span-5">
+          <StatCard
+            label="Study time"
+            value={`${studyMinutesThisWeek}m`}
+            hint="Last 7 days"
+            delta={studyMinutesDelta}
+            spark={weekMinutes}
+            sparkDays
+          />
+        </div>
+
+        <div className="col-span-12 sm:col-span-6 lg:col-span-5">
+          <StatCard
+            label="Recall"
+            value={recallValue}
+            hint="Cards rated Good or Easy"
+            delta={recallDelta}
+            to="/insights"
+          />
+        </div>
+
+        <div className="col-span-12 lg:col-span-7 lg:row-span-2">
+          <UpcomingDue groups={queue} reviewedThisWeek={recentReviewCount} />
+        </div>
+
+        <div className="col-span-12 sm:col-span-6 lg:col-span-5">
           <RhythmPanel
             hasBaseline={hasBaseline}
             rhythmChartData={rhythmChartData}
             signalCount={signals.length}
             recentSignalCount={recentSignals.length}
           />
-
-          {pattern && <InsightBanner text={pattern.text} stat={pattern.stat} />}
-
-          <RecentActivity items={recentActivity} />
         </div>
 
-        <div className="space-y-4">
-          <StatePanel learningState={learningState} peakLearningHour={peakLearningHour} />
-          <UpcomingDue dueToday={dueToday} newCount={newCards.length} />
+        <div className="col-span-12 sm:col-span-6 lg:col-span-5">
+          {heatmap.total > 0 ? (
+            <ActivityHeatmap data={heatmap} />
+          ) : (
+            <StatePanel learningState={learningState} peakLearningHour={peakLearningHour} />
+          )}
         </div>
       </section>
 
+      {pattern && <InsightBanner text={pattern.text} stat={pattern.stat} />}
+
+      <section aria-label="More detail" className="grid items-start gap-4 lg:grid-cols-2">
+        <RecentActivity items={recentActivity} />
+        <StatePanel learningState={learningState} peakLearningHour={peakLearningHour} />
+      </section>
+
       <RetentionPanel data={retentionChartData} />
-
-      <ActivityHeatmap data={heatmap} />
-
-      <p className="px-1 text-center font-mono text-[10px] leading-5 text-(--ink-faint)">
-        <span translate="no">Luminoesis</span> never records what you type — only timing deltas. Your baseline stays on
-        this device. Suggestions are optional — you decide.
-      </p>
     </div>
   )
 }

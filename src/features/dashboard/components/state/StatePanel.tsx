@@ -1,4 +1,3 @@
-import { Flame } from 'lucide-react'
 
 import {
   secondPersonPeakWindow,
@@ -27,9 +26,8 @@ export function StatePanel({
       : secondPersonPeakWindow(peakLearningHour)
 
   return (
-    <div className="card-flat flex flex-col p-4 sm:p-5 md:p-6">
+    <div className="card-flat flex h-full flex-col p-4 sm:p-5 md:p-6">
       <PanelHeader
-        icon={<Flame size={14} />}
         title="Your current state"
         description={
           learningState.state === 'Insufficient Signal'
@@ -59,15 +57,15 @@ export function StatePanel({
       </div>
 
       <div className="mt-6 border-t border-(--line) pt-5 sm:mt-auto">
-        <p className="mono-label">Your sharpest window</p>
+        <p className="eyebrow">Your sharpest window</p>
 
-        <p className="display mt-1 text-lg sm:text-xl">
+        <p className="display mt-1 text-lg tabular-nums sm:text-xl">
           {peakLearningHour === null
             ? 'Still learning'
             : formatHour(peakLearningHour)}
         </p>
 
-        <p className="mt-1 max-w-sm text-xs leading-5 text-(--ink-faint)">
+        <p className="mt-1 max-w-sm text-xs leading-5 text-(--ink-soft)">
           {peakCue}
         </p>
       </div>

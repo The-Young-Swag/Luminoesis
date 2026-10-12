@@ -1,94 +1,120 @@
 import { Link } from '@tanstack/react-router'
-import {
-  CalendarClock,
-  GraduationCap,
-  Sparkles,
-} from 'lucide-react'
 
-import { PanelHeader } from '#/features/dashboard/components/layout/PanelHeader'
+import { Badge } from '#/shared/components/ui/Badge'
+import { formatRelativeDue } from '#/shared/lib/dates'
 
 import type { Card } from '#/features/library/domain/card'
 
-const MAX_VISIBLE_CARDS = 5
-
-type UpcomingDueProps = {
-  dueToday: Card[]
-  newCount: number
+type QueueGroups = {
+  overdue: Card[]
+  today: Card[]
+  upcoming: Card[]
+  dueCount: number
 }
 
-export function UpcomingDue({
-  dueToday,
-  newCount,
-}: UpcomingDueProps) {
-  const visibleCards =
-    dueToday.slice(0, MAX_VISIBLE_CARDS)
+function monogram(topic: string): string {
+  const initials = topic
+    .split(/\s+/)
+    .map((word) => word[0])
+    .filter((letter): letter is string => letter !== undefined)
+    .slice(0, 2)
+    .join('')
+    .toUpperCase()
+  return initials || '••'
+}
+
+export function UpcomingDue({ groups, reviewedThisWeek }: { groups: QueueGroups; reviewedThisWeek: number }) {
+  const { overdue, today, upcoming, dueCount } = groups
 
   return (
-    <div className="card-flat flex flex-col p-4 sm:p-5">
-      <PanelHeader
-        icon={<CalendarClock size={14} />}
-        title="Upcoming & overdue"
-        description="Cards waiting for a review, soonest due first"
-        action={<span className="chip w-fit">Queue</span>}
-      />
+    <section
+      aria-labelledby="queue-heading"
+      className="card-flat flex h-full flex-col p-5 md:p-6"
+    >
+      <div className="mb-2 flex items-start justify-between gap-3">
+        <div>
+          <h2 id="queue-heading" className="text-[15px] font-semibold">
+            Up next
+          </h2>
+          <p className="mt-0.5 text-[13px] text-(--ink-soft)">
+            Oldest first · {reviewedThisWeek} reviewed in the last 7 days
+          </p>
+        </div>
 
-      <div className="space-y-1">
-        {visibleCards.map((card) => (
-          <QueueRow
-            key={card.id}
-            card={card}
-          />
-        ))}
-
-        {dueToday.length === 0 && (
-          <div className="flex items-start gap-2 rounded-xl bg-(--veridian-muted) px-3 py-2.5 text-sm leading-5 text-(--ink-soft)">
-            <Sparkles
-              size={14}
-              className="mt-0.5 shrink-0 text-(--veridian)"
-            />
-
-            <span>
-              All caught up. New cards ready:{' '}
-              {newCount}
-            </span>
-          </div>
+        {dueCount > 0 && (
+          <Link
+            to="/review"
+            className="shrink-0 px-1 py-1.5 text-[13px] font-semibold text-(--accent) no-underline hover:underline"
+          >
+            See all {dueCount}
+          </Link>
         )}
       </div>
 
-      <Link
-        to="/review"
-        className="btn-primary mt-4 inline-flex w-full items-center justify-center gap-2 no-underline"
-      >
-        <GraduationCap size={16} />
-        Start review
-      </Link>
+      {dueCount === 0 ? (
+        <p className="rounded-2xl bg-(--surface-muted) px-4 py-3.5 text-sm leading-6 text-(--ink-soft)">
+          All caught up. New cards will appear here as soon as they are due.
+        </p>
+      ) : (
+        <div className="min-w-0">
+          <QueueGroup label="Overdue" cards={overdue} />
+          <QueueGroup label="Today" cards={today} />
+          <QueueGroup label="Upcoming" cards={upcoming} />
+        </div>
+      )}
+    </section>
+  )
+}
+
+function QueueGroup({ label, cards }: { label: string; cards: Card[] }) {
+  if (cards.length === 0) return null
+
+  return (
+    <div>
+      <p className="mb-1 mt-3.5 text-xs font-semibold text-(--ink-soft)">
+        {label}
+      </p>
+
+      <ul>
+        {cards.map((card) => (
+          <li key={card.id}>
+            <Link
+              to="/review"
+              className="group flex min-h-15 items-center gap-3.5 rounded-2xl px-2.5 py-2 transition-colors hover:bg-(--surface-muted) no-underline"
+            >
+              <span
+                aria-hidden="true"
+                className="grid h-9 w-9 shrink-0 place-items-center rounded-[11px] bg-(--surface-muted) text-[13px] font-bold text-(--ink-soft)"
+              >
+                {monogram(card.topic)}
+              </span>
+
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm font-semibold leading-snug text-(--ink)">
+                  {card.front}
+                </span>
+                <span className="mt-0.5 block truncate text-xs text-(--ink-soft)">
+                  {card.topic}
+                </span>
+              </span>
+
+              <QueueChip dueDate={card.dueDate} />
+            </Link>
+          </li>
+        ))}
+      </ul>
     </div>
   )
 }
 
-function QueueRow({
-  card,
-}: {
-  card: Card
-}) {
+function QueueChip({ dueDate }: { dueDate: string }) {
+  const relative = formatRelativeDue(dueDate)
+
   return (
-    <div className="feed-row group flex min-w-0 flex-col gap-2 rounded-xl border border-transparent px-2 py-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:py-2 hover:border-(--line)">
-      <div className="min-w-0">
-        <div className="wrap-break-word text-sm leading-5">
-          {card.front}
-        </div>
-
-        <div className="mt-0.5 wrap-break-word text-xs leading-5 text-(--ink-faint)">
-          {card.topic} · due {card.dueDate}
-        </div>
-      </div>
-
-      <Link
-        to="/review"
-        className="shrink-0 self-start text-xs font-medium text-(--blue) no-underline opacity-70 transition-opacity group-hover:opacity-100 sm:self-auto"
-      >
-        Review
-      </Link>
-    </div>
+    <span className="shrink-0">
+      <Badge tone={relative.tone === 'warn' ? 'warn' : 'neutral'}>
+        {relative.label}
+      </Badge>
+    </span>
   )
 }

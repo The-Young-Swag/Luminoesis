@@ -10,7 +10,7 @@ export function InsightBanner({ text, stat }: { text: string; stat: string }) {
         </div>
 
         <div className="min-w-0 flex-1">
-          <p className="mono-label text-(--veridian)">Personal insight</p>
+          <p className="eyebrow text-(--accent)">Personal insight</p>
           <p className="mt-1 text-sm font-medium">{text}</p>
           <p className="mt-1 text-xs leading-5 text-(--ink-soft)">{stat}</p>
         </div>

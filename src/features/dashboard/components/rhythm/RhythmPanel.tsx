@@ -1,6 +1,4 @@
-import { Activity } from 'lucide-react'
 
-import { CornerBrackets } from '#/features/dashboard/components/layout/CornerBrackets'
 import { PanelHeader } from '#/features/dashboard/components/layout/PanelHeader'
 import { LearningRhythmChart } from '#/features/dashboard/components/rhythm/LearningRhythmChart'
 
@@ -24,12 +22,8 @@ export function RhythmPanel({
   recentSignalCount,
 }: RhythmPanelProps) {
   return (
-    <div className="card-flat relative overflow-hidden p-4 sm:p-5 md:p-6">
-      <CornerBrackets />
-
+    <div className="card-flat h-full p-4 sm:p-5 md:p-6">
       <PanelHeader
-        icon={<Activity size={14} />}
-        iconClassName="bg-(--veridian-muted) text-(--veridian)"
         title="Learning rhythm"
         description="How far your typing rhythm is drifting from your personal baseline right now"
         action={
@@ -55,12 +49,12 @@ export function RhythmPanel({
 
       {hasBaseline && (
         <>
-          <p className="mt-3 text-[11px] leading-5 text-(--ink-faint)">
+          <p className="mt-3 text-[11px] leading-5 text-(--ink-soft)">
             The vertical scale counts how far each reading drifts from your
             personal baseline, in steps of your normal day-to-day variation.
           </p>
 
-          <div className="mt-2 flex flex-col gap-1 font-mono text-[10px] text-(--ink-faint) sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+          <div className="mt-2 flex flex-col gap-1 font-mono text-[10px] tabular-nums text-(--ink-soft) sm:flex-row sm:items-center sm:justify-between sm:gap-3">
             <span>Closer to baseline</span>
             <span>{recentSignalCount} observations</span>
           </div>

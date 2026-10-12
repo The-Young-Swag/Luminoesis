@@ -22,17 +22,16 @@ function dayLabel(startDate: number, week: number, day: number): string {
 
 export function ActivityHeatmap({ data }: { data: HeatmapData }) {
   return (
-    <section aria-labelledby="activity-heading" className="card-flat p-5">
+    <section aria-labelledby="activity-heading" className="card-flat h-full p-5">
       <div className="flex items-end justify-between gap-4">
         <div>
-          <h2 id="activity-heading" className="text-sm font-semibold">
-            Review activity
+          <h2 id="activity-heading" className="text-[15px] font-semibold">
+            Activity
           </h2>
-          <p className="mt-0.5 text-xs text-(--ink-faint)">
-            Every review, on this device only.
+          <p className="mt-0.5 text-[13px] text-(--ink-soft)">
+            Last 12 weeks
           </p>
         </div>
-        <span className="chip hidden shrink-0 sm:inline-flex">Last 12 weeks</span>
       </div>
 
       <p className="sr-only">
@@ -59,7 +58,7 @@ export function ActivityHeatmap({ data }: { data: HeatmapData }) {
 
       <div
         aria-hidden="true"
-        className="mt-3 flex items-center justify-end gap-1.5 font-mono text-[10px] text-(--ink-faint)"
+        className="mt-3 flex items-center justify-end gap-1.5 font-mono text-[10px] tabular-nums text-(--ink-soft)"
       >
         <span>Less</span>
         {[0, 2, 4, 7, 12].map((count) => (

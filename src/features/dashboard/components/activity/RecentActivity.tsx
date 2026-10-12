@@ -1,6 +1,6 @@
-import { History } from 'lucide-react'
 
 import { PanelHeader } from '#/features/dashboard/components/layout/PanelHeader'
+import { formatRelativeTime } from '#/shared/lib/dates'
 
 import type { RecentActivityItem } from '#/features/dashboard/hooks/useDashboardAnalytics'
 
@@ -11,15 +11,15 @@ const GRADE_LABELS = [
   'Easy',
 ] as const
 
-const GRADE_TONE_COLOR = {
-  high: 'var(--blue)',
-  mid: 'var(--amber)',
-  low: 'var(--purple)',
+const GRADE_TONE_CLASS = {
+  high: 'bg-(--accent-soft) text-(--ink)',
+  mid: 'bg-(--warning-muted) text-(--warning-strong)',
+  low: 'bg-(--destructive)/10 text-(--destructive)',
 } as const
 
 function gradeTone(
   grade: number,
-): keyof typeof GRADE_TONE_COLOR {
+): keyof typeof GRADE_TONE_CLASS {
   if (grade >= 2) return 'high'
   if (grade === 1) return 'mid'
   return 'low'
@@ -35,10 +35,8 @@ export function RecentActivity({
   return (
     <div className="card-flat p-4 sm:p-5">
       <PanelHeader
-        icon={<History size={14} />}
         title="Recent activity"
         description="Your latest review outcomes, newest first"
-        action={<span className="chip w-fit">Feed</span>}
       />
 
       {items.length === 0 ? (
@@ -69,11 +67,7 @@ function ActivityRow({
   return (
     <li className="feed-row flex min-w-0 items-center gap-3 rounded-xl px-2 py-2.5">
       <span
-        className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-[11px] font-semibold text-white"
-        style={{
-          background:
-            GRADE_TONE_COLOR[tone],
-        }}
+        className={`grid h-9 w-9 shrink-0 place-items-center rounded-full text-[11px] font-bold ${GRADE_TONE_CLASS[tone]}`}
         aria-hidden="true"
       >
         {GRADE_LABELS[item.grade].slice(0, 1)}
@@ -84,10 +78,10 @@ function ActivityRow({
           {item.label}
         </div>
 
-        <div className="mt-0.5 wrap-break-word text-xs leading-5 text-(--ink-faint)">
-          {new Date(
-            item.timestamp,
-          ).toLocaleString()}{' '}
+        <div className="mt-0.5 wrap-break-word text-xs leading-5 text-(--ink-soft)">
+          <time dateTime={new Date(item.timestamp).toISOString()}>
+            {formatRelativeTime(item.timestamp)}
+          </time>{' '}
           · {GRADE_LABELS[item.grade]}
         </div>
       </div>

@@ -7,7 +7,7 @@ export function AdaptiveOptInBanner({ onEnable, onDismiss }: AdaptiveOptInBanner
   return (
     <section className="card-flat flex flex-col gap-4 border-(--veridian)/20 p-5 md:flex-row md:items-center">
       <div className="min-w-0 flex-1">
-        <div className="mono-label">Adaptive learning</div>
+        <div className="eyebrow">Adaptive learning</div>
 
         <h3 className="mt-1 text-[15px] font-medium">Adapt reviews to your rhythm?</h3>
 
