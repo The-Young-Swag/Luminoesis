@@ -54,12 +54,13 @@ function cx(...classes: Array<string | false | undefined>): string {
 function renderContentBlocks(blocks: MaterialContentBlock[]) {
   return blocks.map((block) =>
     block.type === 'heading' ? (
-      <h1
+      <h2
         key={block.id}
-        className="font-display text-[34px] leading-[1.2] font-semibold tracking-tight text-(--ink)"
+        id={`reader-${block.id}`}
+        className="font-display scroll-mt-24 text-[34px] leading-[1.2] font-semibold tracking-tight text-(--ink)"
       >
         {block.text}
-      </h1>
+      </h2>
     ) : (
       <p
         key={block.id}
@@ -183,6 +184,7 @@ export function MaterialViewerPage({ materialId }: { materialId: string }) {
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState('')
   const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
 
   const [leftCollapsed, setLeftCollapsed] = usePersistentBoolean(
     'material-viewer:left-collapsed',
@@ -337,6 +339,7 @@ export function MaterialViewerPage({ materialId }: { materialId: string }) {
     }
 
     setSaving(true)
+    setSaveError(null)
 
     try {
       await saveMaterialContent({
@@ -345,6 +348,8 @@ export function MaterialViewerPage({ materialId }: { materialId: string }) {
         blocks: parseDraft(draft),
       })
       setEditing(false)
+    } catch {
+      setSaveError('Could not save — your edits are still here. Try again.')
     } finally {
       setSaving(false)
     }
@@ -429,7 +434,7 @@ export function MaterialViewerPage({ materialId }: { materialId: string }) {
           >
             {focused ? <Minimize2 size={14} aria-hidden="true" /> : <Maximize2 size={14} aria-hidden="true" />}
           </button>
-          <span className="grid h-7 w-7 place-items-center rounded-full bg-(--racing) text-white shadow-sm">
+          <span aria-hidden="true" className="grid h-7 w-7 place-items-center rounded-full bg-(--racing) text-white shadow-sm">
             <span className="h-2.5 w-2.5 rounded-full bg-(--emerald)" aria-hidden="true" />
           </span>
         </div>
@@ -461,6 +466,7 @@ export function MaterialViewerPage({ materialId }: { materialId: string }) {
               <button
                 type="button"
                 onClick={() => setLeftCollapsed(false)}
+                aria-label="Expand study guide contents"
                 title="Contents"
                 className="grid h-8 w-8 place-items-center rounded-md text-(--ink-soft) hover:bg-(--surface-muted) hover:text-(--ink)"
               >
@@ -469,6 +475,7 @@ export function MaterialViewerPage({ materialId }: { materialId: string }) {
               <button
                 type="button"
                 onClick={() => setLeftCollapsed(false)}
+                aria-label="Expand study guide concepts"
                 title="Concepts"
                 className="grid h-8 w-8 place-items-center rounded-md text-(--ink-soft) hover:bg-(--surface-muted) hover:text-(--ink)"
               >
@@ -505,6 +512,7 @@ export function MaterialViewerPage({ materialId }: { materialId: string }) {
               editing={editing}
               draft={draft}
               saving={saving}
+              saveError={saveError}
               onDraftChange={setDraft}
               onStartEditing={startEditing}
               onCancelEditing={() => setEditing(false)}
@@ -553,6 +561,11 @@ export function MaterialViewerPage({ materialId }: { materialId: string }) {
               </button>
               <button
                 type="button"
+                onClick={() => {
+                  setRightCollapsed(false)
+                  window.setTimeout(() => tutorRef.current?.focusInput(), 50)
+                }}
+                aria-label="Ask tutor"
                 title="Ask tutor"
                 className="grid h-8 w-8 place-items-center rounded-md bg-(--blue)/10 text-(--blue) hover:bg-(--blue)/15"
               >
@@ -728,19 +741,27 @@ function StudyGuide({
             <div className="min-w-0 px-3.5 pb-3">
               {headings.length > 0 ? (
                 <div className="flex min-w-0 flex-col gap-0.5">
-                  {headings.map((heading, index) => (
-                    <div
+                  {headings.map((heading) => (
+                    <button
                       key={heading.id}
-                      className={
-                        index === 0
-                          ? 'relative ml-3.5 min-w-0 cursor-pointer rounded-md bg-(--blue)/10 px-2 py-1.5 text-[13px] font-medium text-(--ink) before:absolute before:-left-3.5 before:top-1.5 before:bottom-1.5 before:w-0.5 before:rounded-full before:bg-(--blue)'
-                          : 'ml-3.5 min-w-0 cursor-pointer rounded-md px-2 py-1.5 text-[13px] text-(--ink-soft) hover:text-(--ink)'
-                      }
+                      type="button"
+                      onClick={() => {
+                        const reduced = window.matchMedia(
+                          '(prefers-reduced-motion: reduce)',
+                        ).matches
+                        document
+                          .getElementById(`reader-${heading.id}`)
+                          ?.scrollIntoView({
+                            behavior: reduced ? 'auto' : 'smooth',
+                            block: 'start',
+                          })
+                      }}
+                      className="ml-3.5 min-w-0 rounded-md px-2 py-1.5 text-left text-[13px] text-(--ink-soft) transition-colors hover:bg-(--surface-muted) hover:text-(--ink) focus-visible:outline-2"
                     >
                       <span className="block line-clamp-2 leading-snug">
                         {heading.text}
                       </span>
-                    </div>
+                    </button>
                   ))}
                 </div>
               ) : (
@@ -863,6 +884,7 @@ type ReadPaneProps = {
   editing: boolean
   draft: string
   saving: boolean
+  saveError: string | null
   onDraftChange: (value: string) => void
   onStartEditing: () => void
   onCancelEditing: () => void
@@ -886,6 +908,7 @@ function ReadPane({
   editing,
   draft,
   saving,
+  saveError,
   onDraftChange,
   onStartEditing,
   onCancelEditing,
@@ -936,6 +959,12 @@ function ReadPane({
               {saving ? 'Saving…' : 'Save content'}
             </button>
           </div>
+
+          {saveError ? (
+            <p role="alert" className="mt-3 text-right text-sm font-medium text-(--destructive)">
+              {saveError}
+            </p>
+          ) : null}
         </div>
       ) : showsOriginalDocumentPreview ? (
         <MaterialPreview
@@ -1008,7 +1037,7 @@ function ExplorePane({ concepts }: { concepts: Concept[] }) {
 
       {concepts.length === 0 ? (
         <p className="text-sm leading-relaxed text-(--ink-faint)">
-          No concepts are linked to this material yet.
+          No concepts linked yet. Select text in the reader to create one.
         </p>
       ) : (
         <ul className="space-y-3">
