@@ -1,6 +1,7 @@
 import {
   forwardRef,
   useCallback,
+  useEffect,
   useImperativeHandle,
   useMemo,
   useRef,
@@ -43,13 +44,41 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
       {
         id: 'intro',
         role: 'assistant',
-        text: `This is the AI Tutor for "${materialTitle}". Ask about the material — answers are grounded in your concepts and review history. Local AI works offline. Gemini online fallback — Coming soon.`,
+        text: `This is the AI Tutor for “${materialTitle}”. Ask about the material — answers stay grounded in your concepts and review history. Local AI works offline.`,
       },
     ])
 
     const [draft, setDraft] = useState('')
     const [sending, setSending] = useState(false)
     const textareaRef = useRef<HTMLTextAreaElement>(null)
+    const endRef = useRef<HTMLDivElement>(null)
+
+    /*
+     * Titles load async, but the intro is snapshotted at mount. Refresh it
+     * while the conversation is still pristine so it never names the
+     * wrong material.
+     */
+    useEffect(() => {
+      setMessages((previousMessages) => {
+        if (
+          previousMessages.length !== 1 ||
+          previousMessages[0]?.id !== 'intro'
+        ) {
+          return previousMessages
+        }
+        return [
+          {
+            id: 'intro',
+            role: 'assistant',
+            text: `This is the AI Tutor for “${materialTitle}”. Ask about the material — answers stay grounded in your concepts and review history. Local AI works offline.`,
+          },
+        ]
+      })
+    }, [materialTitle])
+
+    useEffect(() => {
+      endRef.current?.scrollIntoView({ block: 'nearest' })
+    }, [messages.length, sending])
 
     useImperativeHandle(
       ref,
@@ -221,6 +250,8 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
               </p>
             </div>
           )}
+
+          <div ref={endRef} aria-hidden="true" />
         </div>
 
         <div className="shrink-0 border-t border-(--glass-border) p-5">
