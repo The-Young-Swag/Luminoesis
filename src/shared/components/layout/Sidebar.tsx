@@ -10,6 +10,7 @@ import {
   MoreHorizontal,
   PanelLeftClose,
   PanelLeftOpen,
+  Search,
   Settings2,
   ShieldCheck,
   Sun,
@@ -20,6 +21,7 @@ import type { LucideIcon } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 
 import { useTheme } from '#/shared/hooks/useTheme'
+import { CommandPalette } from '#/shared/components/command/CommandPalette'
 
 type NavItem = {
   to: string
@@ -93,6 +95,7 @@ function cx(...classes: Array<string | false | undefined>) {
 export default function Sidebar() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [moreOpen, setMoreOpen] = useState(false)
+  const [paletteOpen, setPaletteOpen] = useState(false)
 
   const pathname = useRouterState({
     select: (state) => state.location.pathname,
@@ -103,7 +106,21 @@ export default function Sidebar() {
   useEffect(() => {
     setMobileOpen(false)
     setMoreOpen(false)
+    setPaletteOpen(false)
   }, [pathname])
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault()
+        setPaletteOpen((open) => !open)
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [])
+
+  const openPalette = () => setPaletteOpen(true)
 
   return (
     <>
@@ -111,6 +128,7 @@ export default function Sidebar() {
       <MobileHeader
         focusMode={isFocusMode}
         onOpenNavigation={() => setMobileOpen(true)}
+        onOpenPalette={openPalette}
       />
 
       <MobileBottomNavigation
@@ -131,7 +149,12 @@ export default function Sidebar() {
       )}
 
       {/* Desktop */}
-      <DesktopSidebar focusMode={isFocusMode} />
+      <DesktopSidebar focusMode={isFocusMode} onOpenPalette={openPalette} />
+
+      <CommandPalette
+        open={paletteOpen}
+        onClose={() => setPaletteOpen(false)}
+      />
     </>
   )
 }
@@ -143,11 +166,13 @@ export default function Sidebar() {
 type MobileHeaderProps = {
   focusMode: boolean
   onOpenNavigation: () => void
+  onOpenPalette: () => void
 }
 
 function MobileHeader({
   focusMode,
   onOpenNavigation,
+  onOpenPalette,
 }: MobileHeaderProps) {
   return (
     <header
@@ -172,6 +197,15 @@ function MobileHeader({
 
       <div className="flex items-center gap-2">
         <ThemeToggle />
+
+        <button
+          type="button"
+          aria-label="Open command palette"
+          onClick={onOpenPalette}
+          className="glass-pill grid h-9 w-9 place-items-center"
+        >
+          <Search size={16} aria-hidden="true" />
+        </button>
 
         <button
           type="button"
@@ -408,8 +442,10 @@ function usePersistentBoolean(key: string, initial: boolean): readonly [boolean,
 
 function DesktopSidebar({
   focusMode,
+  onOpenPalette,
 }: {
   focusMode: boolean
+  onOpenPalette: () => void
 }) {
   const [collapsed, setCollapsed] = usePersistentBoolean('app-sidebar:collapsed', false)
 
@@ -465,6 +501,32 @@ function DesktopSidebar({
           aria-label="Sidebar navigation"
           className={cx('sidebar-scroll min-h-0 flex-1 overflow-y-auto py-4', collapsed ? 'px-2' : 'px-3')}
         >
+          {collapsed ? (
+            <button
+              type="button"
+              aria-label="Open command palette"
+              title="Search and commands (Ctrl K)"
+              onClick={onOpenPalette}
+              className="mx-auto grid h-10 w-10 place-items-center rounded-xl text-(--ink-soft) transition hover:bg-sidebar-accent hover:text-(--ink)"
+            >
+              <Search size={18} aria-hidden="true" />
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={onOpenPalette}
+              className="mb-4 flex w-full items-center gap-2.5 rounded-xl border border-(--line) bg-(--surface-muted) px-3 py-2 text-sm text-(--ink-faint) transition-colors hover:border-(--line-strong) hover:text-(--ink-soft)"
+            >
+              <Search size={15} aria-hidden="true" className="shrink-0" />
+              <span className="flex-1 truncate text-left">Jump to…</span>
+              <kbd
+                aria-hidden="true"
+                className="shrink-0 rounded border border-(--line) bg-(--surface) px-1.5 py-0.5 font-mono text-[10px]"
+              >
+                ⌘K
+              </kbd>
+            </button>
+          )}
           <SidebarNav collapsed={collapsed} />
         </nav>
 
@@ -612,14 +674,23 @@ function SidebarFooter() {
   return (
     <div className="shrink-0 space-y-3 border-t border-sidebar-border p-4">
       <div className="rounded-xl border border-(--line) bg-(--surface-muted) p-3">
-        <div className="mono-label">
-          On-device signal
+        <div className="flex items-center gap-1.5">
+          <span
+            className="pulse-dot"
+            aria-hidden="true"
+            title="On-device signal active"
+          />
+          <span className="text-[11px] font-semibold text-(--ink)">
+            On-device signal
+          </span>
         </div>
 
-        <SignalStatus showLabel />
-
-        <div className="mono-label mt-1 opacity-70">
-          Timing only · Private by design
+        <div
+          role="status"
+          aria-live="polite"
+          className="mono-label mt-1 opacity-70"
+        >
+          Timing only · never content
         </div>
       </div>
 
@@ -628,32 +699,6 @@ function SidebarFooter() {
       <div className="mono-label text-center opacity-60">
         © 2026 Luminoesis
       </div>
-    </div>
-  )
-}
-
-function SignalStatus({
-  showLabel = false,
-}: {
-  showLabel?: boolean
-}) {
-  return (
-    <div
-      role="status"
-      aria-live="polite"
-      className={
-        showLabel
-          ? 'mt-1.5 flex items-center gap-1.5 text-[11px] font-mono text-(--ink-faint)'
-          : undefined
-      }
-    >
-      <span
-        className="pulse-dot"
-        aria-hidden="true"
-        title="On-device signal active"
-      />
-
-      {showLabel && 'Signal active'}
     </div>
   )
 }
