@@ -309,7 +309,6 @@ function MaterialsSection({ materials, onAddMaterial }: MaterialsSectionProps) {
   return (
     <section>
       <SectionHeader
-        icon={FileText}
         title="Materials"
         description="Source material for this Learning Space."
         meta={

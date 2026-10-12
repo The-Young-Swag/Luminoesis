@@ -4,6 +4,7 @@ import { Moon, Sun, ShieldCheck, Download, Trash2 } from 'lucide-react'
 
 import { useTheme } from '#/shared/hooks/useTheme'
 import { downloadJson } from '#/shared/lib/download'
+import { PageHeader } from '#/shared/components/ui/PageHeader'
 import { settingsRepository } from '#/shared/repositories/settingsRepository'
 import { deleteAllData, exportAllData, loadPrivacyData, setAdaptiveOptIn } from '#/features/privacy/privacyService'
 
@@ -38,14 +39,13 @@ export function SettingsPage() {
   const isDark = theme === 'dark'
 
   return (
-    <div className="page-wrap max-w-220 py-8">
-      <p className="kicker">Settings</p>
-      <h1 className="display text-[28px]">Preferences</h1>
-      <p className="mt-1 text-sm text-(--ink-soft)">
-        Core learning works offline with no account. These controls stay on your device.
-      </p>
+    <div className="page-wrap max-w-220 space-y-4 py-6 md:py-8">
+      <PageHeader
+        title="Settings"
+        context="On this device · no account needed"
+      />
 
-      <div className="card-flat mt-6 p-5">
+      <div className="card-flat p-5">
         <h2 className="flex items-center gap-2 text-sm font-semibold">
           {isDark ? <Moon size={16} aria-hidden="true" /> : <Sun size={16} aria-hidden="true" />} Appearance
         </h2>
@@ -55,7 +55,7 @@ export function SettingsPage() {
         </button>
       </div>
 
-      <div className="card-flat mt-4 p-5">
+      <div className="card-flat p-5">
         <h2 className="text-sm font-semibold">Adaptive learning</h2>
         <p className="mt-1 text-sm text-(--ink-soft)">
           When enabled, Luminoesis measures timing only (how you type, not what you type) to build a private baseline.
@@ -82,7 +82,7 @@ export function SettingsPage() {
         </p>
       </div>
 
-      <div className="card-flat mt-4 p-5">
+      <div className="card-flat p-5">
         <h2 className="flex items-center gap-2 text-sm font-semibold">
           <ShieldCheck size={16} aria-hidden="true" /> Privacy &amp; data
         </h2>
@@ -106,7 +106,7 @@ export function SettingsPage() {
         </div>
       </div>
 
-      <div className="card-flat mt-4 p-5">
+      <div className="card-flat p-5">
         <h2 className="text-sm font-semibold">On-device AI model</h2>
         <p className="mt-1 text-sm text-(--ink-soft)">
           Standard is fast and always available offline. Capable answers harder
@@ -145,7 +145,7 @@ export function SettingsPage() {
         </p>
       </div>
 
-      <div className="card-flat mt-4 p-5">
+      <div className="card-flat p-5">
         <h2 className="text-sm font-semibold">Online tutor escalation</h2>
         <p className="mt-1 text-sm text-(--ink-soft)">
           Off by default. When on, only questions the on-device model answers
@@ -185,7 +185,7 @@ export function SettingsPage() {
         </div>
       </div>
 
-      <div className="card-flat mt-4 p-5">
+      <div className="card-flat p-5">
         <h2 className="text-sm font-semibold">Sync (optional)</h2>
         <p className="mt-1 text-sm text-(--ink-soft)">
           Core study never needs sync. If you run the optional Express + SQLite backend on <code className="rounded bg-(--surface-muted) px-1 py-0.5 font-mono text-xs">:4901</code>, this device can

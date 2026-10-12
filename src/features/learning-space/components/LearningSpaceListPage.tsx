@@ -5,6 +5,7 @@ import { ArrowRight, Plus } from 'lucide-react'
 import type { LearningSpace } from '#/features/learning-space/domain/learningSpace'
 
 import { useLearningSpaceList } from '../hooks/useLearningSpaceList'
+import { PageHeader } from '#/shared/components/ui/PageHeader'
 import { CreateLearningSpaceDialog } from './CreateLearningSpaceDialog'
 
 export function LearningSpaceListPage() {
@@ -50,27 +51,19 @@ export function LearningSpaceListPage() {
   }
 
   return (
-    <section className="page-wrap py-8">
-      <header className="rise mb-8">
-        <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="eyebrow">Learning</p>
-
-            <h1 className="display mt-2 text-3xl tracking-tight">
-              Your learning spaces
-            </h1>
-
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-(--ink-soft)">
-              Bring the materials for one subject together
-              in one place — open a space to keep working on
-              it.
-            </p>
-          </div>
-
+    <section className="page-wrap space-y-5 py-6 md:py-8">
+      <PageHeader
+        title="Learning Spaces"
+        context={
+          learningSpaces.length === 1
+            ? '1 space · one subject at a time'
+            : `${learningSpaces.length} spaces · one subject at a time`
+        }
+        action={
           <button
             type="button"
             onClick={() => setIsDialogOpen(true)}
-            className="btn-primary inline-flex shrink-0 items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-(--blue)/30 focus:ring-offset-2 focus:ring-offset-background"
+            className="btn-primary inline-flex shrink-0 items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-(--veridian)/30 focus:ring-offset-2 focus:ring-offset-background"
           >
             <Plus
               size={16}
@@ -78,8 +71,8 @@ export function LearningSpaceListPage() {
             />
             New learning space
           </button>
-        </div>
-      </header>
+        }
+      />
 
       {learningSpaces.length === 0 ? (
         <div className="card-flat rise p-10 text-center">

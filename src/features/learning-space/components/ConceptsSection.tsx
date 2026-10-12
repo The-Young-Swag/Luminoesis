@@ -43,7 +43,6 @@ export function ConceptsSection({
   return (
     <section id="concepts" className="scroll-mt-24">
       <SectionHeader
-        icon={Lightbulb}
         title="Concepts"
         description="The key ideas this Learning Space is built around."
         meta={concepts.length > 0 ? `${concepts.length} concept${concepts.length === 1 ? '' : 's'}` : undefined}

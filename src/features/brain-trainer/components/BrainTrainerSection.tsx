@@ -40,7 +40,6 @@ export function BrainTrainerSection({ concepts }: BrainTrainerSectionProps) {
   return (
     <section id="brain-trainer" className="scroll-mt-24">
       <SectionHeader
-        icon={Zap}
         title="Brain Trainer"
         description="A mixed recall drill of due flashcards and quiz questions across this space."
         action={

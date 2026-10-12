@@ -66,7 +66,6 @@ export function FlashcardsSection({ learningSpaceId, concepts, materials }: Flas
   return (
     <section id="flashcards" className="scroll-mt-24">
       <SectionHeader
-        icon={Layers}
         title="Flashcards"
         description="Retrieval prompts tied to concepts in this Learning Space."
         meta={flashcards.length > 0 ? `${flashcards.length} card${flashcards.length === 1 ? '' : 's'}` : undefined}

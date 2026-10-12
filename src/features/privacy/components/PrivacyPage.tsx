@@ -14,6 +14,7 @@ import {
   setAdaptiveOptIn,
 } from '#/features/privacy/privacyService'
 import { downloadJson } from '#/shared/lib/download'
+import { PageHeader } from '#/shared/components/ui/PageHeader'
 import { settingsRepository } from '#/shared/repositories/settingsRepository'
 
 const FEATURE_LABEL: Record<FeatureName, string> = {
@@ -113,10 +114,11 @@ export function PrivacyPage() {
   }
 
   return (
-    <div className="page-wrap max-w-220 py-8">
-      <p className="kicker">Transparency &amp; privacy</p>
-
-      <h1 className="display text-[28px]">Your data trains only you</h1>
+    <div className="page-wrap max-w-220 space-y-4 py-6 md:py-8">
+      <PageHeader
+        title="Privacy"
+        context="What is measured · what stays on device"
+      />
 
       <p className="mt-1 text-sm text-(--ink-soft)">
         Luminoesis does not record the words you type. It only measures{' '}
@@ -129,7 +131,7 @@ export function PrivacyPage() {
           : 'Nothing is sent to a server.'}
       </p>
 
-      <div className="card-flat mt-6 p-5">
+      <div className="card-flat p-5">
         <h2 className="text-sm font-semibold">What gets measured</h2>
 
         <ul className="mt-3 grid gap-2 text-sm">
@@ -291,7 +293,7 @@ export function PrivacyPage() {
         </div>
       </div>
 
-      <div className="card-flat mt-4 p-5">
+      <div className="card-flat p-5">
         <h3 className="text-sm font-semibold">Your data controls</h3>
 
         <div className="mt-3 flex flex-wrap gap-2">
@@ -320,7 +322,7 @@ export function PrivacyPage() {
         </p>
       </div>
 
-      <div className="card-flat mt-4 p-5">
+      <div className="card-flat p-5">
         <h3 className="text-sm font-semibold">AI Tutor &amp; your privacy</h3>
 
         <p className="mt-1 text-sm leading-relaxed text-(--ink-soft)">
@@ -343,7 +345,7 @@ export function PrivacyPage() {
         </p>
       </div>
 
-      <div className="card-flat mt-4 p-5">
+      <div className="card-flat p-5">
         <h3 className="text-sm font-semibold">Works offline, costs nothing</h3>
 
         <p className="mt-1 text-sm text-(--ink-soft)">

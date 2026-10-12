@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react'
-import { ClipboardCheck, ClipboardList, Plus, Trash2 } from 'lucide-react'
+import { ClipboardList, Plus, Trash2 } from 'lucide-react'
 
 import type { Concept } from '#/features/learning-space/domain/learningSpace'
 import { useQuestions } from '#/features/quiz/hooks/useQuestions'
@@ -88,7 +88,6 @@ export function QuizSection({ learningSpaceId, concepts }: QuizSectionProps) {
   return (
     <section id="practice" className="scroll-mt-24">
       <SectionHeader
-        icon={ClipboardCheck}
         title="Practice"
         description={
           hasQuestions
