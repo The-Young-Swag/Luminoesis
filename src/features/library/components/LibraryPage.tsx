@@ -309,20 +309,18 @@ export function LibraryPage() {
         )}
       </div>
 
-      {isDialogOpen && (
-        <CardDialog
-          card={editingCard}
-          onClose={handleCloseDialog}
-          onSaved={handleSaved}
-        />
-      )}
+      <CardDialog
+        open={isDialogOpen}
+        card={editingCard}
+        onClose={handleCloseDialog}
+        onSaved={handleSaved}
+      />
 
-      {isImportOpen && (
-        <ImportWizard
-          onClose={() => setIsImportOpen(false)}
-          onImported={handleImported}
-        />
-      )}
+      <ImportWizard
+        open={isImportOpen}
+        onClose={() => setIsImportOpen(false)}
+        onImported={handleImported}
+      />
     </section>
   )
 }

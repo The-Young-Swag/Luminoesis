@@ -12,6 +12,7 @@ import {
 
 import type { RawCard } from '#/features/library/domain/import'
 import { parseAny } from '#/features/library/domain/import'
+import { Dialog } from '#/shared/components/ui/Dialog'
 import { importCards } from '../application/importCards'
 import { ImportPreview } from './ImportPreview'
 
@@ -109,11 +110,13 @@ function humanWarning(warning: string): string {
 }
 
 type ImportWizardProps = {
+  open: boolean
   onClose: () => void
   onImported: () => void
 }
 
 export function ImportWizard({
+  open,
   onClose,
   onImported,
 }: ImportWizardProps) {
@@ -260,16 +263,14 @@ export function ImportWizard({
   }
 
   return (
-    <div
-      className="glass-scrim fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Add cards to your library"
-      onClick={onClose}
+    <Dialog
+      open={open}
+      onClose={onClose}
+      label="Add cards to your library"
+      wide
     >
       <div
-        className="glass-surface glass-specular rise flex max-h-[92vh] w-full max-w-220 flex-col overflow-hidden rounded-[20px]"
-        onClick={(event) => event.stopPropagation()}
+        className="flex max-h-[80vh] w-full flex-col overflow-hidden"
       >
         <div className="shrink-0 border-b border-(--line) px-6 pt-6 pb-4">
           <div className="flex items-start justify-between gap-4">
@@ -607,6 +608,6 @@ Or just one fact per line — we’ll handle the rest.`}
           </div>
         </div>
       </div>
-    </div>
+    </Dialog>
   )
 }

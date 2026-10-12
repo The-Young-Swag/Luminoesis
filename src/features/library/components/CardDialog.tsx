@@ -2,18 +2,21 @@ import { useEffect, useState, useTransition } from 'react'
 import { Pencil, Plus } from 'lucide-react'
 
 import type { Card } from '#/features/library/domain/card'
+import { Dialog } from '#/shared/components/ui/Dialog'
 
 import { createCard } from '../application/createCard'
 import { updateCard } from '../application/updateCard'
 
 type CardDialogProps = {
   card?: Card
+  open: boolean
   onClose: () => void
   onSaved: () => void
 }
 
 export function CardDialog({
   card,
+  open,
   onClose,
   onSaved,
 }: CardDialogProps) {
@@ -58,17 +61,12 @@ export function CardDialog({
   }
 
   return (
-    <div
-      className="glass-scrim fixed inset-0 z-50 flex items-center justify-center p-4"
-      role="dialog"
-      aria-modal="true"
-      aria-label={card ? 'Edit card' : 'New card'}
-      onClick={onClose}
+    <Dialog
+      open={open}
+      onClose={onClose}
+      label={card ? 'Edit card' : 'New card'}
     >
-      <div
-        className="glass-surface glass-specular rise max-h-[90vh] w-full max-w-140 overflow-auto rounded-[20px] p-6"
-        onClick={(event) => event.stopPropagation()}
-      >
+      <div className="max-h-[80vh] w-full overflow-auto p-6">
         <div className="flex items-start gap-3">
           <span className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-full bg-(--ink) text-(--surface)">
             {card ? <Pencil size={15} aria-hidden="true" /> : <Plus size={16} aria-hidden="true" />}
@@ -102,7 +100,7 @@ export function CardDialog({
               onChange={(event) => setFront(event.target.value)}
               rows={3}
               autoFocus
-              className="mt-1.5 w-full rounded-xl border border-(--line) bg-(--surface) p-3 text-[15px] outline-none focus:border-(--blue) focus:ring-2 focus:ring-(--blue)/20"
+              className="mt-1.5 w-full rounded-xl border border-(--line) bg-(--surface) p-3 text-[15px] outline-none focus:border-(--veridian) focus:ring-2 focus:ring-(--veridian)/20"
               placeholder="e.g. Which neurotransmitter drives the neuromuscular junction?…"
             />
           </label>
@@ -118,7 +116,7 @@ export function CardDialog({
               value={back}
               onChange={(event) => setBack(event.target.value)}
               rows={3}
-              className="mt-1.5 w-full rounded-xl border border-(--line) bg-(--surface) p-3 text-[15px] outline-none focus:border-(--blue) focus:ring-2 focus:ring-(--blue)/20"
+              className="mt-1.5 w-full rounded-xl border border-(--line) bg-(--surface) p-3 text-[15px] outline-none focus:border-(--veridian) focus:ring-2 focus:ring-(--veridian)/20"
               placeholder="e.g. Acetylcholine — released at the junction…"
             />
           </label>
@@ -135,7 +133,7 @@ export function CardDialog({
                 value={topic}
                 onChange={(event) => setTopic(event.target.value)}
                 list="topic-suggestions"
-                className="mt-1.5 w-full rounded-full border border-(--line) bg-(--surface) px-3.5 py-2.5 text-sm outline-none focus:border-(--blue) focus:ring-2 focus:ring-(--blue)/20"
+                className="mt-1.5 w-full rounded-full border border-(--line) bg-(--surface) px-3.5 py-2.5 text-sm outline-none focus:border-(--veridian) focus:ring-2 focus:ring-(--veridian)/20"
                 placeholder="General"
               />
 
@@ -158,12 +156,12 @@ export function CardDialog({
                 type="date"
                 value={targetDate}
                 onChange={(event) => setTargetDate(event.target.value)}
-                className="mt-1.5 w-full rounded-full border border-(--line) bg-(--surface) px-3.5 py-2.5 text-sm outline-none focus:border-(--blue) focus:ring-2 focus:ring-(--blue)/20"
+                className="mt-1.5 w-full rounded-full border border-(--line) bg-(--surface) px-3.5 py-2.5 text-sm outline-none focus:border-(--veridian) focus:ring-2 focus:ring-(--veridian)/20"
               />
             </label>
           </div>
 
-          <p className="text-xs text-(--ink-faint)">
+          <p className="text-xs text-(--ink-soft)">
             Tip: Good cards are short and test one idea. You can always edit
             later.
           </p>
@@ -171,6 +169,7 @@ export function CardDialog({
 
         <div className="mt-6 flex justify-end gap-2">
           <button
+            type="button"
             className="btn-ghost"
             onClick={onClose}
             disabled={isPending}
@@ -179,6 +178,7 @@ export function CardDialog({
           </button>
 
           <button
+            type="button"
             className="btn-primary disabled:cursor-not-allowed disabled:opacity-50"
             onClick={save}
             disabled={!front.trim() || !back.trim() || isPending}
@@ -187,6 +187,6 @@ export function CardDialog({
           </button>
         </div>
       </div>
-    </div>
+    </Dialog>
   )
 }
