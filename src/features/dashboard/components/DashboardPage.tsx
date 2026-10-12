@@ -10,6 +10,7 @@ import { AdaptiveOptInBanner } from '#/features/dashboard/components/hero/Adapti
 import { DashboardHero } from '#/features/dashboard/components/hero/DashboardHero'
 import { InsightBanner } from '#/features/dashboard/components/layout/InsightBanner'
 import { DashboardSkeleton } from '#/features/dashboard/components/loading/DashboardSkeleton'
+import { ActivityHeatmap } from '#/features/dashboard/components/activity/ActivityHeatmap'
 import { RetentionPanel } from '#/features/dashboard/components/retention/RetentionPanel'
 import { RhythmPanel } from '#/features/dashboard/components/rhythm/RhythmPanel'
 import { SnapshotStats } from '#/features/dashboard/components/snapshot/SnapshotStats'
@@ -40,6 +41,9 @@ export function DashboardPage() {
     isCalibrating,
     recallValue,
     recallDelta,
+    weekActivity,
+    weekMinutes,
+    heatmap,
     calibrationProgress,
   } = useDashboardAnalytics({ cards, sessions, signals, baseline, hasBaseline, concepts, reviewEvents })
 
@@ -78,6 +82,8 @@ export function DashboardPage() {
         recallValue={recallValue}
         recallDelta={recallDelta}
         dueTodayCount={dueToday.length}
+        minutesSpark={weekMinutes}
+        reviewsSpark={weekActivity}
       />
 
       {/* Command deck — main feed (chart, insight, activity) alongside a
@@ -107,6 +113,8 @@ export function DashboardPage() {
       </section>
 
       <RetentionPanel data={retentionChartData} />
+
+      <ActivityHeatmap data={heatmap} />
 
       <p className="px-1 text-center font-mono text-[10px] leading-5 text-(--ink-faint)">
         <span translate="no">Luminoesis</span> never records what you type — only timing deltas. Your baseline stays on

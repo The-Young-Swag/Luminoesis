@@ -8,10 +8,11 @@ type StatCardProps = {
   value: string
   hint: string
   delta?: string | null
+  spark?: number[]
   to?: string
 }
 
-export function StatCard({ icon, label, value, hint, delta, to }: StatCardProps) {
+export function StatCard({ icon, label, value, hint, delta, spark, to }: StatCardProps) {
   const inner = (
     <>
       <div
@@ -35,6 +36,30 @@ export function StatCard({ icon, label, value, hint, delta, to }: StatCardProps)
       </div>
 
       <div className="display relative mt-3 text-2xl tabular-nums">{value}</div>
+
+      {spark && spark.length > 0 && (
+        <div aria-hidden="true" className="relative mt-3 flex h-7 items-end gap-1">
+          {spark.map((count, index) => {
+            const max = Math.max(...spark, 1)
+            const height = Math.max(8, Math.round((count / max) * 100))
+            const isLast = index === spark.length - 1
+            return (
+              <span
+                key={index}
+                style={{ height: `${height}%` }}
+                className={`w-full rounded-full ${
+                  count === 0
+                    ? 'bg-(--line)'
+                    : isLast
+                      ? 'bg-(--emerald)'
+                      : 'bg-(--veridian)/45'
+                }`}
+              />
+            )
+          })}
+        </div>
+      )}
+
       <div className="relative mt-1 truncate text-xs text-(--ink-soft)">{hint}</div>
 
       {delta && (

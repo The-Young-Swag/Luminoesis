@@ -53,8 +53,24 @@ const RECENT_SIGNAL_WINDOW = 12
 const RECENT_ACTIVITY_LIMIT = 6
 const TOP_TOPIC_LIMIT = 6
 const RETENTION_COMPARISON_WINDOW_DAYS = 7
+const HEATMAP_WEEKS = 12
 const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000
 const DEFAULT_CONCEPT_LABEL = 'Concept'
+const WEEKDAY_NAMES = [
+  'Sundays',
+  'Mondays',
+  'Tuesdays',
+  'Wednesdays',
+  'Thursdays',
+  'Fridays',
+  'Saturdays',
+]
+
+function startOfDay(timestamp: number): number {
+  const date = new Date(timestamp)
+  date.setHours(0, 0, 0, 0)
+  return date.getTime()
+}
 
 export function useDashboardAnalytics({
   cards,
@@ -218,6 +234,65 @@ export function useDashboardAnalytics({
       ? null
       : `${formatSignedPoints(retentionComparison.delta)} vs last week`
 
+  const weekMinutes = useMemo(() => {
+    const today = startOfDay(Date.now())
+    const minutes = [0, 0, 0, 0, 0, 0, 0]
+
+    for (const session of summaries) {
+      const diff = Math.round(
+        (today - startOfDay(new Date(session.startedAt).getTime())) /
+          MILLISECONDS_PER_DAY,
+      )
+      if (diff >= 0 && diff < 7) {
+        minutes[6 - diff] += session.durationMinutes
+      }
+    }
+
+    return minutes.map((value) => Math.round(value))
+  }, [summaries])
+
+  const weekActivity = useMemo(() => {
+    const today = startOfDay(Date.now())
+    const counts = [0, 0, 0, 0, 0, 0, 0]
+
+    for (const event of reviewEvents) {
+      const diff = Math.round((today - startOfDay(event.timestamp)) / MILLISECONDS_PER_DAY)
+      if (diff >= 0 && diff < 7) {
+        counts[6 - diff] += 1
+      }
+    }
+
+    return counts
+  }, [reviewEvents])
+
+  const heatmap = useMemo(() => {
+    const today = startOfDay(Date.now())
+    const totalDays = HEATMAP_WEEKS * 7
+    const start = today - (totalDays - 1) * MILLISECONDS_PER_DAY
+    const days = new Array<number>(totalDays).fill(0)
+
+    for (const event of reviewEvents) {
+      const index = Math.round((startOfDay(event.timestamp) - start) / MILLISECONDS_PER_DAY)
+      if (index >= 0 && index < totalDays) {
+        days[index] += 1
+      }
+    }
+
+    const weeks: number[][] = []
+    for (let week = 0; week < HEATMAP_WEEKS; week++) {
+      weeks.push(days.slice(week * 7, week * 7 + 7))
+    }
+
+    const weekdayTotals = [0, 0, 0, 0, 0, 0, 0]
+    days.forEach((count, index) => {
+      weekdayTotals[new Date(start + index * MILLISECONDS_PER_DAY).getDay()] += count
+    })
+    const bestDay = weekdayTotals.indexOf(Math.max(...weekdayTotals))
+    const total = days.reduce((sum, count) => sum + count, 0)
+
+    return { weeks, total, bestDay: WEEKDAY_NAMES[bestDay], startDate: start }
+  }, [reviewEvents])
+
   const calibrationProgress = useMemo(() => {
     const counts = Object.values(baseline).map((snapshot) => snapshot.sampleCount)
     if (counts.length === 0) return 0
@@ -246,6 +321,9 @@ export function useDashboardAnalytics({
     retentionChartData,
     recallValue,
     recallDelta,
+    weekActivity,
+    weekMinutes,
+    heatmap,
     calibrationProgress,
   }
 }

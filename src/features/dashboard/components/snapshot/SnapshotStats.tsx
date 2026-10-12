@@ -13,6 +13,8 @@ type SnapshotStatsProps = {
   recallValue: string
   recallDelta: string | null
   dueTodayCount: number
+  minutesSpark: number[]
+  reviewsSpark: number[]
 }
 
 export function SnapshotStats({
@@ -23,6 +25,8 @@ export function SnapshotStats({
   recallValue,
   recallDelta,
   dueTodayCount,
+  minutesSpark,
+  reviewsSpark,
 }: SnapshotStatsProps) {
   return (
     <section>
@@ -32,8 +36,8 @@ export function SnapshotStats({
       </div>
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        <StatCard icon={<Clock3 size={16} />} label="Study time" value={`${studyMinutesThisWeek}m`} hint="Last 7 days" delta={studyMinutesDelta} />
-        <StatCard icon={<Layers size={16} />} label="Reviews" value={String(recentReviewCount)} hint="Last 7 days" delta={recentReviewDelta} to="/review" />
+        <StatCard icon={<Clock3 size={16} />} label="Study time" value={`${studyMinutesThisWeek}m`} hint="Last 7 days" delta={studyMinutesDelta} spark={minutesSpark} />
+        <StatCard icon={<Layers size={16} />} label="Reviews" value={String(recentReviewCount)} hint="Last 7 days" delta={recentReviewDelta} spark={reviewsSpark} to="/review" />
         <StatCard icon={<TrendingUp size={16} />} label="Recall" value={recallValue} hint="Good or Easy share" delta={recallDelta} to="/insights" />
         <StatCard
           icon={<Activity size={16} />}
