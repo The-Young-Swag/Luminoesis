@@ -13,7 +13,15 @@ export function stateDot(state: string): string {
   }
 }
 
-export function headlineForState(state: string, due: number): string {
+export function headlineForState(
+  state: string,
+  due: number,
+  totalCards: number,
+): string {
+  if (totalCards === 0) {
+    return 'Build your library to begin'
+  }
+
   if (state === 'Sharp') {
     return 'You’re ready for more challenging material'
   }

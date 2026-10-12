@@ -9,7 +9,6 @@ import { useDashboardData } from '#/features/dashboard/hooks/useDashboardData'
 import { AdaptiveOptInBanner } from '#/features/dashboard/components/hero/AdaptiveOptInBanner'
 import { DashboardHero } from '#/features/dashboard/components/hero/DashboardHero'
 import { InsightBanner } from '#/features/dashboard/components/layout/InsightBanner'
-import { CalibrationProgress } from '#/features/dashboard/components/loading/CalibrationProgress'
 import { DashboardSkeleton } from '#/features/dashboard/components/loading/DashboardSkeleton'
 import { RetentionPanel } from '#/features/dashboard/components/retention/RetentionPanel'
 import { RhythmPanel } from '#/features/dashboard/components/rhythm/RhythmPanel'
@@ -34,11 +33,13 @@ export function DashboardPage() {
     recentActivity,
     retentionChartData,
     studyMinutesThisWeek,
+    studyMinutesDelta,
     recentReviewCount,
+    recentReviewDelta,
     learningState,
     isCalibrating,
     recallValue,
-    recallHint,
+    recallDelta,
     calibrationProgress,
   } = useDashboardAnalytics({ cards, sessions, signals, baseline, hasBaseline, concepts, reviewEvents })
 
@@ -60,19 +61,22 @@ export function DashboardPage() {
         <AdaptiveOptInBanner onEnable={() => void setOptIn(true)} onDismiss={() => void setOptIn(false)} />
       )}
 
-      <DashboardHero learningState={learningState} sessionCount={sessionCount} dueTodayCount={dueToday.length} />
-
-      {isCalibrating && (
-        <div aria-live="polite">
-          <CalibrationProgress progress={calibrationProgress} />
-        </div>
-      )}
+      <DashboardHero
+        learningState={learningState}
+        sessionCount={sessionCount}
+        dueTodayCount={dueToday.length}
+        totalCards={cards.length}
+        calibrationProgress={calibrationProgress}
+        isCalibrating={isCalibrating}
+      />
 
       <SnapshotStats
         studyMinutesThisWeek={studyMinutesThisWeek}
+        studyMinutesDelta={studyMinutesDelta}
         recentReviewCount={recentReviewCount}
+        recentReviewDelta={recentReviewDelta}
         recallValue={recallValue}
-        recallHint={recallHint}
+        recallDelta={recallDelta}
         dueTodayCount={dueToday.length}
       />
 
