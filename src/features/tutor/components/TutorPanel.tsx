@@ -50,6 +50,7 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
 
     const [draft, setDraft] = useState('')
     const [sending, setSending] = useState(false)
+    const [streamingId, setStreamingId] = useState<string | null>(null)
     const textareaRef = useRef<HTMLTextAreaElement>(null)
     const endRef = useRef<HTMLDivElement>(null)
 
@@ -122,7 +123,14 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
         ...previousMessages,
         userMessage,
       ])
-      
+
+      const assistantId = `a-${Date.now()}`
+      setMessages((previousMessages) => [
+        ...previousMessages,
+        { id: assistantId, role: 'assistant', text: '' },
+      ])
+      setStreamingId(assistantId)
+
       setDraft('')
       setSending(true)
 
@@ -135,36 +143,45 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
           prompt: text,
           conversationHistory,
           localTimeoutMs: 60000,
+          onToken: (chunk) => {
+            setMessages((previousMessages) =>
+              previousMessages.map((message) =>
+                message.id === assistantId
+                  ? { ...message, text: message.text + chunk }
+                  : message,
+              ),
+            )
+          },
         })
 
-        const assistantMessage: TutorMessage = {
-          id: `a-${Date.now()}`,
-          role: 'assistant',
-          text: response.text,
-          provider: response.provider,
-          execution: response.execution,
-          citation: response.citation,
-        }
-
-        setMessages((previousMessages) => [
-          ...previousMessages,
-          assistantMessage,
-        ])
+        setMessages((previousMessages) =>
+          previousMessages.map((message) =>
+            message.id === assistantId
+              ? {
+                  ...message,
+                  text: response.text,
+                  provider: response.provider,
+                  execution: response.execution,
+                  citation: response.citation,
+                }
+              : message,
+          ),
+        )
 
         onContextConsumed?.()
       } catch (error) {
         const message =
           error instanceof Error ? error.message : 'Tutor failed.'
 
-        setMessages((previousMessages) => [
-          ...previousMessages,
-          {
-            id: `a-${Date.now()}`,
-            role: 'assistant',
-            text: message,
-          },
-        ])
+        setMessages((previousMessages) =>
+          previousMessages.map((previous) =>
+            previous.id === assistantId
+              ? { ...previous, text: message }
+              : previous,
+          ),
+        )
       } finally {
+        setStreamingId(null)
         setSending(false)
       }
     }, [
@@ -193,6 +210,12 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
       () => draft.trim().length > 0 && !sending,
       [draft, sending],
     )
+
+    const waitingForFirstToken =
+      streamingId !== null &&
+      !messages.some(
+        (message) => message.id === streamingId && message.text.length > 0,
+      )
 
     return (
       <div className="flex h-full min-h-0 flex-col bg-transparent">
@@ -227,14 +250,19 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
           aria-relevant="additions"
           aria-label="Tutor conversation"
         >
-          {messages.map((message) => (
-            <TutorMessageBubble
-              key={message.id}
-              message={message}
-            />
-          ))}
+          {messages.map((message) => {
+            if (message.role === 'assistant' && message.text === '') {
+              return null
+            }
+            return (
+              <TutorMessageBubble
+                key={message.id}
+                message={message}
+              />
+            )
+          })}
 
-          {sending && (
+          {waitingForFirstToken && (
             <div
               className="flex items-start gap-3"
               role="status"

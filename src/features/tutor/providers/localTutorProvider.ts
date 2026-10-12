@@ -3,6 +3,7 @@ import type {
   TutorConversationMessage,
   TutorProvider,
   TutorRequest,
+  TutorRespondOptions,
   TutorResponse,
 } from '../domain/tutor'
 import {
@@ -10,12 +11,17 @@ import {
   resolveEffectiveTopic,
 } from '../domain/tutorTopic'
 import { extractKeywords, keywordOverlapScore } from '../domain/textRelevance'
+import {
+  createTutorWorker,
+  type TutorWorkerClient,
+} from '../workers/tutorWorkerClient'
 
 let cachedPipelines = new Map<string, unknown>()
 let failedPipelines = new Set<string>()
 
 const MODEL_LOAD_TIMEOUT_MS = 60000
 const INFERENCE_TIMEOUT_MS = 30000
+const MAX_NEW_TOKENS = 120
 
 /*
  * Model catalogue. Standard is the verified default. Capable is a larger
@@ -544,31 +550,127 @@ function buildFallbackResponse(
   }
 }
 
+export type { TutorRespondOptions } from '../domain/tutor'
+
+/*
+ * One shared worker per page. The model loads once per tier; every
+ * question after that reuses it. Null where Workers are unavailable —
+ * the provider then runs on the main thread instead.
+ */
+let sharedWorker: TutorWorkerClient | null | undefined
+let workerLoadedTier: LocalModelTier | null = null
+
+function getSharedWorker(): TutorWorkerClient | null {
+  if (sharedWorker !== undefined) return sharedWorker
+  sharedWorker = createTutorWorker()
+  return sharedWorker
+}
+
+async function ensureWorkerLoaded(
+  worker: TutorWorkerClient,
+  tier: LocalModelTier,
+): Promise<void> {
+  if (workerLoadedTier === tier) return
+
+  const modelId = LOCAL_MODEL_IDS[tier]
+
+  if (hasWebGpu()) {
+    try {
+      await worker.load(modelId, 'webgpu', 'q4')
+      workerLoadedTier = tier
+      return
+    } catch (error) {
+      console.warn('[tutor] worker webgpu load failed, falling back to wasm', error)
+    }
+  }
+
+  await worker.load(modelId, 'wasm', 'q8')
+  workerLoadedTier = tier
+}
+
+function finishResponse(request: TutorRequest, generated: string): TutorResponse {
+  const { context } = request
+  const { prompt, selectedText, material, conversationHistory } = context
+
+  const previousSelectedText = getPreviousSelectedText(conversationHistory)
+
+  const isValid =
+    !isStructurallyInvalid(generated, prompt) &&
+    !looksLikeSourceRepetition(generated, selectedText) &&
+    !mentionsPreviousTopicInstead(generated, selectedText, previousSelectedText)
+
+  if (isValid) {
+    return {
+      text: generated,
+      provider: 'local',
+      execution: 'on-device',
+      citation: material
+        ? {
+            materialId: material.id,
+            materialTitle: material.title,
+            excerpt: selectedText ?? material.excerpt.slice(0, 120),
+          }
+        : undefined,
+    }
+  }
+
+  console.warn(
+    '[tutor] local model produced an invalid, repetitive, or off-topic response',
+  )
+  return buildFallbackResponse(request)
+}
+
 export class LocalTutorProvider implements TutorProvider {
   readonly id = 'local' as const
 
   isAvailable(): boolean {
-    return typeof WebAssembly !== 'undefined'
+    return typeof WebAssembly !== 'undefined' || typeof Worker !== 'undefined'
   }
 
-  async respond(request: TutorRequest): Promise<TutorResponse> {
-    const { context } = request
-    const {
-      prompt,
-      selectedText,
-      material,
-      conversationHistory,
-    } = context
+  async respond(
+    request: TutorRequest,
+    options?: TutorRespondOptions,
+  ): Promise<TutorResponse> {
+    const tier = options?.tier ?? 'standard'
+    const messages = buildMessages(request)
 
-    const pipe = await getLocalPipeline()
+    const workerText = await this.respondViaWorker(tier, messages, options?.onToken)
+    if (workerText !== null) {
+      return finishResponse(request, workerText)
+    }
+
+    return this.respondOnMainThread(request, messages, tier)
+  }
+
+  private async respondViaWorker(
+    tier: LocalModelTier,
+    messages: ChatMessage[],
+    onToken?: (text: string) => void,
+  ): Promise<string | null> {
+    const worker = getSharedWorker()
+    if (!worker) return null
+
+    try {
+      await ensureWorkerLoaded(worker, tier)
+      return await worker.generate(messages, MAX_NEW_TOKENS, onToken)
+    } catch (error) {
+      console.warn('[tutor] worker inference failed, trying main thread', error)
+      return null
+    }
+  }
+
+  private async respondOnMainThread(
+    request: TutorRequest,
+    messages: ChatMessage[],
+    tier: LocalModelTier,
+  ): Promise<TutorResponse> {
+    const pipe = await getLocalPipeline(tier)
 
     if (!pipe) {
       return buildFallbackResponse(request)
     }
 
     try {
-      const messages = buildMessages(request)
-
       const generator = pipe as unknown as (
         input: ChatMessage[],
         options?: unknown,
@@ -577,7 +679,7 @@ export class LocalTutorProvider implements TutorProvider {
       >
 
       const inferencePromise = generator(messages, {
-        max_new_tokens: 120,
+        max_new_tokens: MAX_NEW_TOKENS,
         do_sample: false,
         /*
          * Plain greedy decoding. `repetition_penalty` and
@@ -605,37 +707,7 @@ export class LocalTutorProvider implements TutorProvider {
       ? (rawOutput.at(-1)?.content ?? '').trim()
       : rawOutput.trim()
 
-      const previousSelectedText =
-        getPreviousSelectedText(conversationHistory)
-
-      const isValid =
-        !isStructurallyInvalid(generated, prompt) &&
-        !looksLikeSourceRepetition(generated, selectedText) &&
-        !mentionsPreviousTopicInstead(
-          generated,
-          selectedText,
-          previousSelectedText,
-        )
-
-      if (isValid) {
-        return {
-          text: generated,
-          provider: 'local',
-          execution: 'on-device',
-          citation: material
-            ? {
-                materialId: material.id,
-                materialTitle: material.title,
-                excerpt:
-                  selectedText ?? material.excerpt.slice(0, 120),
-              }
-            : undefined,
-        }
-      }
-
-      console.warn(
-        '[tutor] local model produced an invalid, repetitive, or off-topic response',
-      )
+      return finishResponse(request, generated)
     } catch (error) {
       console.warn(
         '[tutor] local inference failed/timed out, falling back',

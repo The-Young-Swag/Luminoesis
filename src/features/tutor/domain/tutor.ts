@@ -98,10 +98,15 @@ export type TutorResponse = {
 
 export type TutorProviderId = 'local' | 'gemini'
 
+export type TutorRespondOptions = {
+  onToken?: (text: string) => void
+  tier?: 'standard' | 'capable'
+}
+
 export interface TutorProvider {
   readonly id: TutorProviderId
   isAvailable: () => boolean | Promise<boolean>
-  respond: (request: TutorRequest) => Promise<TutorResponse>
+  respond: (request: TutorRequest, options?: TutorRespondOptions) => Promise<TutorResponse>
 }
 
 export const MAX_CONTEXT_CHARS = 4000

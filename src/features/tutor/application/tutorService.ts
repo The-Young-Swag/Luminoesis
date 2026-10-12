@@ -25,6 +25,8 @@ export type TutorServiceOptions = {
   prompt: string
   conversationHistory?: TutorConversationMessage[]
   localTimeoutMs?: number
+  onToken?: (text: string) => void
+  modelTier?: 'standard' | 'capable'
 }
 
 const DEFAULT_LOCAL_TIMEOUT_MS = 20000
@@ -59,7 +61,10 @@ export class TutorService {
 
     try {
       // Race local provider against timeout
-      const localPromise = this.localProvider.respond(request)
+      const localPromise = this.localProvider.respond(request, {
+        onToken: options.onToken,
+        tier: options.modelTier ?? 'standard',
+      })
       const timeoutPromise = new Promise<never>((_, reject) => {
         setTimeout(
           () => reject(new Error('Local provider timed out')),
