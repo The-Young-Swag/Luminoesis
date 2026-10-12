@@ -334,6 +334,29 @@ export function ReviewPage() {
             review session.
           </p>
 
+          <ol className="mx-auto mt-6 grid max-w-lg gap-2 text-left sm:grid-cols-3">
+            {[
+              { step: '1', title: 'Add cards', detail: 'Capture ideas in the library' },
+              { step: '2', title: 'Review when due', detail: 'Short, focused sessions' },
+              { step: '3', title: 'Retain', detail: 'Timing adapts to your rhythm' },
+            ].map((item) => (
+              <li
+                key={item.step}
+                className="rounded-xl border border-(--line) bg-(--surface-muted) p-3"
+              >
+                <span className="font-mono text-xs font-semibold tabular-nums text-(--veridian)">
+                  {item.step}
+                </span>
+                <p className="mt-1 text-sm font-semibold text-(--ink)">
+                  {item.title}
+                </p>
+                <p className="mt-0.5 text-xs leading-5 text-(--ink-soft)">
+                  {item.detail}
+                </p>
+              </li>
+            ))}
+          </ol>
+
           <Link
             to="/library"
             className="btn-primary mt-6 inline-flex no-underline"

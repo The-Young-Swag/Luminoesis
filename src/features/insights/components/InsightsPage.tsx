@@ -1,4 +1,5 @@
 import { Lightbulb } from 'lucide-react'
+import { Link } from '@tanstack/react-router'
 
 import { useInsights } from '#/features/insights/hooks/useInsights'
 
@@ -69,7 +70,21 @@ export function InsightsPage() {
           </p>
 
           {retention.length === 0 ? (
-            <p className="mt-4 text-sm text-(--ink-soft)">No data yet.</p>
+            <div className="mt-4 rounded-xl border border-(--line) bg-(--surface-muted) p-4">
+              <p className="text-sm font-medium text-(--ink)">
+                No patterns yet
+              </p>
+              <p className="mt-1 text-sm text-(--ink-soft)">
+                Add cards and complete a few reviews — your retention
+                by topic will appear here.
+              </p>
+              <Link
+                to="/library"
+                className="btn-primary mt-3 inline-flex no-underline"
+              >
+                Add study cards
+              </Link>
+            </div>
           ) : (
             <div className="mt-3 space-y-1">
               {retention.map((item) => {

@@ -9,7 +9,7 @@ export function AdaptiveOptInBanner({ onEnable, onDismiss }: AdaptiveOptInBanner
       <div className="min-w-0 flex-1">
         <div className="mono-label">Adaptive learning</div>
 
-        <h3 className="mt-1 text-[15px] font-medium">Allow Luminoesis to notice rhythm and suggest?</h3>
+        <h3 className="mt-1 text-[15px] font-medium">Adapt reviews to your rhythm?</h3>
 
         <p className="mt-1 text-sm leading-relaxed text-(--ink-soft)">
           You stay in control. Suggestions are optional, timing-only, on-device, and never based on key content.

@@ -20,7 +20,7 @@ export function LearningSpaceListPage() {
         aria-live="polite"
       >
         <span className="sr-only">
-          Loading your learning spaces...
+          Loading your learning spaces…
         </span>
 
         <div className="mb-8 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
