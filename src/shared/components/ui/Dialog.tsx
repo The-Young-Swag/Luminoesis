@@ -6,6 +6,8 @@ type DialogProps = {
   label: string
   labelledBy?: string
   wide?: boolean
+  alignTop?: boolean
+  className?: string
   children: React.ReactNode
 }
 
@@ -20,6 +22,8 @@ export function Dialog({
   label,
   labelledBy,
   wide = false,
+  alignTop = false,
+  className = '',
   children,
 }: DialogProps) {
   const ref = useRef<HTMLDialogElement>(null)
@@ -44,6 +48,18 @@ export function Dialog({
     }
   }, [open ])
 
+  useEffect(() => {
+    return () => {
+      const dialog = ref.current
+      if (dialog?.open) dialog.close()
+      const restore = restoreRef.current
+      restoreRef.current = null
+      if (restore && document.contains(restore)) {
+        restore.focus()
+      }
+    }
+  }, [])
+
   return (
     <dialog
       ref={ref}
@@ -53,7 +69,7 @@ export function Dialog({
       onClick={(event) => {
         if (event.target === ref.current) onClose()
       }}
-      className={`app-dialog ${wide ? 'w-full max-w-3xl' : ''}`}
+      className={`app-dialog ${wide ? 'w-full max-w-3xl' : ''} ${alignTop ? 'mb-auto mt-[12vh]' : ''} ${className}`}
     >
       {children}
     </dialog>

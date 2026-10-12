@@ -201,9 +201,13 @@ export function QuizSection({ learningSpaceId, concepts }: QuizSectionProps) {
         </>
       )}
 
-      {phase === 'setup' ? (
-        <QuizSetupDialog concepts={concepts} notice={setupNotice} onStart={beginQuiz} onClose={reset} />
-      ) : null}
+      <QuizSetupDialog
+        concepts={concepts}
+        notice={setupNotice}
+        open={phase === 'setup'}
+        onStart={beginQuiz}
+        onClose={reset}
+      />
 
       {phase === 'running' && session.length > 0 ? (
         <QuizRunner
@@ -226,13 +230,12 @@ export function QuizSection({ learningSpaceId, concepts }: QuizSectionProps) {
         />
       ) : null}
 
-      {showAddQuestion ? (
-        <AddQuestionDialog
-          concepts={concepts}
-          onCreated={() => setShowAddQuestion(false)}
-          onClose={() => setShowAddQuestion(false)}
-        />
-      ) : null}
+      <AddQuestionDialog
+        open={showAddQuestion}
+        concepts={concepts}
+        onCreated={() => setShowAddQuestion(false)}
+        onClose={() => setShowAddQuestion(false)}
+      />
     </section>
   )
 }

@@ -3,6 +3,7 @@ import { Plus } from 'lucide-react'
 
 import type { Concept, Material } from '#/features/learning-space/domain/learningSpace'
 import type { Flashcard, FlashcardDifficulty } from '#/features/flashcard/domain/flashcard'
+import { Dialog } from '#/shared/components/ui/Dialog'
 import {
   createFlashcard,
   updateFlashcard,
@@ -15,6 +16,7 @@ type AddFlashcardDialogProps = {
   initialFront?: string
   initialMaterialId?: string
   onCreated: () => void
+  open: boolean
   onClose: () => void
 }
 
@@ -30,6 +32,7 @@ export function AddFlashcardDialog({
   flashcard,
   initialFront,
   initialMaterialId,
+  open,
   onCreated,
   onClose,
 }: AddFlashcardDialogProps) {
@@ -91,17 +94,12 @@ export function AddFlashcardDialog({
   }
 
   return (
-    <div
-      className="glass-scrim fixed inset-0 z-50 flex items-center justify-center p-4"
-      role="dialog"
-      aria-modal="true"
-      aria-label={isEdit ? 'Edit flashcard' : 'Add flashcard'}
-      onClick={onClose}
+    <Dialog
+      open={open}
+      onClose={onClose}
+      label={isEdit ? 'Edit flashcard' : 'Add flashcard'}
     >
-      <div
-        className="glass-surface glass-specular rise w-full max-w-lg rounded-[20px] p-6"
-        onClick={(event) => event.stopPropagation()}
-      >
+      <div className="max-h-[80vh] w-full overflow-auto p-6">
         <div className="flex items-start gap-3">
           <span className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-full bg-(--ink) text-(--surface)">
             <Plus size={16} aria-hidden="true" />
@@ -237,6 +235,6 @@ export function AddFlashcardDialog({
           </button>
         </div>
       </div>
-    </div>
+    </Dialog>
   )
 }

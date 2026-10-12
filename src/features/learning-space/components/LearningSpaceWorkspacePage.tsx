@@ -220,13 +220,12 @@ export function LearningSpaceWorkspacePage({
         ))}
       </div>
 
-      {showAddMaterial && (
-        <AddMaterialDialog
-          learningSpaceId={learningSpaceId}
-          onCreated={refresh}
-          onClose={() => setShowAddMaterial(false)}
-        />
-      )}
+      <AddMaterialDialog
+        open={showAddMaterial}
+        learningSpaceId={learningSpaceId}
+        onCreated={refresh}
+        onClose={() => setShowAddMaterial(false)}
+      />
     </main>
   )
 }

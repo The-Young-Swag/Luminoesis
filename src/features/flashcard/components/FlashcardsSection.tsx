@@ -207,33 +207,28 @@ export function FlashcardsSection({ learningSpaceId, concepts, materials }: Flas
         </div>
       )}
 
-      {showAdd && (
-        <AddFlashcardDialog
-          concepts={concepts}
-          materials={materials}
-          onCreated={() => setShowAdd(false)}
-          onClose={() => setShowAdd(false)}
-        />
-      )}
+      <AddFlashcardDialog
+        open={showAdd || editing !== null}
+        concepts={concepts}
+        materials={materials}
+        flashcard={editing ?? undefined}
+        onCreated={() => {
+          setShowAdd(false)
+          setEditing(null)
+        }}
+        onClose={() => {
+          setShowAdd(false)
+          setEditing(null)
+        }}
+      />
 
-      {showAddConcept && (
-        <AddConceptDialog
-          learningSpaceId={learningSpaceId}
-          materials={materials}
-          onCreated={() => setShowAddConcept(false)}
-          onClose={() => setShowAddConcept(false)}
-        />
-      )}
-
-      {editing && (
-        <AddFlashcardDialog
-          concepts={concepts}
-          materials={materials}
-          flashcard={editing}
-          onCreated={() => setEditing(null)}
-          onClose={() => setEditing(null)}
-        />
-      )}
+      <AddConceptDialog
+        open={showAddConcept}
+        learningSpaceId={learningSpaceId}
+        materials={materials}
+        onCreated={() => setShowAddConcept(false)}
+        onClose={() => setShowAddConcept(false)}
+      />
 
       {reviewing && (
         <FlashcardReviewOverlay

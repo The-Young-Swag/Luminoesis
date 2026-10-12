@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 
+import { Dialog } from '#/shared/components/ui/Dialog'
+
 import type { Concept } from '#/features/learning-space/domain/learningSpace'
 import type {
   Question,
@@ -12,6 +14,7 @@ type AddQuestionDialogProps = {
   concepts: Concept[]
   initialPrompt?: string
   initialMaterialId?: string
+  open: boolean
   onCreated: (question: Question) => void
   onClose: () => void
 }
@@ -26,6 +29,7 @@ export function AddQuestionDialog({
   concepts,
   initialPrompt,
   initialMaterialId,
+  open,
   onCreated,
   onClose,
 }: AddQuestionDialogProps) {
@@ -93,17 +97,13 @@ export function AddQuestionDialog({
   }
 
   return (
-    <div
-      className="glass-scrim fixed inset-0 z-50 flex items-center justify-center p-6"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="add-question-title"
-      onClick={onClose}
+    <Dialog
+      open={open}
+      onClose={onClose}
+      labelledBy="add-question-title"
+      label="Add question"
     >
-      <div
-        className="glass-surface glass-specular rise card-flat w-full max-w-lg p-6"
-        onClick={(event) => event.stopPropagation()}
-      >
+      <div className="max-h-[80vh] w-full overflow-auto p-6">
         <div className="flex items-start justify-between">
           <h2 id="add-question-title" className="text-lg font-semibold text-(--ink)">Add question</h2>
           <button
@@ -254,6 +254,6 @@ export function AddQuestionDialog({
           </button>
         </div>
       </div>
-    </div>
+    </Dialog>
   )
 }

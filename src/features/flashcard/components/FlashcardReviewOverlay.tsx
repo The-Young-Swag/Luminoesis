@@ -5,6 +5,7 @@ import type { Flashcard } from '#/features/flashcard/domain/flashcard'
 import type { Grade } from '#/features/review/domain/sm2'
 import { gradeFlashcard } from '#/features/flashcard/application/flashcard'
 import { GRADE_BUTTONS } from '#/shared/ui/gradeButtons'
+import { Dialog } from '#/shared/components/ui/Dialog'
 
 type FlashcardReviewOverlayProps = {
   flashcards: Flashcard[]
@@ -100,18 +101,13 @@ export function FlashcardReviewOverlay({
   }, [finished, revealed, handleReveal, handleGrade])
 
   return (
-    <div
-      className="glass-scrim fixed inset-0 z-50 flex items-center justify-center p-4"
-      role="dialog"
-      aria-modal="true"
-      aria-label={title}
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget) {
-          onClose()
-        }
-      }}
+    <Dialog
+      open
+      onClose={onClose}
+      label={title}
+      wide
     >
-      <div className="glass-surface glass-specular rise w-full max-w-2xl rounded-[20px] p-6 sm:p-8">
+      <div className="max-h-[85vh] w-full overflow-auto p-6 sm:p-8">
         <div className="flex items-center justify-between gap-4">
           <p className="eyebrow">{title}</p>
 
@@ -119,7 +115,7 @@ export function FlashcardReviewOverlay({
             type="button"
             onClick={onClose}
             aria-label="Close review"
-            className="glass-pill grid h-8 w-8 place-items-center text-(--ink-soft)"
+            className="glass-pill grid h-11 w-11 place-items-center text-(--ink-soft)"
           >
             <X size={16} aria-hidden="true" />
           </button>
@@ -153,7 +149,7 @@ export function FlashcardReviewOverlay({
           </div>
         ) : (
           <div className="mt-6">
-            <div className="flex items-center justify-between text-xs text-(--ink-faint)">
+            <div className="flex items-center justify-between text-xs tabular-nums text-(--ink-soft)">
               <span>
                 Card {index + 1} of {total}
               </span>
@@ -163,7 +159,7 @@ export function FlashcardReviewOverlay({
 
             <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-(--surface-muted)">
               <div
-                className="h-full rounded-full bg-(--blue) transition-all"
+                className="h-full rounded-full bg-(--accent) transition-[width] duration-500 ease-out"
                 style={{ width: `${((index + (revealed ? 1 : 0)) / total) * 100}%` }}
               />
             </div>
@@ -231,8 +227,8 @@ export function FlashcardReviewOverlay({
               )}
             </div>
           </div>
-        )}
+          )}
       </div>
-    </div>
+    </Dialog>
   )
 }

@@ -164,14 +164,13 @@ export function ConceptsSection({
         </div>
       )}
 
-      {showAdd && (
-        <AddConceptDialog
-          learningSpaceId={learningSpaceId}
-          materials={materials}
-          onCreated={() => setShowAdd(false)}
-          onClose={() => setShowAdd(false)}
-        />
-      )}
+      <AddConceptDialog
+        open={showAdd}
+        learningSpaceId={learningSpaceId}
+        materials={materials}
+        onCreated={() => setShowAdd(false)}
+        onClose={() => setShowAdd(false)}
+      />
     </section>
   )
 }

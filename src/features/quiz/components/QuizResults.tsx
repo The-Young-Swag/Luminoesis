@@ -1,4 +1,5 @@
 import type { SubmitQuizResult } from '#/features/quiz/application/quiz'
+import { Dialog } from '#/shared/components/ui/Dialog'
 
 type QuizResultsProps = {
   result: SubmitQuizResult
@@ -22,8 +23,12 @@ export function QuizResults({
     .map(([conceptId]) => conceptId)
 
   return (
-    <div className="glass-scrim fixed inset-0 z-50 flex items-center justify-center p-6">
-      <div className="glass-surface glass-specular rise card-flat w-full max-w-xl p-6">
+    <Dialog
+      open
+      onClose={onClose}
+      label="Quiz complete"
+    >
+      <div className="max-h-[80vh] w-full overflow-auto p-6">
         <span className="eyebrow">Quiz complete</span>
         <h2 className="mt-2 text-2xl font-semibold text-(--ink)">
           {correctCount} / {totalQuestions} correct
@@ -64,6 +69,6 @@ export function QuizResults({
           </button>
         </div>
       </div>
-    </div>
+    </Dialog>
   )
 }

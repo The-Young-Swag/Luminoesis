@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
 
 import type { Concept } from '#/features/learning-space/domain/learningSpace'
+import { Dialog } from '#/shared/components/ui/Dialog'
 
 type QuizSetupDialogProps = {
   concepts: Concept[]
   notice?: string | null
+  open: boolean
   onStart: (config: { conceptIds: string[]; limit: number }) => void
   onClose: () => void
 }
@@ -14,6 +16,7 @@ const LIMITS = [5, 10, 15, 20]
 export function QuizSetupDialog({
   concepts,
   notice,
+  open,
   onStart,
   onClose,
 }: QuizSetupDialogProps) {
@@ -41,17 +44,13 @@ export function QuizSetupDialog({
   const canStart = selected.length > 0
 
   return (
-    <div
-      className="glass-scrim fixed inset-0 z-50 flex items-center justify-center p-6"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="quiz-setup-title"
-      onClick={onClose}
+    <Dialog
+      open={open}
+      onClose={onClose}
+      labelledBy="quiz-setup-title"
+      label="Start a quiz"
     >
-      <div
-        className="glass-surface glass-specular rise card-flat w-full max-w-lg p-6"
-        onClick={(event) => event.stopPropagation()}
-      >
+      <div className="max-h-[80vh] w-full overflow-auto p-6">
         <div className="flex items-start justify-between">
           <h2 id="quiz-setup-title" className="text-lg font-semibold text-(--ink)">Start a quiz</h2>
           <button
@@ -127,6 +126,6 @@ export function QuizSetupDialog({
           </button>
         </div>
       </div>
-    </div>
+    </Dialog>
   )
 }

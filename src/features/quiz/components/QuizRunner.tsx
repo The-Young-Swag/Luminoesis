@@ -3,6 +3,7 @@ import { useMemo, useRef, useState } from 'react'
 import type { Question } from '#/features/quiz/domain/question'
 import type { SubmitQuizAnswer } from '#/features/quiz/application/quiz'
 import { isAnswerCorrect } from '#/features/quiz/application/quiz'
+import { Dialog } from '#/shared/components/ui/Dialog'
 
 type QuizRunnerProps = {
   questions: Question[]
@@ -73,13 +74,20 @@ export function QuizRunner({
   if (total === 0) return null
 
   return (
-    <div className="glass-scrim fixed inset-0 z-50 flex items-center justify-center p-6">
-      <div className="glass-surface glass-specular rise card-flat w-full max-w-2xl p-6">
+    <Dialog
+      open
+      onClose={onCancel}
+      labelledBy="quiz-runner-title"
+      label="Quiz question"
+      wide
+    >
+      <div className="max-h-[85vh] w-full overflow-auto p-6">
         <div className="flex items-center justify-between">
-          <span className="eyebrow">Question {index + 1} of {total}</span>
+          <span id="quiz-runner-title" className="eyebrow">Question {index + 1} of {total}</span>
           <button
             type="button"
             onClick={onCancel}
+            aria-label="Exit quiz"
             className="btn-ghost px-3 py-1 text-sm"
           >
             Exit
@@ -135,6 +143,6 @@ export function QuizRunner({
           </button>
         </div>
       </div>
-    </div>
+    </Dialog>
   )
 }

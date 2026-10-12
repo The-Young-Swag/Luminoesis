@@ -1,14 +1,17 @@
 import { useState, useTransition } from 'react'
 import { Plus } from 'lucide-react'
 
+import { Dialog } from '#/shared/components/ui/Dialog'
 import { createLearningSpace } from '../application/createLearningSpace'
 
 type CreateLearningSpaceDialogProps = {
+  open: boolean
   onClose: () => void
   onCreated: () => void
 }
 
 export function CreateLearningSpaceDialog({
+  open,
   onClose,
   onCreated,
 }: CreateLearningSpaceDialogProps) {
@@ -33,17 +36,12 @@ export function CreateLearningSpaceDialog({
   }
 
   return (
-    <div
-      className="glass-scrim fixed inset-0 z-50 flex items-center justify-center p-4"
-      role="dialog"
-      aria-modal="true"
-      aria-label="New learning space"
-      onClick={onClose}
+    <Dialog
+      open={open}
+      onClose={onClose}
+      label="New learning space"
     >
-      <div
-        className="glass-surface glass-specular rise max-h-[90vh] w-full max-w-140 overflow-auto rounded-[20px] p-6"
-        onClick={(event) => event.stopPropagation()}
-      >
+      <div className="max-h-[80vh] w-full overflow-auto p-6">
         <div className="flex items-start gap-3">
           <span className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-full bg-(--ink) text-(--surface)">
             <Plus size={16} aria-hidden="true" />
@@ -109,6 +107,6 @@ export function CreateLearningSpaceDialog({
           </button>
         </div>
       </div>
-    </div>
+    </Dialog>
   )
 }

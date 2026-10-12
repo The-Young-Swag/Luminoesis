@@ -17,6 +17,7 @@ import {
 import type { LucideIcon } from 'lucide-react'
 
 import { useTheme } from '#/shared/hooks/useTheme'
+import { Dialog } from '#/shared/components/ui/Dialog'
 import { readRecentRoutes } from '#/shared/components/layout/Sidebar'
 
 type Command = {
@@ -72,7 +73,6 @@ export function CommandPalette({
   const [query, setQuery] = useState('')
   const [active, setActive] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
-  const restoreRef = useRef<HTMLElement | null>(null)
 
   const commands = useMemo(
     () => buildCommands(toggleTheme, theme === 'dark'),
@@ -101,28 +101,14 @@ export function CommandPalette({
 
   useEffect(() => {
     if (!open) return
-    restoreRef.current = document.activeElement as HTMLElement | null
     setQuery('')
     setActive(0)
     requestAnimationFrame(() => inputRef.current?.focus())
-    return () => restoreRef.current?.focus()
-  }, [open ])
+  }, [open])
 
   useEffect(() => {
     setActive(0)
   }, [query])
-
-  useEffect(() => {
-    if (!open) return
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        event.preventDefault()
-        onClose()
-      }
-    }
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [open, onClose])
 
   if (!open) return null
 
@@ -152,20 +138,14 @@ export function CommandPalette({
   }
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-start justify-center px-4 pt-[12vh]">
-      <button
-        type="button"
-        aria-label="Close command palette"
-        onClick={onClose}
-        className="glass-scrim absolute inset-0"
-      />
-
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-label="Command palette"
-        className="glass-panel relative w-full max-w-lg overflow-hidden rounded-2xl shadow-2xl"
-      >
+    <Dialog
+      open={open}
+      onClose={onClose}
+      label="Command palette"
+      alignTop
+      className="w-full max-w-lg overflow-hidden p-0"
+    >
+      <div className="glass-panel overflow-hidden rounded-2xl">
         <div className="flex items-center gap-2 border-b border-(--line) px-4">
           <Search size={16} aria-hidden="true" className="shrink-0 text-(--ink-faint)" />
           <input
@@ -239,12 +219,12 @@ export function CommandPalette({
           })}
         </ul>
 
-        <div className="flex items-center gap-3 border-t border-(--line) px-4 py-2.5 font-mono text-[10px] text-(--ink-faint)">
+        <div className="flex items-center gap-3 border-t border-(--line) px-4 py-2.5 font-mono text-[10px] tabular-nums text-(--ink-soft)">
           <span>↑↓ navigate</span>
           <span>Enter select</span>
           <span className="ml-auto">Ctrl/⌘ K toggles</span>
         </div>
       </div>
-    </div>
+    </Dialog>
   )
 }

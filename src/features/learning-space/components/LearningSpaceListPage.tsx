@@ -104,12 +104,11 @@ export function LearningSpaceListPage() {
         </div>
       )}
 
-      {isDialogOpen && (
-        <CreateLearningSpaceDialog
-          onClose={() => setIsDialogOpen(false)}
-          onCreated={() => setIsDialogOpen(false)}
-        />
-      )}
+      <CreateLearningSpaceDialog
+        open={isDialogOpen}
+        onClose={() => setIsDialogOpen(false)}
+        onCreated={() => setIsDialogOpen(false)}
+      />
     </section>
   )
 }

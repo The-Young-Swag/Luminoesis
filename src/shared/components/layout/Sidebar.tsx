@@ -288,6 +288,16 @@ function MobileDrawer({
 }: {
   onClose: () => void
 }) {
+  const restoreRef = useRef<HTMLElement | null>(null)
+
+  useEffect(() => {
+    restoreRef.current = document.activeElement as HTMLElement | null
+    return () => {
+      const restore = restoreRef.current
+      if (restore && document.contains(restore)) restore.focus()
+    }
+  }, [])
+
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onClose()

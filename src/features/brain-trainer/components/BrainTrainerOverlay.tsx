@@ -4,6 +4,7 @@ import type { BrainTrainerItem } from '#/features/brain-trainer/domain/brainTrai
 import { submitBrainTrainerAnswer } from '#/features/brain-trainer/application/brainTrainer'
 import type { SubmitBrainTrainerAnswerInput } from '#/features/brain-trainer/application/brainTrainer'
 import { GRADE_BUTTONS } from '#/shared/ui/gradeButtons'
+import { Dialog } from '#/shared/components/ui/Dialog'
 
 type BrainTrainerOverlayProps = {
   items: BrainTrainerItem[]
@@ -58,8 +59,12 @@ export function BrainTrainerOverlay({
   }
 
   return (
-    <div className="glass-scrim fixed inset-0 z-50 flex items-center justify-center p-6">
-      <div className="glass-surface glass-specular rise card-flat w-full max-w-xl p-6">
+    <Dialog
+      open
+      onClose={onCancel}
+      label="Brain trainer"
+    >
+      <div className="max-h-[80vh] w-full overflow-auto p-6">
         <div className="flex items-center justify-between">
           <span className="eyebrow">
             Brain Trainer · {index + 1} of {total}
@@ -113,6 +118,6 @@ export function BrainTrainerOverlay({
           )}
         </div>
       </div>
-    </div>
+    </Dialog>
   )
 }

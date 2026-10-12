@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Lightbulb } from 'lucide-react'
 
 import type { Material } from '#/features/learning-space/domain/learningSpace'
+import { Dialog } from '#/shared/components/ui/Dialog'
 import { createConcept } from '#/features/learning-space/application/concept'
 
 type AddConceptDialogProps = {
@@ -10,6 +11,7 @@ type AddConceptDialogProps = {
   initialName?: string
   initialMaterialIds?: string[]
   onCreated: () => void
+  open: boolean
   onClose: () => void
 }
 
@@ -18,6 +20,7 @@ export function AddConceptDialog({
   materials,
   initialName,
   initialMaterialIds,
+  open,
   onCreated,
   onClose,
 }: AddConceptDialogProps) {
@@ -72,17 +75,12 @@ export function AddConceptDialog({
   }
 
   return (
-    <div
-      className="glass-scrim fixed inset-0 z-50 flex items-center justify-center p-4"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Add concept"
-      onClick={onClose}
+    <Dialog
+      open={open}
+      onClose={onClose}
+      label="Add concept"
     >
-      <div
-        className="glass-surface glass-specular rise max-h-[90vh] w-full max-w-xl overflow-auto rounded-[22px] p-8"
-        onClick={(event) => event.stopPropagation()}
-      >
+      <div className="max-h-[80vh] w-full overflow-auto p-6 sm:p-8">
         <div className="flex items-start gap-4">
           <span className="mt-0.5 grid h-10 w-10 shrink-0 place-items-center rounded-full bg-(--ink) text-(--surface)">
             <Lightbulb size={17} aria-hidden="true" />
@@ -198,6 +196,6 @@ export function AddConceptDialog({
           </button>
         </div>
       </div>
-    </div>
+    </Dialog>
   )
 }

@@ -2,11 +2,13 @@ import { useState } from 'react'
 import { Upload, X } from 'lucide-react'
 
 import { createMaterial } from '../application/createMaterial'
+import { Dialog } from '#/shared/components/ui/Dialog'
 import { processMaterialExtraction } from '../application/materialExtraction'
 import { saveMaterialFile } from '../application/saveMaterialFile'
 
 type AddMaterialDialogProps = {
   learningSpaceId: string
+  open: boolean
   onCreated: () => void
   onClose: () => void
 }
@@ -60,6 +62,7 @@ function titleFromFileName(fileName: string) {
 
 export function AddMaterialDialog({
   learningSpaceId,
+  open,
   onCreated,
   onClose,
 }: AddMaterialDialogProps) {
@@ -129,21 +132,13 @@ export function AddMaterialDialog({
   }
 
   return (
-    <div
-      className="glass-scrim fixed inset-0 z-50 flex items-center justify-center p-4"
-      role="presentation"
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget) {
-          onClose()
-        }
-      }}
+    <Dialog
+      open={open}
+      onClose={onClose}
+      labelledBy="add-material-title"
+      label="Add material"
     >
-      <div
-        className="glass-surface glass-specular rise w-full max-w-xl rounded-[22px] p-8"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="add-material-title"
-      >
+      <div className="max-h-[80vh] w-full overflow-auto p-6 sm:p-8">
         <div className="mb-7 flex items-start justify-between gap-4">
           <div>
             <h2
@@ -223,6 +218,6 @@ export function AddMaterialDialog({
           </button>
         </div>
       </div>
-    </div>
+    </Dialog>
   )
 }
