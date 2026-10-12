@@ -2,7 +2,7 @@ import type { RawCard } from '#/features/library/domain/import'
 import { Inbox, Trash2 } from 'lucide-react'
 
 type ImportPreviewProps = {
-    cards: RawCard[]
+    cards: Array<RawCard & { key?: string }>
     onUpdate: (index: number, patch: Partial<RawCard>) => void
     onRemove: (index: number) => void
     }
@@ -31,7 +31,7 @@ type ImportPreviewProps = {
         <div className="mt-4 grid max-h-128 gap-3 overflow-y-auto pr-1">
         {cards.map((card, index) => (
             <article
-            key={index}
+            key={card.key ?? index}
             className="rounded-xl border border-(--line) bg-(--surface) p-4 transition-colors hover:border-(--line-strong)"
             >
             <header className="flex items-center justify-between gap-3">

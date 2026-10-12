@@ -12,9 +12,22 @@ import {
 
 import type { RawCard } from '#/features/library/domain/import'
 import { parseAny } from '#/features/library/domain/import'
-
 import { importCards } from '../application/importCards'
 import { ImportPreview } from './ImportPreview'
+
+type EditableCard = RawCard & { key: string }
+
+function withKeys(cards: RawCard[]): EditableCard[] {
+  return cards.map((card) => ({
+    ...card,
+    key:
+      typeof crypto !== 'undefined' && 'randomUUID' in crypto
+        ? crypto.randomUUID()
+        : `${card.front}|${card.back}|${Math.random().toString(36).slice(2)}`,
+  }))
+}
+
+const MAX_FILE_BYTES = 2 * 1024 * 1024
 
 const TEMPLATES: Record<
   string,
@@ -110,8 +123,10 @@ export function ImportWizard({
   const [dragOver, setDragOver] = useState(false)
   const [showTips, setShowTips] = useState(false)
   const [debounced, setDebounced] = useState('')
-  const [editable, setEditable] = useState<RawCard[]>([])
+  const [editable, setEditable] = useState<EditableCard[]>([])
   const [warnings, setWarnings] = useState<string[]>([])
+  const [fileError, setFileError] = useState<string | null>(null)
+  const [isImporting, setIsImporting] = useState(false)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -126,7 +141,7 @@ export function ImportWizard({
   useEffect(() => {
     const result = parseAny(debounced)
 
-    setEditable(result.cards)
+    setEditable(withKeys(result.cards))
     setWarnings(result.warnings.map(humanWarning))
   }, [debounced])
 
@@ -137,11 +152,21 @@ export function ImportWizard({
     )
 
   const loadFile = async (file: File) => {
-    const content = await file.text()
+    setFileError(null)
 
-    setFileName(file.name)
-    setText(content)
-    setMode('paste')
+    if (file.size > MAX_FILE_BYTES) {
+      setFileError('That file is too large to import — keep it under 2 MB.')
+      return
+    }
+
+    try {
+      const content = await file.text()
+      setFileName(file.name)
+      setText(content)
+      setMode('paste')
+    } catch {
+      setFileError('Could not read that file. Try pasting the text instead.')
+    }
   }
 
   const handleDrop = async (
@@ -193,23 +218,34 @@ export function ImportWizard({
   const addBlank = () => {
     setEditable((currentCards) => [
       ...currentCards,
-      {
-        front: '',
-        back: '',
-        topic: 'General',
-      },
+      ...withKeys([
+        {
+          front: '',
+          back: '',
+          topic: 'General',
+        },
+      ]),
     ])
   }
 
   const handleImport = async () => {
-    const cards = await importCards(editable)
+    if (isImporting || !canImport) return
+    setIsImporting(true)
 
-    if (cards.length === 0) {
-      return
+    try {
+      const cards = await importCards(
+        editable.map(({ key: _key, ...rest }) => rest),
+      )
+
+      if (cards.length === 0) {
+        return
+      }
+
+      onImported()
+      onClose()
+    } finally {
+      setIsImporting(false)
     }
-
-    onImported()
-    onClose()
   }
 
   const clearAll = () => {
@@ -217,6 +253,10 @@ export function ImportWizard({
     setFileName(null)
     setEditable([])
     setWarnings([])
+    setFileError(null)
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
   }
 
   return (
@@ -438,6 +478,12 @@ Or just one fact per line — we’ll handle the rest.`}
                     </div>
                   )}
 
+                  {fileError ? (
+                    <p role="alert" className="mt-3 text-sm font-medium text-(--destructive)">
+                      {fileError}
+                    </p>
+                  ) : null}
+
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -542,10 +588,13 @@ Or just one fact per line — we’ll handle the rest.`}
               type="button"
               className="btn-primary inline-flex items-center gap-2 disabled:cursor-not-allowed disabled:opacity-50"
               onClick={handleImport}
-              disabled={!canImport}
+              disabled={!canImport || isImporting}
             >
               <Check size={16} />
 
+              {isImporting
+                ? 'Adding…'
+                : <>
               Add{' '}
               {editable.length
                 ? `${editable.length} card${
@@ -553,6 +602,7 @@ Or just one fact per line — we’ll handle the rest.`}
                   }`
                 : 'cards'}{' '}
               to library
+                </>}
             </button>
           </div>
         </div>
