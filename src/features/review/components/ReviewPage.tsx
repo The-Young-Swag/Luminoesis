@@ -8,6 +8,7 @@ import {
 import { GraduationCap, Keyboard, Pause } from 'lucide-react'
 import { Link, getRouteApi } from '@tanstack/react-router'
 
+import { PageHeader } from '#/shared/components/ui/PageHeader'
 import { FlashcardDecks } from '#/features/flashcard/components/FlashcardReviewPage'
 
 import type { Card } from '#/features/library/domain/card'
@@ -50,6 +51,26 @@ export function ReviewPage() {
 
   return (
     <div className="page-wrap space-y-6 py-6 md:py-8">
+      <PageHeader
+        title="Review"
+        context={
+          topic
+            ? `Filtered to ${topic}`
+            : 'Spaced repetition, on your rhythm'
+        }
+        action={
+          topic ? (
+            <Link
+              to="/review"
+              search={{ tab: 'cards' }}
+              className="btn-ghost inline-flex shrink-0 items-center no-underline"
+            >
+              Clear filter
+            </Link>
+          ) : undefined
+        }
+      />
+
       <ReviewTabs tab={tab} />
 
       {tab === 'flashcards' ? <FlashcardDecks /> : <ReviewSession topic={topic} />}

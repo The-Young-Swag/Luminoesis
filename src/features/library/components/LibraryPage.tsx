@@ -18,6 +18,7 @@ import { cardRepository } from '#/features/library/repositories/cardRepository'
 
 import { deleteCard } from '../application/deleteCard'
 import { useLibraryData } from '../hooks/useLibraryData'
+import { PageHeader } from '#/shared/components/ui/PageHeader'
 import { CardDialog } from './CardDialog'
 import { ImportWizard } from './ImportWizard'
 import { LibraryTable } from './LibraryTable'
@@ -129,22 +130,15 @@ export function LibraryPage() {
   }
 
   return (
-    <section className="page-wrap py-8">
-      <header className="rise mb-8">
-        <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="eyebrow">Knowledge</p>
-
-            <h1 className="display mt-2 text-3xl tracking-tight">
-              Your knowledge
-            </h1>
-
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-(--ink-soft)">
-              Keep the ideas you want to remember. These cards become part of
-              your adaptive review sessions.
-            </p>
-          </div>
-
+    <section className="page-wrap space-y-5 py-6 md:py-8">
+      <PageHeader
+        title="Library"
+        context={
+          total === 1
+            ? '1 card · due first'
+            : `${total} cards · due first`
+        }
+        action={
           <button
             type="button"
             onClick={handleCreate}
@@ -153,8 +147,8 @@ export function LibraryPage() {
             <Plus size={16} aria-hidden="true" />
             Add card
           </button>
-        </div>
-      </header>
+        }
+      />
 
       <div className="glass-panel rounded-[14px] rise mb-5 p-3" style={{ animationDelay: '60ms' }}>
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center">

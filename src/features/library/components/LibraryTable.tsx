@@ -175,7 +175,7 @@ export function LibraryTable({
                     aria-label={`Edit card: ${card.front}`}
                     title="Edit card"
                     onClick={() => onEdit(card)}
-                    className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-transparent text-(--ink-faint) transition-colors duration-150 hover:border-(--line) hover:bg-(--surface) hover:text-(--ink) focus:outline-none focus:ring-2 focus:ring-(--veridian)/20"
+                    className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-transparent text-(--ink-faint) transition-colors duration-150 hover:border-(--line) hover:bg-(--surface) hover:text-(--ink) focus:outline-none focus:ring-2 focus:ring-(--veridian)/20"
                   >
                     <Pencil
                       size={14}
@@ -200,7 +200,7 @@ export function LibraryTable({
                       aria-label={`Delete card: ${card.front}`}
                       title="Delete card"
                       onClick={() => requestDelete(card.id)}
-                      className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-transparent text-(--ink-faint) transition-colors duration-150 hover:border-(--destructive)/25 hover:bg-(--destructive)/10 hover:text-destructive focus:outline-none focus:ring-2 focus:ring-(--destructive)/20"
+                      className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-transparent text-(--ink-faint) transition-colors duration-150 hover:border-(--destructive)/25 hover:bg-(--destructive)/10 hover:text-destructive focus:outline-none focus:ring-2 focus:ring-(--destructive)/20"
                     >
                       <Trash2
                         size={14}

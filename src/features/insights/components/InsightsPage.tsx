@@ -1,6 +1,7 @@
 import { Lightbulb } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
 
+import { PageHeader } from '#/shared/components/ui/PageHeader'
 import { useInsights } from '#/features/insights/hooks/useInsights'
 
 export function InsightsPage() {
@@ -32,14 +33,11 @@ export function InsightsPage() {
   const { retention, lengthPerf, pattern } = data
 
   return (
-    <div className="page-wrap py-8">
-      <p className="kicker">Insights — local only</p>
-
-      <h1 className="display text-[28px]">Your patterns, plainly</h1>
-
-      <p className="mt-1 text-sm text-(--ink-soft)">
-        No streaks, no guilt. Just what your own data supports.
-      </p>
+    <div className="page-wrap space-y-4 py-6 md:py-8">
+      <PageHeader
+        title="Insights"
+        context="On this device only · no streaks, no guilt"
+      />
 
       {pattern && (
         <div className="card-flat mt-6 flex items-start gap-3 border-(--warning)/30 bg-(--warning-muted) p-5">
