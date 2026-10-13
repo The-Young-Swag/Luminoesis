@@ -385,6 +385,20 @@ a:hover {
 button,
 a {
   touch-action: manipulation;
+  -webkit-tap-highlight-color: rgba(15, 107, 84, 0.18);
+}
+
+.dark button,
+.dark a {
+  -webkit-tap-highlight-color: rgba(70, 227, 166, 0.22);
+}
+
+/* Contain scroll chaining in overlays + drawers (Vercel guideline).
+   Page-level overscroll stays at browser defaults so pull-to-refresh
+   and swipe navigation keep working on hybrid touch devices. */
+dialog.app-dialog,
+.sidebar-scroll {
+  overscroll-behavior: contain;
 }
 
 /* ==========================================================================

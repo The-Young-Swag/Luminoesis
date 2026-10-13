@@ -127,7 +127,7 @@ export function AddQuestionDialog({
             <select
               value={conceptId}
               onChange={(event) => setConceptId(event.target.value)}
-              className="card-flat mt-1 w-full bg-transparent px-3 py-2 text-(--ink) outline-none"
+              className="card-flat mt-1 w-full bg-transparent px-3 py-2 text-(--ink) outline-none focus:border-(--accent) focus:ring-2 focus:ring-(--accent)/20"
             >
               {concepts.map((concept) => (
                 <option key={concept.id} value={concept.id}>
@@ -144,7 +144,7 @@ export function AddQuestionDialog({
               onChange={(event) =>
                 setType(event.target.value as QuestionType)
               }
-              className="card-flat mt-1 w-full bg-transparent px-3 py-2 text-(--ink) outline-none"
+              className="card-flat mt-1 w-full bg-transparent px-3 py-2 text-(--ink) outline-none focus:border-(--accent) focus:ring-2 focus:ring-(--accent)/20"
             >
               {(Object.keys(TYPE_LABELS) as QuestionType[]).map((value) => (
                 <option key={value} value={value}>
@@ -160,7 +160,7 @@ export function AddQuestionDialog({
               value={prompt}
               onChange={(event) => setPrompt(event.target.value)}
               rows={2}
-              className="card-flat mt-1 w-full bg-transparent p-3 text-(--ink) outline-none"
+              className="card-flat mt-1 w-full bg-transparent p-3 text-(--ink) outline-none focus:border-(--accent) focus:ring-2 focus:ring-(--accent)/20"
             />
           </label>
 
@@ -173,7 +173,7 @@ export function AddQuestionDialog({
                     value={choice}
                     disabled={type === 'true-false'}
                     onChange={(event) => updateChoice(index, event.target.value)}
-                    className="card-flat flex-1 bg-transparent px-3 py-2 text-(--ink) outline-none"
+                    className="card-flat flex-1 bg-transparent px-3 py-2 text-(--ink) outline-none focus:border-(--accent) focus:ring-2 focus:ring-(--accent)/20"
                   />
                   {type === 'multiple-choice' ? (
                     <button
@@ -201,7 +201,7 @@ export function AddQuestionDialog({
                 <select
                   value={answer}
                   onChange={(event) => setAnswer(event.target.value)}
-                  className="card-flat mt-1 w-full bg-transparent px-3 py-2 text-(--ink) outline-none"
+                  className="card-flat mt-1 w-full bg-transparent px-3 py-2 text-(--ink) outline-none focus:border-(--accent) focus:ring-2 focus:ring-(--accent)/20"
                 >
                   <option value="">Select…</option>
                   {effectiveChoices.map((choice, index) => (
@@ -220,7 +220,7 @@ export function AddQuestionDialog({
               <input
                 value={answer}
                 onChange={(event) => setAnswer(event.target.value)}
-                className="card-flat mt-1 w-full bg-transparent px-3 py-2 text-(--ink) outline-none"
+                className="card-flat mt-1 w-full bg-transparent px-3 py-2 text-(--ink) outline-none focus:border-(--accent) focus:ring-2 focus:ring-(--accent)/20"
               />
             </label>
           )}
@@ -233,7 +233,7 @@ export function AddQuestionDialog({
               value={explanation}
               onChange={(event) => setExplanation(event.target.value)}
               rows={2}
-              className="card-flat mt-1 w-full bg-transparent p-3 text-(--ink) outline-none"
+              className="card-flat mt-1 w-full bg-transparent p-3 text-(--ink) outline-none focus:border-(--accent) focus:ring-2 focus:ring-(--accent)/20"
             />
           </label>
 

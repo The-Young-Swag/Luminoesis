@@ -141,12 +141,12 @@ export function FlashcardsSection({ learningSpaceId, concepts, materials }: Flas
                     {flashcard.front}
                   </p>
 
-                  <div className="flex shrink-0 items-center gap-1 opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100">
+                  <div className="flex shrink-0 items-center gap-1 transition-opacity md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100">
                     <button
                       type="button"
                       aria-label="Edit flashcard"
                       onClick={() => setEditing(flashcard)}
-                      className="rounded-lg p-1.5 text-(--ink-soft) transition hover:bg-(--surface-muted) hover:text-(--ink)"
+                      className="grid min-h-11 min-w-11 place-items-center rounded-lg text-(--ink-soft) transition-colors hover:bg-(--surface-muted) hover:text-(--ink)"
                     >
                       <Pencil size={14} aria-hidden="true" />
                     </button>
@@ -158,7 +158,7 @@ export function FlashcardsSection({ learningSpaceId, concepts, materials }: Flas
                         title="Delete flashcard"
                         onClick={() => setConfirmingId(flashcard.id)}
                         disabled={busy}
-                        className="rounded-lg p-1.5 text-(--ink-soft) transition hover:bg-red-50 hover:text-red-600 disabled:opacity-50 dark:hover:bg-red-950/40"
+                        className="grid min-h-11 min-w-11 place-items-center rounded-lg text-(--ink-soft) transition-colors hover:bg-red-50 hover:text-red-600 disabled:opacity-50 dark:hover:bg-red-950/40"
                       >
                         <Trash2 size={14} aria-hidden="true" />
                       </button>

@@ -124,7 +124,7 @@ export function AddFlashcardDialog({
             <select
               value={conceptId}
               onChange={(event) => setConceptId(event.target.value)}
-              className="mt-1.5 w-full rounded-xl border border-(--line) bg-(--surface) px-3 py-2.5 text-sm outline-none focus:border-(--veridian) focus:ring-2 focus:ring-(--veridian)/20"
+              className="mt-1.5 w-full rounded-xl border border-(--line) bg-(--surface) px-3 py-2.5 text-sm text-(--ink) outline-none focus:border-(--veridian) focus:ring-2 focus:ring-(--veridian)/20"
             >
               {concepts.map((concept) => (
                 <option key={concept.id} value={concept.id}>
@@ -173,7 +173,7 @@ export function AddFlashcardDialog({
                 onChange={(event) =>
                   setDifficulty(event.target.value as FlashcardDifficulty)
                 }
-                className="mt-1.5 w-full rounded-xl border border-(--line) bg-(--surface) px-3 py-2.5 text-sm outline-none focus:border-(--veridian) focus:ring-2 focus:ring-(--veridian)/20"
+                className="mt-1.5 w-full rounded-xl border border-(--line) bg-(--surface) px-3 py-2.5 text-sm text-(--ink) outline-none focus:border-(--veridian) focus:ring-2 focus:ring-(--veridian)/20"
               >
                 {DIFFICULTIES.map((value) => (
                   <option key={value} value={value}>
@@ -195,7 +195,7 @@ export function AddFlashcardDialog({
               <select
                 value={materialId}
                 onChange={(event) => setMaterialId(event.target.value)}
-                className="mt-1.5 w-full rounded-xl border border-(--line) bg-(--surface) px-3 py-2.5 text-sm outline-none focus:border-(--veridian) focus:ring-2 focus:ring-(--veridian)/20"
+                className="mt-1.5 w-full rounded-xl border border-(--line) bg-(--surface) px-3 py-2.5 text-sm text-(--ink) outline-none focus:border-(--veridian) focus:ring-2 focus:ring-(--veridian)/20"
               >
                 <option value="">None</option>
 

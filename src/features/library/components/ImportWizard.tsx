@@ -504,7 +504,7 @@ Or just one fact per line — we’ll handle the rest.`}
                       value={text}
                       onChange={(event) => setText(event.target.value)}
                       rows={6}
-                      className="mt-2 w-full rounded-xl border border-(--line) bg-(--surface-muted) p-3 font-mono text-sm outline-none"
+                      className="mt-2 w-full rounded-xl border border-(--line) bg-(--surface-muted) p-3 font-mono text-sm outline-none focus:border-(--accent) focus:ring-2 focus:ring-(--accent)/20"
                     />
                   </div>
                 )}

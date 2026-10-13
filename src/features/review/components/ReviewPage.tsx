@@ -667,8 +667,8 @@ function ReviewHeader({
       className="mt-3 h-1 overflow-hidden rounded-full bg-(--surface-muted)"
     >
       <div
-        className="h-full rounded-full bg-(--veridian) transition-[width] duration-500 ease-out"
-        style={{ width: `${percent}%` }}
+        className="h-full w-full origin-left rounded-full bg-(--veridian) transition-transform duration-500 ease-out"
+        style={{ transform: `scaleX(${percent / 100})` }}
       />
     </div>
     </div>

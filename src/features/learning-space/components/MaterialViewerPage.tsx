@@ -658,7 +658,7 @@ function ModeTabs({ mode, onChange }: { mode: Mode; onChange: (mode: Mode) => vo
             aria-selected={active}
             onClick={() => onChange(tab.id)}
             className={cx(
-              'flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-[13px] font-medium transition-all',
+              'flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-[13px] font-medium transition-colors',
               active
                 ? 'bg-(--surface) text-(--ink) shadow-sm'
                 : 'text-(--ink-faint) hover:text-(--ink)',

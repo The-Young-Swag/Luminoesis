@@ -366,8 +366,8 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
                 className="mt-1.5 h-1 overflow-hidden rounded-full bg-(--surface-muted)"
               >
                 <div
-                  className="h-full rounded-full bg-(--veridian) transition-[width] duration-300"
-                  style={{ width: `${Math.round(modelProgress * 100)}%` }}
+                  className="h-full w-full origin-left rounded-full bg-(--veridian) transition-transform duration-300"
+                  style={{ transform: `scaleX(${modelProgress})` }}
                 />
               </div>
             </div>

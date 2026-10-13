@@ -159,8 +159,8 @@ export function FlashcardReviewOverlay({
 
             <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-(--surface-muted)">
               <div
-                className="h-full rounded-full bg-(--accent) transition-[width] duration-500 ease-out"
-                style={{ width: `${((index + (revealed ? 1 : 0)) / total) * 100}%` }}
+                className="h-full w-full origin-left rounded-full bg-(--accent) transition-transform duration-500 ease-out"
+                style={{ transform: `scaleX(${(index + (revealed ? 1 : 0)) / total})` }}
               />
             </div>
 

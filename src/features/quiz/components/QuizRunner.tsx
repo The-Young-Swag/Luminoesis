@@ -127,7 +127,7 @@ export function QuizRunner({
               onChange={(event) => setUserAnswer(event.target.value)}
               placeholder="Type your answer…"
               rows={3}
-              className="card-flat w-full bg-transparent p-3 text-(--ink) outline-none"
+              className="card-flat w-full bg-transparent p-3 text-(--ink) outline-none focus:border-(--accent) focus:ring-2 focus:ring-(--accent)/20"
             />
           )}
         </div>

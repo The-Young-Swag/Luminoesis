@@ -261,7 +261,7 @@ function WorkspaceTabs({
             aria-selected={isActive}
             onClick={() => onChange(tab.id)}
             className={cx(
-              'inline-flex shrink-0 items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-all',
+              'inline-flex shrink-0 items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-colors',
               isActive
                 ? 'bg-(--surface) text-(--ink) shadow-sm'
                 : 'text-(--ink-soft) hover:text-(--ink)',
