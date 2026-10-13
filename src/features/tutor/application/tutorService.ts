@@ -48,7 +48,10 @@ function cacheKey(options: TutorServiceOptions): string {
   ].join('|')
 }
 
-function rememberResponse(options: TutorServiceOptions, response: TutorResponse): void {
+function rememberResponse(
+  options: TutorServiceOptions,
+  response: TutorResponse,
+): void {
   if (responseCache.size >= RESPONSE_CACHE_LIMIT) {
     const oldest = responseCache.keys().next()
     if (!oldest.done) responseCache.delete(oldest.value)
@@ -113,14 +116,16 @@ export class TutorService {
     const request: TutorRequest = { context }
     const timeoutMs = options.localTimeoutMs ?? DEFAULT_LOCAL_TIMEOUT_MS
     const tier =
-      options.modelTier ?? (await settingsRepository.getLocalModelTier().catch(() => 'standard' as const))
+      options.modelTier ??
+      (await settingsRepository
+        .getLocalModelTier()
+        .catch(() => 'standard' as const))
 
     // Local AI is the active provider. No Gemini fallback.
     const localAvailable = await this.localProvider.isAvailable()
     if (!localAvailable) {
       return {
-        text:
-          'Local AI is unavailable. Please ensure your browser supports WebAssembly. All non-AI learning features continue working.',
+        text: 'Local AI is unavailable. Please ensure your browser supports WebAssembly. All non-AI learning features continue working.',
         provider: 'local',
       }
     }
@@ -158,8 +163,7 @@ export class TutorService {
     } catch (error) {
       console.warn('[tutor] local provider failed/timed out', error)
       return {
-        text:
-          'Local AI encountered an error. All non-AI learning features continue working.',
+        text: 'Local AI encountered an error. All non-AI learning features continue working.',
         provider: 'local',
       }
     }
@@ -192,7 +196,11 @@ export async function fetchGeminiTutor(
     weakSpots: request.context.weakSpots,
   })
 
-  const streamed = await tryGeminiStream(`${url}/stream`, body, options?.onToken)
+  const streamed = await tryGeminiStream(
+    `${url}/stream`,
+    body,
+    options?.onToken,
+  )
   if (streamed !== null) return streamed
 
   const response = await fetch(url, {
@@ -205,7 +213,8 @@ export async function fetchGeminiTutor(
   if (!response.ok) {
     const data = await response.json().catch(() => ({}))
     throw new Error(
-      (data as { error?: string }).error ?? `Tutor request failed: ${response.status}`,
+      (data as { error?: string }).error ??
+        `Tutor request failed: ${response.status}`,
     )
   }
 
@@ -227,12 +236,18 @@ async function tryGeminiStream(
   onToken?: (text: string) => void,
 ): Promise<TutorResponse | null> {
   const controller = new AbortController()
-  const timer = window.setTimeout(() => controller.abort(), GEMINI_STREAM_TIMEOUT_MS)
+  const timer = window.setTimeout(
+    () => controller.abort(),
+    GEMINI_STREAM_TIMEOUT_MS,
+  )
 
   try {
     const response = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Accept: 'text/event-stream' },
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'text/event-stream',
+      },
       credentials: 'include',
       body,
       signal: controller.signal,

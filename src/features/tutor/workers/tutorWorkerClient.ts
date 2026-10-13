@@ -12,10 +12,7 @@
  * ONNX session init is silent by nature and needs its own allowance.
  */
 
-import type {
-  WorkerGenerateTimings,
-  WorkerLoadTimings,
-} from './tutor.worker'
+import type { WorkerGenerateTimings, WorkerLoadTimings } from './tutor.worker'
 
 export type TutorWorkerDevice = 'webgpu' | 'wasm'
 
@@ -185,7 +182,9 @@ export function createTutorWorker(): TutorWorkerClient | null {
       failCall(
         message.id,
         new Error(
-          typeof message.message === 'string' ? message.message : 'Worker failed',
+          typeof message.message === 'string'
+            ? message.message
+            : 'Worker failed',
         ),
       )
       return
@@ -244,7 +243,8 @@ export function createTutorWorker(): TutorWorkerClient | null {
           {
             onProgress,
             resolve: (value: { text: string; timings?: unknown }) => {
-              const timings = value.timings as WorkerLoadTimings | null | undefined
+              const timings = value.timings as
+                WorkerLoadTimings | null | undefined
               resolve(timings ?? null)
             },
             reject,
@@ -255,26 +255,27 @@ export function createTutorWorker(): TutorWorkerClient | null {
     },
 
     generate(messages, maxNewTokens, onToken) {
-      return new Promise<{ text: string; timings: WorkerGenerateTimings | null }>(
-        (resolve, reject) => {
-          send(
-            { type: 'generate', messages, maxNewTokens },
-            {
-              onToken,
-              resolve: (value: { text: string; timings?: unknown }) =>
-                resolve({
-                  text: value.text,
-                  timings:
-                    value.timings !== undefined && value.timings !== null
-                      ? (value.timings as WorkerGenerateTimings)
-                      : null,
-                }),
-              reject,
-            },
-            GENERATE_BUDGET,
-          )
-        },
-      )
+      return new Promise<{
+        text: string
+        timings: WorkerGenerateTimings | null
+      }>((resolve, reject) => {
+        send(
+          { type: 'generate', messages, maxNewTokens },
+          {
+            onToken,
+            resolve: (value: { text: string; timings?: unknown }) =>
+              resolve({
+                text: value.text,
+                timings:
+                  value.timings !== undefined && value.timings !== null
+                    ? (value.timings as WorkerGenerateTimings)
+                    : null,
+              }),
+            reject,
+          },
+          GENERATE_BUDGET,
+        )
+      })
     },
 
     embed(texts) {

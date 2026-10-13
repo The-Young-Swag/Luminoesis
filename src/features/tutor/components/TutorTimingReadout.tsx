@@ -45,16 +45,17 @@ export function TutorTimingReadout() {
       className="mb-3 rounded-xl border border-dashed border-(--line-strong) px-3 py-2 font-mono text-[10px] leading-5 tabular-nums text-(--ink-soft)"
     >
       <span>
-        tutor-perf · coi:{runtime.isolated ? 'yes' : 'no'} · threads:{runtime.threads}
+        tutor-perf · coi:{runtime.isolated ? 'yes' : 'no'} · threads:
+        {runtime.threads}
       </span>
       {timing ? (
         <span className="block">
-          {timing.path}/{timing.device}/{timing.tier} · load {formatMs(timing.loadMs)}
-          {' '}(dl {formatMs(timing.downloadMs)} + sess {formatMs(timing.sessionMs)}) ·
-          tok {formatMs(timing.tokenizeMs)} {timing.promptTokens ?? '—'}t ·
-          prefill {formatMs(timing.prefillMs)} · decode {formatMs(timing.decodeMs)}{' '}
-          {timing.outputTokens ?? '—'}t {timing.tokensPerSec ?? '—'}t/s ·
-          total {formatMs(timing.totalMs)}
+          {timing.path}/{timing.device}/{timing.tier} · load{' '}
+          {formatMs(timing.loadMs)} (dl {formatMs(timing.downloadMs)} + sess{' '}
+          {formatMs(timing.sessionMs)}) · tok {formatMs(timing.tokenizeMs)}{' '}
+          {timing.promptTokens ?? '—'}t · prefill {formatMs(timing.prefillMs)} ·
+          decode {formatMs(timing.decodeMs)} {timing.outputTokens ?? '—'}t{' '}
+          {timing.tokensPerSec ?? '—'}t/s · total {formatMs(timing.totalMs)}
         </span>
       ) : (
         <span className="block">no answer measured yet</span>

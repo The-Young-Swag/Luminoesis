@@ -1,8 +1,16 @@
 import { Router } from 'express'
 import { z } from 'zod'
 
-import { getFingerprint, getRemaining, consumeUpload, MAX_ONLINE_UPLOADS } from '../../services/tutorQuotaService.js'
-import { isModelNotFound, modelUnavailableMessage } from '../../domain/geminiErrors.js'
+import {
+  getFingerprint,
+  getRemaining,
+  consumeUpload,
+  MAX_ONLINE_UPLOADS,
+} from '../../services/tutorQuotaService.js'
+import {
+  isModelNotFound,
+  modelUnavailableMessage,
+} from '../../domain/geminiErrors.js'
 
 export const tutorRouter = Router()
 
@@ -12,8 +20,27 @@ const TutorChatSchema = z.object({
   materialId: z.string().trim().min(1).optional(),
   materialTitle: z.string().trim().max(200).optional(),
   excerpt: z.string().trim().max(4000).optional(),
-  concepts: z.array(z.object({ id: z.string(), name: z.string(), description: z.string().optional() })).max(8).optional(),
-  weakSpots: z.array(z.object({ conceptId: z.string(), conceptName: z.string(), rate: z.number(), total: z.number() })).max(3).optional(),
+  concepts: z
+    .array(
+      z.object({
+        id: z.string(),
+        name: z.string(),
+        description: z.string().optional(),
+      }),
+    )
+    .max(8)
+    .optional(),
+  weakSpots: z
+    .array(
+      z.object({
+        conceptId: z.string(),
+        conceptName: z.string(),
+        rate: z.number(),
+        total: z.number(),
+      }),
+    )
+    .max(3)
+    .optional(),
 })
 
 function getGeminiKey(): string | undefined {
@@ -43,21 +70,32 @@ type TutorPromptInput = {
   materialTitle?: string
   excerpt?: string
   concepts?: Array<{ id: string; name: string; description?: string }>
-  weakSpots?: Array<{ conceptId: string; conceptName: string; rate: number; total: number }>
+  weakSpots?: Array<{
+    conceptId: string
+    conceptName: string
+    rate: number
+    total: number
+  }>
 }
 
 function buildGeminiPrompt(parsed: TutorPromptInput): string {
   // Build Gemini prompt from provider-independent context
   const contextParts: string[] = []
-  if (parsed.excerpt) contextParts.push(`Material excerpt:\n${parsed.excerpt.slice(0, 3000)}`)
-  if (parsed.selectedText) contextParts.push(`Selected text:\n${parsed.selectedText}`)
+  if (parsed.excerpt)
+    contextParts.push(`Material excerpt:\n${parsed.excerpt.slice(0, 3000)}`)
+  if (parsed.selectedText)
+    contextParts.push(`Selected text:\n${parsed.selectedText}`)
   if (parsed.concepts && parsed.concepts.length > 0) {
-    contextParts.push(`Concepts: ${parsed.concepts.map((concept) => concept.name).join(', ')}`)
+    contextParts.push(
+      `Concepts: ${parsed.concepts.map((concept) => concept.name).join(', ')}`,
+    )
   }
   if (parsed.weakSpots && parsed.weakSpots.length > 0) {
     const weakest = parsed.weakSpots[0]
     if (weakest) {
-      contextParts.push(`Weak spot: ${weakest.conceptName} (${Math.round(weakest.rate * 100)}% recall)`)
+      contextParts.push(
+        `Weak spot: ${weakest.conceptName} (${Math.round(weakest.rate * 100)}% recall)`,
+      )
     }
   }
 
@@ -104,7 +142,11 @@ async function callGemini(
 
     if (!gemResponse.ok || !gemResponse.body) {
       const errText = await gemResponse.text().catch(() => '')
-      console.error('[tutor] gemini error', gemResponse.status, errText.slice(0, 500))
+      console.error(
+        '[tutor] gemini error',
+        gemResponse.status,
+        errText.slice(0, 500),
+      )
       // A retired or unknown model ID is a config problem, not a user
       // problem: say so plainly, and never burn quota on it (callers only
       // consume quota after a successful answer).
@@ -144,11 +186,14 @@ async function callGemini(
 
         try {
           const data = JSON.parse(payload) as {
-            candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>
+            candidates?: Array<{
+              content?: { parts?: Array<{ text?: string }> }
+            }>
           }
-          const chunk = data.candidates?.[0]?.content?.parts
-            ?.map((part) => part.text ?? '')
-            .join('') ?? ''
+          const chunk =
+            data.candidates?.[0]?.content?.parts
+              ?.map((part) => part.text ?? '')
+              .join('') ?? ''
           if (chunk) {
             fullText += chunk
             onToken?.(chunk)
@@ -218,7 +263,11 @@ tutorRouter.post('/chat', async (req, res) => {
       text,
       provider: 'gemini',
       citation: parsed.materialId
-        ? { materialId: parsed.materialId, materialTitle: parsed.materialTitle ?? 'Material', excerpt: parsed.selectedText?.slice(0, 120) }
+        ? {
+            materialId: parsed.materialId,
+            materialTitle: parsed.materialTitle ?? 'Material',
+            excerpt: parsed.selectedText?.slice(0, 120),
+          }
         : undefined,
       remaining: getRemaining(fingerprint),
       limit: MAX_ONLINE_UPLOADS,
@@ -226,7 +275,10 @@ tutorRouter.post('/chat', async (req, res) => {
   } catch (error) {
     console.error('[tutor] unexpected', error)
     res.status(502).json({
-      error: error instanceof Error ? error.message : 'Online Tutor failed. Local preview and all non-AI features remain available.',
+      error:
+        error instanceof Error
+          ? error.message
+          : 'Online Tutor failed. Local preview and all non-AI features remain available.',
     })
   }
 })
@@ -274,7 +326,11 @@ tutorRouter.post('/chat/stream', async (req, res) => {
     send({
       done: true,
       citation: parsed.materialId
-        ? { materialId: parsed.materialId, materialTitle: parsed.materialTitle ?? 'Material', excerpt: parsed.selectedText?.slice(0, 120) }
+        ? {
+            materialId: parsed.materialId,
+            materialTitle: parsed.materialTitle ?? 'Material',
+            excerpt: parsed.selectedText?.slice(0, 120),
+          }
         : undefined,
       remaining: getRemaining(fingerprint),
       limit: MAX_ONLINE_UPLOADS,

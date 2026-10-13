@@ -70,7 +70,9 @@ export function isTimingReadoutVisible(): boolean {
   try {
     if (typeof import.meta !== 'undefined' && import.meta.env?.DEV) return true
     if (typeof window !== 'undefined') {
-      return new URLSearchParams(window.location.search).get('debug') === 'tutor'
+      return (
+        new URLSearchParams(window.location.search).get('debug') === 'tutor'
+      )
     }
   } catch {
     // Non-browser runtimes (eval): no readout.

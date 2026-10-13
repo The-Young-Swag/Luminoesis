@@ -6,7 +6,12 @@ import { useTheme } from '#/shared/hooks/useTheme'
 import { downloadJson } from '#/shared/lib/download'
 import { PageHeader } from '#/shared/components/ui/PageHeader'
 import { settingsRepository } from '#/shared/repositories/settingsRepository'
-import { deleteAllData, exportAllData, loadPrivacyData, setAdaptiveOptIn } from '#/features/privacy/privacyService'
+import {
+  deleteAllData,
+  exportAllData,
+  loadPrivacyData,
+  setAdaptiveOptIn,
+} from '#/features/privacy/privacyService'
 
 export function SettingsPage() {
   const { theme, toggleTheme } = useTheme()
@@ -19,14 +24,26 @@ export function SettingsPage() {
   const [webGpuAvailable, setWebGpuAvailable] = useState<boolean | null>(null)
 
   useEffect(() => {
-    loadPrivacyData().then((data) => setOptIn(data.optIn)).catch(() => {})
-    settingsRepository.getLocalModelTier().then(setModelTier).catch(() => {})
-    settingsRepository.getTutorEscalation().then(setEscalation).catch(() => {})
+    loadPrivacyData()
+      .then((data) => setOptIn(data.optIn))
+      .catch(() => {})
+    settingsRepository
+      .getLocalModelTier()
+      .then(setModelTier)
+      .catch(() => {})
+    settingsRepository
+      .getTutorEscalation()
+      .then(setEscalation)
+      .catch(() => {})
 
     let cancelled = false
     async function probeGpu() {
       try {
-        const gpu = (navigator as Navigator & { gpu?: { requestAdapter: () => Promise<unknown> } }).gpu
+        const gpu = (
+          navigator as Navigator & {
+            gpu?: { requestAdapter: () => Promise<unknown> }
+          }
+        ).gpu
         if (!gpu) {
           if (!cancelled) setWebGpuAvailable(false)
           return
@@ -70,9 +87,16 @@ export function SettingsPage() {
 
       <div className="card-flat p-5">
         <h2 className="flex items-center gap-2 text-sm font-semibold">
-          {isDark ? <Moon size={16} aria-hidden="true" /> : <Sun size={16} aria-hidden="true" />} Appearance
+          {isDark ? (
+            <Moon size={16} aria-hidden="true" />
+          ) : (
+            <Sun size={16} aria-hidden="true" />
+          )}{' '}
+          Appearance
         </h2>
-        <p className="mt-1 text-xs text-(--ink-soft)">Switch between light and dark. Choice persists on this device.</p>
+        <p className="mt-1 text-xs text-(--ink-soft)">
+          Switch between light and dark. Choice persists on this device.
+        </p>
         <button type="button" onClick={toggleTheme} className="btn-ghost mt-3">
           Switch to {isDark ? 'light' : 'dark'} mode
         </button>
@@ -81,27 +105,39 @@ export function SettingsPage() {
       <div className="card-flat p-5">
         <h2 className="text-sm font-semibold">Adaptive learning</h2>
         <p className="mt-1 text-sm text-(--ink-soft)">
-          When enabled, Luminoesis measures timing only (how you type, not what you type) to build a private baseline.
+          When enabled, Luminoesis measures timing only (how you type, not what
+          you type) to build a private baseline.
         </p>
         <div className="mt-3 flex items-center gap-2">
           <span
             className={`rounded-full border px-2.5 py-1 text-xs ${
-              optIn ? 'border-(--emerald)/30 bg-(--emerald-muted) text-(--veridian-strong)' : 'border-(--line) bg-(--surface-muted) text-(--ink-soft)'
+              optIn
+                ? 'border-(--emerald)/30 bg-(--emerald-muted) text-(--veridian-strong)'
+                : 'border-(--line) bg-(--surface-muted) text-(--ink-soft)'
             }`}
           >
             {optIn ? 'Opted in' : optIn === false ? 'Off' : 'Not asked'}
           </span>
           <div className="ml-auto flex gap-2">
-            <button type="button" className="btn-ghost text-xs" onClick={() => void handleOptIn(true)}>
+            <button
+              type="button"
+              className="btn-ghost text-xs"
+              onClick={() => void handleOptIn(true)}
+            >
               Opt in
             </button>
-            <button type="button" className="btn-ghost text-xs" onClick={() => void handleOptIn(false)}>
+            <button
+              type="button"
+              className="btn-ghost text-xs"
+              onClick={() => void handleOptIn(false)}
+            >
               Opt out
             </button>
           </div>
         </div>
         <p className="mt-2 text-xs text-(--ink-soft)">
-          Opt out keeps full study functionality; it simply uses standard scheduling.
+          Opt out keeps full study functionality; it simply uses standard
+          scheduling.
         </p>
       </div>
 
@@ -110,13 +146,21 @@ export function SettingsPage() {
           <ShieldCheck size={16} aria-hidden="true" /> Privacy &amp; data
         </h2>
         <p className="mt-1 text-sm text-(--ink-soft)">
-          See exactly what is measured and what stays on device. Export or delete everything in one tap.
+          See exactly what is measured and what stays on device. Export or
+          delete everything in one tap.
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
-          <Link to="/privacy" className="btn-primary inline-flex items-center gap-2 no-underline">
+          <Link
+            to="/privacy"
+            className="btn-primary inline-flex items-center gap-2 no-underline"
+          >
             <ShieldCheck size={16} aria-hidden="true" /> Open Privacy
           </Link>
-          <button type="button" className="btn-ghost inline-flex items-center gap-2" onClick={() => void handleExport()}>
+          <button
+            type="button"
+            className="btn-ghost inline-flex items-center gap-2"
+            onClick={() => void handleExport()}
+          >
             <Download size={16} aria-hidden="true" /> Export everything
           </button>
           <button
@@ -195,7 +239,9 @@ export function SettingsPage() {
         <div className="mt-3 flex items-center gap-2">
           <span
             className={`rounded-full border px-2.5 py-1 text-xs ${
-              escalation ? 'border-(--emerald)/30 bg-(--emerald-muted) text-(--veridian-strong)' : 'border-(--line) bg-(--surface-muted) text-(--ink-soft)'
+              escalation
+                ? 'border-(--emerald)/30 bg-(--emerald-muted) text-(--veridian-strong)'
+                : 'border-(--line) bg-(--surface-muted) text-(--ink-soft)'
             }`}
           >
             {escalation ? 'On' : 'Off'}
@@ -228,8 +274,14 @@ export function SettingsPage() {
       <div className="card-flat p-5">
         <h2 className="text-sm font-semibold">Sync (optional)</h2>
         <p className="mt-1 text-sm text-(--ink-soft)">
-          Core study never needs sync. If you run the optional Express + SQLite backend on <code className="rounded bg-(--surface-muted) px-1 py-0.5 font-mono text-xs">:4901</code>, this device can
-          push snapshots for your other devices. Cross-device sync controls are still being connected — everything here works fully offline.
+          Core study never needs sync. If you run the optional Express + SQLite
+          backend on{' '}
+          <code className="rounded bg-(--surface-muted) px-1 py-0.5 font-mono text-xs">
+            :4901
+          </code>
+          , this device can push snapshots for your other devices. Cross-device
+          sync controls are still being connected — everything here works fully
+          offline.
         </p>
       </div>
     </div>

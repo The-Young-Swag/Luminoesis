@@ -61,7 +61,9 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
     const [streamingId, setStreamingId] = useState<string | null>(null)
     const [escalating, setEscalating] = useState(false)
     const escalatingRef = useRef(false)
-    const [modelStatus, setModelStatus] = useState<'idle' | 'loading' | 'ready' | 'unavailable'>('idle')
+    const [modelStatus, setModelStatus] = useState<
+      'idle' | 'loading' | 'ready' | 'unavailable'
+    >('idle')
     const [modelProgress, setModelProgress] = useState(0)
     const [modelFile, setModelFile] = useState('')
     const [escalationOn, setEscalationOn] = useState(false)
@@ -159,7 +161,7 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
         text,
         selectedText,
       }
-      
+
       const conversationHistory = messages
         .filter((message) => message.id !== 'intro')
         .map((message) => ({
@@ -167,11 +169,8 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
           text: message.text,
           selectedText: message.selectedText,
         }))
-      
-      setMessages((previousMessages) => [
-        ...previousMessages,
-        userMessage,
-      ])
+
+      setMessages((previousMessages) => [...previousMessages, userMessage])
 
       const assistantId = `a-${Date.now()}`
       setMessages((previousMessages) => [
@@ -228,8 +227,7 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
 
         onContextConsumed?.()
       } catch (error) {
-        const message =
-          error instanceof Error ? error.message : 'Tutor failed.'
+        const message = error instanceof Error ? error.message : 'Tutor failed.'
 
         setMessages((previousMessages) =>
           previousMessages.map((previous) =>
@@ -301,9 +299,7 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
                   Escalation on
                 </span>
               ) : (
-                <span className="chip text-[10px]">
-                  Escalation off
-                </span>
+                <span className="chip text-[10px]">Escalation off</span>
               )}
 
               {headerAction}
@@ -322,12 +318,7 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
             if (message.role === 'assistant' && message.text === '') {
               return null
             }
-            return (
-              <TutorMessageBubble
-                key={message.id}
-                message={message}
-              />
-            )
+            return <TutorMessageBubble key={message.id} message={message} />
           })}
 
           {waitingForFirstToken && (
@@ -335,14 +326,20 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
               className="flex items-start gap-3"
               role="status"
               aria-live="polite"
-              aria-label={showEscalationStatus ? 'Checking with the cloud tutor' : 'Tutor is thinking'}
+              aria-label={
+                showEscalationStatus
+                  ? 'Checking with the cloud tutor'
+                  : 'Tutor is thinking'
+              }
             >
               <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-(--surface-muted) text-(--blue)">
                 <Sparkles size={12} aria-hidden="true" />
               </span>
 
               <p className="pt-0.5 text-[14px] leading-relaxed text-(--ink-faint)">
-                {showEscalationStatus ? 'Checking with the cloud tutor…' : 'Thinking…'}
+                {showEscalationStatus
+                  ? 'Checking with the cloud tutor…'
+                  : 'Thinking…'}
               </p>
             </div>
           )}
@@ -364,7 +361,8 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
             <div className="mb-3" role="status" aria-live="polite">
               <div className="flex items-baseline justify-between gap-2 font-mono text-[10px] text-(--ink-soft)">
                 <span className="truncate">
-                  Downloading on-device model{modelFile ? ` · ${modelFile}` : ''}…
+                  Downloading on-device model
+                  {modelFile ? ` · ${modelFile}` : ''}…
                 </span>
                 <span className="flex shrink-0 items-center gap-2">
                   <span className="tabular-nums">
@@ -446,11 +444,7 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
   },
 )
 
-function TutorMessageBubble({
-  message,
-}: {
-  message: TutorMessage
-}) {
+function TutorMessageBubble({ message }: { message: TutorMessage }) {
   const isUser = message.role === 'user'
 
   if (isUser) {
@@ -462,13 +456,11 @@ function TutorMessageBubble({
               <p className="mb-1 font-medium text-(--ink-soft)">
                 Selected passage
               </p>
-  
-              <p className="line-clamp-3">
-                {message.selectedText}
-              </p>
+
+              <p className="line-clamp-3">{message.selectedText}</p>
             </div>
           )}
-  
+
           <p className="rounded-[13px_13px_4px_13px] border border-(--blue)/25 bg-(--blue)/12 px-3.5 py-2.5 text-[13.5px] leading-normal text-(--ink) shadow-sm">
             {message.text}
           </p>

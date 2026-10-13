@@ -1,4 +1,3 @@
-
 import type {
   TutorConversationMessage,
   TutorProvider,
@@ -6,10 +5,7 @@ import type {
   TutorRespondOptions,
   TutorResponse,
 } from '../domain/tutor'
-import {
-  isReferentFollowUp,
-  resolveEffectiveTopic,
-} from '../domain/tutorTopic'
+import { isReferentFollowUp, resolveEffectiveTopic } from '../domain/tutorTopic'
 import { extractKeywords, keywordOverlapScore } from '../domain/textRelevance'
 import {
   getSharedTutorWorker,
@@ -83,7 +79,9 @@ function probeWebGpuAdapter(): Promise<boolean> {
     adapterProbe = (async () => {
       try {
         const gpu = (
-          navigator as Navigator & { gpu?: { requestAdapter: () => Promise<unknown> } }
+          navigator as Navigator & {
+            gpu?: { requestAdapter: () => Promise<unknown> }
+          }
         ).gpu
         if (!gpu) return false
         return (await gpu.requestAdapter()) !== null
@@ -101,7 +99,10 @@ async function resolveTier(tier: LocalModelTier): Promise<LocalModelTier> {
   // Lets `npm run eval:tutor -- --capable` attempt the 1.7B WASM load in
   // Node to prove (or disprove) the weights work.
   try {
-    if (typeof process !== 'undefined' && process.env?.TUTOR_ALLOW_CAPABLE_WASM === '1') {
+    if (
+      typeof process !== 'undefined' &&
+      process.env?.TUTOR_ALLOW_CAPABLE_WASM === '1'
+    ) {
       return tier
     }
   } catch {
@@ -109,17 +110,25 @@ async function resolveTier(tier: LocalModelTier): Promise<LocalModelTier> {
   }
   const adapter = await probeWebGpuAdapter()
   if (!adapter) {
-    console.warn('[tutor] no WebGPU adapter — capable tier unavailable, using standard')
+    console.warn(
+      '[tutor] no WebGPU adapter — capable tier unavailable, using standard',
+    )
     return 'standard'
   }
   return tier
 }
 
-async function createTextPipeline(modelId: string): Promise<{ pipe: unknown; device: 'webgpu' | 'wasm' | 'cpu' }> {
+async function createTextPipeline(
+  modelId: string,
+): Promise<{ pipe: unknown; device: 'webgpu' | 'wasm' | 'cpu' }> {
   const { pipeline, env } = await import('@huggingface/transformers')
 
   try {
-    const backends = (env as unknown as { backends?: { onnx?: { wasm?: Record<string, unknown> } } }).backends
+    const backends = (
+      env as unknown as {
+        backends?: { onnx?: { wasm?: Record<string, unknown> } }
+      }
+    ).backends
     if (backends?.onnx?.wasm) {
       backends.onnx.wasm.numThreads = resolveWasmThreads()
     }
@@ -148,7 +157,10 @@ async function createTextPipeline(modelId: string): Promise<{ pipe: unknown; dev
 }
 
 export function describeWasmRuntime(): { isolated: boolean; threads: number } {
-  return { isolated: isCrossOriginIsolatedContext(), threads: resolveWasmThreads() }
+  return {
+    isolated: isCrossOriginIsolatedContext(),
+    threads: resolveWasmThreads(),
+  }
 }
 
 /** Token count from whatever shape a tokenizer call returns. */
@@ -181,7 +193,9 @@ function timeoutPromise<T>(ms: number, label: string): Promise<T> {
   })
 }
 
-async function getLocalPipeline(tier: LocalModelTier = 'standard'): Promise<{ pipe: unknown; device: 'webgpu' | 'wasm' | 'cpu' } | null> {
+async function getLocalPipeline(
+  tier: LocalModelTier = 'standard',
+): Promise<{ pipe: unknown; device: 'webgpu' | 'wasm' | 'cpu' } | null> {
   const cached = cachedPipelines.get(tier)
   if (cached) {
     return cached as { pipe: unknown; device: 'webgpu' | 'wasm' | 'cpu' }
@@ -196,7 +210,10 @@ async function getLocalPipeline(tier: LocalModelTier = 'standard'): Promise<{ pi
 
     const entry = await Promise.race([
       pipelinePromise,
-      timeoutPromise<{ pipe: unknown; device: 'webgpu' | 'wasm' | 'cpu' }>(MODEL_LOAD_TIMEOUT_MS, 'Model load'),
+      timeoutPromise<{ pipe: unknown; device: 'webgpu' | 'wasm' | 'cpu' }>(
+        MODEL_LOAD_TIMEOUT_MS,
+        'Model load',
+      ),
     ])
 
     cachedPipelines.set(tier, entry)
@@ -219,13 +236,7 @@ type ChatMessage = {
   content: string
 }
 
-type TutorIntent =
-  | 'define'
-  | 'explain'
-  | 'why'
-  | 'how'
-  | 'compare'
-  | 'general'
+type TutorIntent = 'define' | 'explain' | 'why' | 'how' | 'compare' | 'general'
 
 /*
  * Kept short and concrete on purpose. A 360M model cannot reliably apply a
@@ -341,7 +352,7 @@ function intentGuidance(intent: TutorIntent): string {
 }
 
 const CORRECTION_HINT =
-  "The learner says your last answer was not helpful, or just repeated the passage. Explain the same idea in a clearly different way this time — new wording, new structure. Do not reuse your previous phrasing."
+  'The learner says your last answer was not helpful, or just repeated the passage. Explain the same idea in a clearly different way this time — new wording, new structure. Do not reuse your previous phrasing.'
 
 function getPreviousSelectedText(
   conversationHistory: TutorConversationMessage[],
@@ -615,9 +626,7 @@ export function mentionsPreviousTopicInstead(
   return mentionsPrevious && !mentionsCurrent
 }
 
-function buildFallbackResponse(
-  request: TutorRequest,
-): TutorResponse {
+function buildFallbackResponse(request: TutorRequest): TutorResponse {
   const { context } = request
   const { prompt, selectedText, material } = context
 
@@ -626,7 +635,10 @@ function buildFallbackResponse(
       text: `The key idea is that ${selectedText
         .replace(/\s+/g, ' ')
         .trim()
-        .replace(/[.]+$/, '')}. In simpler terms, this passage is explaining the main idea and how its supporting facts relate to it.`,
+        .replace(
+          /[.]+$/,
+          '',
+        )}. In simpler terms, this passage is explaining the main idea and how its supporting facts relate to it.`,
       provider: 'local',
       execution: 'fallback',
       confidence: 'low',
@@ -697,7 +709,12 @@ async function ensureWorkerLoaded(
   sessionMs: number | null
 }> {
   if (workerLoadedTier === tier) {
-    return { loadMs: 0, device: hasWebGpu() ? 'webgpu' : 'wasm', downloadMs: null, sessionMs: null }
+    return {
+      loadMs: 0,
+      device: hasWebGpu() ? 'webgpu' : 'wasm',
+      downloadMs: null,
+      sessionMs: null,
+    }
   }
 
   const modelId = LOCAL_MODEL_IDS[tier]
@@ -718,7 +735,10 @@ async function ensureWorkerLoaded(
         sessionMs: timings?.sessionMs ?? null,
       }
     } catch (error) {
-      console.warn('[tutor] worker webgpu load failed, falling back to wasm', error)
+      console.warn(
+        '[tutor] worker webgpu load failed, falling back to wasm',
+        error,
+      )
     }
   }
 
@@ -732,7 +752,10 @@ async function ensureWorkerLoaded(
   }
 }
 
-function finishResponse(request: TutorRequest, generated: string): TutorResponse {
+function finishResponse(
+  request: TutorRequest,
+  generated: string,
+): TutorResponse {
   const { context } = request
   const { prompt, selectedText, material, conversationHistory } = context
 
@@ -783,7 +806,9 @@ export class LocalTutorProvider implements TutorProvider {
   ): Promise<boolean> {
     const resolved =
       tier ??
-      (await settingsRepository.getLocalModelTier().catch(() => 'standard' as const))
+      (await settingsRepository
+        .getLocalModelTier()
+        .catch(() => 'standard' as const))
     const effective = await resolveTier(resolved)
     const worker = getSharedWorker()
     if (!worker) return false
@@ -803,7 +828,11 @@ export class LocalTutorProvider implements TutorProvider {
     const tier = await resolveTier(options?.tier ?? 'standard')
     const messages = buildMessages(request)
 
-    const workerText = await this.respondViaWorker(tier, messages, options?.onToken)
+    const workerText = await this.respondViaWorker(
+      tier,
+      messages,
+      options?.onToken,
+    )
     if (workerText !== null) {
       return finishResponse(request, workerText)
     }
@@ -826,7 +855,11 @@ export class LocalTutorProvider implements TutorProvider {
       // session-creation allowances. A slow download must never trigger a
       // fallback that restarts the same download.
       const load = await ensureWorkerLoaded(worker, tier)
-      const { text, timings } = await worker.generate(messages, MAX_NEW_TOKENS, onToken)
+      const { text, timings } = await worker.generate(
+        messages,
+        MAX_NEW_TOKENS,
+        onToken,
+      )
 
       const totalMs = Math.round(performance.now() - answerStart)
       const outputTokens = timings?.outputTokens ?? null
@@ -880,7 +913,10 @@ export class LocalTutorProvider implements TutorProvider {
       const tokenizer = (
         pipe as unknown as {
           tokenizer?: {
-            apply_chat_template?: (messages: unknown, options?: unknown) => unknown
+            apply_chat_template?: (
+              messages: unknown,
+              options?: unknown,
+            ) => unknown
             encode?: (text: string) => unknown
           }
         }
@@ -916,9 +952,7 @@ export class LocalTutorProvider implements TutorProvider {
       const generator = pipe as unknown as (
         input: ChatMessage[],
         options?: unknown,
-      ) => Promise<
-        Array<{ generated_text: ChatMessage[] | string }>
-      >
+      ) => Promise<Array<{ generated_text: ChatMessage[] | string }>>
 
       const generateStart = performance.now()
       const inferencePromise = generator(messages, {
@@ -940,17 +974,18 @@ export class LocalTutorProvider implements TutorProvider {
 
       const output = await Promise.race([
         inferencePromise,
-        timeoutPromise<
-          Array<{ generated_text: ChatMessage[] | string }>
-        >(INFERENCE_TIMEOUT_MS, 'Inference'),
+        timeoutPromise<Array<{ generated_text: ChatMessage[] | string }>>(
+          INFERENCE_TIMEOUT_MS,
+          'Inference',
+        ),
       ])
       const generateEnd = performance.now()
 
       const rawOutput = output[0]?.generated_text
 
       const generated = Array.isArray(rawOutput)
-      ? (rawOutput.at(-1)?.content ?? '').trim()
-      : rawOutput.trim()
+        ? (rawOutput.at(-1)?.content ?? '').trim()
+        : rawOutput.trim()
 
       let outputTokens: number | null = null
       try {

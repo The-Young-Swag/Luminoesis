@@ -25,7 +25,8 @@ const config = defineConfig({
       },
     },
     devtools(),
-    tailwindcss(),    tanstackStart({
+    tailwindcss(),
+    tanstackStart({
       srcDirectory: 'src',
       router: { generatedRouteTree: 'routeTree.gen.ts' },
     }),
@@ -34,7 +35,8 @@ const config = defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico'],
       manifest: {
-        name: 'luminoesis — Adaptive Study',        short_name: 'luminoesis',
+        name: 'luminoesis — Adaptive Study',
+        short_name: 'luminoesis',
         description:
           'Offline-first adaptive spaced-repetition that senses rhythm, adapts review, surfaces insight.',
         theme_color: '#0A2018',
@@ -54,7 +56,9 @@ const config = defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,mjs,css,html,ico,svg,woff2,webp,png,webmanifest}'],
+        globPatterns: [
+          '**/*.{js,mjs,css,html,ico,svg,woff2,webp,png,webmanifest}',
+        ],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,

@@ -158,9 +158,7 @@ function scoreCase(testCase: ManualCase, answer: string): string[] {
   ) {
     failures.push('flagged as source repetition')
   }
-  if (
-    mentionsPreviousTopicInstead(answer, testCase.selectedText, undefined)
-  ) {
+  if (mentionsPreviousTopicInstead(answer, testCase.selectedText, undefined)) {
     failures.push('flagged as off-topic')
   }
   for (const phrase of testCase.mustContain) {
@@ -186,7 +184,8 @@ async function main(): Promise<void> {
 
   const result: EvalResult = {
     date: new Date().toISOString().slice(0, 10),
-    runtime: typeof process !== 'undefined' ? `node ${process.version}` : 'unknown',
+    runtime:
+      typeof process !== 'undefined' ? `node ${process.version}` : 'unknown',
     retrieval: await runRetrievalSection(),
     generation: {},
   }
@@ -198,7 +197,12 @@ async function main(): Promise<void> {
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
       console.log(`tier ${tier} failed to run: ${message.slice(0, 200)}`)
-      result.generation[tier] = { passed: 0, total: CASES.length, error: message.slice(0, 300), cases: [] }
+      result.generation[tier] = {
+        passed: 0,
+        total: CASES.length,
+        error: message.slice(0, 300),
+        cases: [],
+      }
     }
   }
 
@@ -211,9 +215,13 @@ async function main(): Promise<void> {
     )
   }
   for (const [tier, section] of Object.entries(result.generation)) {
-    console.log(`generation/${tier}: ${section.passed}/${section.total}${section.error ? ` (error: ${section.error.slice(0, 120)})` : ''}`)
+    console.log(
+      `generation/${tier}: ${section.passed}/${section.total}${section.error ? ` (error: ${section.error.slice(0, 120)})` : ''}`,
+    )
   }
-  const failed = Object.values(result.generation).some((s) => s.passed < s.total)
+  const failed = Object.values(result.generation).some(
+    (s) => s.passed < s.total,
+  )
   if (failed) process.exitCode = 1
 }
 
@@ -245,35 +253,92 @@ type EvalResult = {
 }
 
 const RETRIEVAL_BLOCKS: MaterialContentBlock[] = [
-  { id: 'mem-1', type: 'paragraph', text: 'Short-term memory holds information for about 20 seconds before it fades.' },
-  { id: 'mem-2', type: 'paragraph', text: 'Long-term memory can store information for years with little decay.' },
-  { id: 'mem-3', type: 'paragraph', text: 'Repeating information moves it from short-term to long-term memory.' },
-  { id: 'cell-1', type: 'paragraph', text: 'The cell membrane controls what enters and leaves the cell.' },
-  { id: 'cell-2', type: 'paragraph', text: 'Mitochondria produce energy through cellular respiration.' },
-  { id: 'cell-3', type: 'paragraph', text: 'Ribosomes build proteins from messenger RNA instructions.' },
-  { id: 'atm-1', type: 'paragraph', text: "Earth's atmosphere is about 78 percent nitrogen and 21 percent oxygen." },
-  { id: 'atm-2', type: 'paragraph', text: 'The Sun is a star made mostly of hydrogen and helium plasma.' },
+  {
+    id: 'mem-1',
+    type: 'paragraph',
+    text: 'Short-term memory holds information for about 20 seconds before it fades.',
+  },
+  {
+    id: 'mem-2',
+    type: 'paragraph',
+    text: 'Long-term memory can store information for years with little decay.',
+  },
+  {
+    id: 'mem-3',
+    type: 'paragraph',
+    text: 'Repeating information moves it from short-term to long-term memory.',
+  },
+  {
+    id: 'cell-1',
+    type: 'paragraph',
+    text: 'The cell membrane controls what enters and leaves the cell.',
+  },
+  {
+    id: 'cell-2',
+    type: 'paragraph',
+    text: 'Mitochondria produce energy through cellular respiration.',
+  },
+  {
+    id: 'cell-3',
+    type: 'paragraph',
+    text: 'Ribosomes build proteins from messenger RNA instructions.',
+  },
+  {
+    id: 'atm-1',
+    type: 'paragraph',
+    text: "Earth's atmosphere is about 78 percent nitrogen and 21 percent oxygen.",
+  },
+  {
+    id: 'atm-2',
+    type: 'paragraph',
+    text: 'The Sun is a star made mostly of hydrogen and helium plasma.',
+  },
 ]
 
 const RETRIEVAL_CASES = [
-  { name: 'memory duration', topic: 'short-term memory duration', expect: '20 seconds' },
+  {
+    name: 'memory duration',
+    topic: 'short-term memory duration',
+    expect: '20 seconds',
+  },
   { name: 'mitochondria', topic: 'mitochondria function', expect: 'energy' },
-  { name: 'nitrogen leak-check', topic: 'nitrogen percentage atmosphere', expect: '78 percent' },
-  { name: 'unrelated honesty', topic: 'photosynthesis in oak trees', expect: '' },
+  {
+    name: 'nitrogen leak-check',
+    topic: 'nitrogen percentage atmosphere',
+    expect: '78 percent',
+  },
+  {
+    name: 'unrelated honesty',
+    topic: 'photosynthesis in oak trees',
+    expect: '',
+  },
 ]
 
 async function runRetrievalSection(): Promise<RetrievalCheck[]> {
-  console.log(`Running ${RETRIEVAL_CASES.length} retrieval cases (keyword vs embedding)…\n`)
+  console.log(
+    `Running ${RETRIEVAL_CASES.length} retrieval cases (keyword vs embedding)…\n`,
+  )
   const checks: RetrievalCheck[] = []
 
   for (const testCase of RETRIEVAL_CASES) {
-    const keyword = selectRelevantMaterialExcerpt(RETRIEVAL_BLOCKS, testCase.topic, 4000)
+    const keyword = selectRelevantMaterialExcerpt(
+      RETRIEVAL_BLOCKS,
+      testCase.topic,
+      4000,
+    )
     const keywordOk =
-      testCase.expect === '' ? keyword === '' : keyword.toLowerCase().includes(testCase.expect.toLowerCase())
+      testCase.expect === ''
+        ? keyword === ''
+        : keyword.toLowerCase().includes(testCase.expect.toLowerCase())
 
-    let embeddingStatus: RetrievalCheck['embeddingStatus'] = 'SKIPPED (no worker in Node)'
+    let embeddingStatus: RetrievalCheck['embeddingStatus'] =
+      'SKIPPED (no worker in Node)'
     try {
-      const semantic = await selectSemanticExcerpt(RETRIEVAL_BLOCKS, testCase.topic, 4000)
+      const semantic = await selectSemanticExcerpt(
+        RETRIEVAL_BLOCKS,
+        testCase.topic,
+        4000,
+      )
       if (semantic !== null) {
         const ok =
           testCase.expect === ''
@@ -295,8 +360,12 @@ async function runRetrievalSection(): Promise<RetrievalCheck[]> {
   return checks
 }
 
-async function runGenerationSection(tier: 'standard' | 'capable'): Promise<GenerationSection> {
-  console.log(`Running ${CASES.length} manual eval cases (model loads first)…\n`)
+async function runGenerationSection(
+  tier: 'standard' | 'capable',
+): Promise<GenerationSection> {
+  console.log(
+    `Running ${CASES.length} manual eval cases (model loads first)…\n`,
+  )
   let passed = 0
   const cases: GenerationCaseResult[] = []
 
@@ -309,12 +378,19 @@ async function runGenerationSection(tier: 'standard' | 'capable'): Promise<Gener
     const ok = failures.length === 0
     if (ok) passed += 1
 
-    console.log(`${ok ? 'PASS' : 'FAIL'}  ${testCase.name} [${response.execution ?? response.provider}]`)
+    console.log(
+      `${ok ? 'PASS' : 'FAIL'}  ${testCase.name} [${response.execution ?? response.provider}]`,
+    )
     if (!ok) {
       for (const failure of failures) console.log(`       - ${failure}`)
       console.log(`       > ${response.text.slice(0, 220)}`)
     }
-    cases.push({ name: testCase.name, ok, failures, execution: response.execution ?? response.provider })
+    cases.push({
+      name: testCase.name,
+      ok,
+      failures,
+      execution: response.execution ?? response.provider,
+    })
   }
 
   console.log(`\nScore: ${passed}/${CASES.length}`)

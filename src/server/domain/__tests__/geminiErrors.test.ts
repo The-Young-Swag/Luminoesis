@@ -1,9 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import {
-  isModelNotFound,
-  modelUnavailableMessage,
-} from '../geminiErrors'
+import { isModelNotFound, modelUnavailableMessage } from '../geminiErrors'
 
 describe('geminiErrors', () => {
   it('treats 404 as model-not-found regardless of body', () => {
@@ -18,8 +15,12 @@ describe('geminiErrors', () => {
         '{"error":{"code":404,"message":"models/gemini-2.5-flash is not found","status":"NOT_FOUND"}}',
       ),
     ).toBe(true)
-    expect(isModelNotFound(400, 'Model gemini-2.5-flash has been retired')).toBe(true)
-    expect(isModelNotFound(400, 'models/gemini-9-flash does not exist')).toBe(true)
+    expect(
+      isModelNotFound(400, 'Model gemini-2.5-flash has been retired'),
+    ).toBe(true)
+    expect(isModelNotFound(400, 'models/gemini-9-flash does not exist')).toBe(
+      true,
+    )
   })
 
   it('leaves transient failures alone', () => {

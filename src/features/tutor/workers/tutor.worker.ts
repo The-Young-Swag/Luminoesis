@@ -1,4 +1,9 @@
-import { TextStreamer, env, pipeline, type PreTrainedTokenizer } from '@huggingface/transformers'
+import {
+  TextStreamer,
+  env,
+  pipeline,
+  type PreTrainedTokenizer,
+} from '@huggingface/transformers'
 
 import { resolveWasmThreads } from './wasmThreads'
 
@@ -26,7 +31,11 @@ import { resolveWasmThreads } from './wasmThreads'
 env.allowLocalModels = false
 
 try {
-  const backends = (env as unknown as { backends?: { onnx?: { wasm?: Record<string, unknown> } } }).backends
+  const backends = (
+    env as unknown as {
+      backends?: { onnx?: { wasm?: Record<string, unknown> } }
+    }
+  ).backends
   if (backends?.onnx?.wasm) {
     backends.onnx.wasm.numThreads = resolveWasmThreads()
   }
@@ -40,8 +49,19 @@ type ChatMessage = {
 }
 
 type Inbound =
-  | { id: number; type: 'load'; modelId: string; device: 'webgpu' | 'wasm'; dtype: 'q4' | 'q8' }
-  | { id: number; type: 'generate'; messages: ChatMessage[]; maxNewTokens: number }
+  | {
+      id: number
+      type: 'load'
+      modelId: string
+      device: 'webgpu' | 'wasm'
+      dtype: 'q4' | 'q8'
+    }
+  | {
+      id: number
+      type: 'generate'
+      messages: ChatMessage[]
+      maxNewTokens: number
+    }
   | { id: number; type: 'embed'; texts: string[] }
 
 type TextGenerator = (
@@ -49,7 +69,10 @@ type TextGenerator = (
   options?: unknown,
 ) => Promise<Array<{ generated_text: ChatMessage[] | string }>>
 
-type EmbeddingExtractor = (texts: string[], options?: unknown) => Promise<{ tolist: () => number[][] }>
+type EmbeddingExtractor = (
+  texts: string[],
+  options?: unknown,
+) => Promise<{ tolist: () => number[][] }>
 
 /** Token count from whatever shape a tokenizer call returns. */
 function countTokenIds(ids: unknown): number | null {
@@ -91,7 +114,9 @@ export type WorkerLoadTimings = {
   sessionMs: number | null
 }
 
-async function handleLoad(message: Extract<Inbound, { type: 'load' }>): Promise<void> {
+async function handleLoad(
+  message: Extract<Inbound, { type: 'load' }>,
+): Promise<void> {
   const key = `${message.modelId}|${message.device}|${message.dtype}`
 
   if (generator && generatorKey === key) {
@@ -125,7 +150,11 @@ async function handleLoad(message: Extract<Inbound, { type: 'load' }>): Promise<
     const pipe = await pipeline('text-generation', message.modelId, {
       device: message.device,
       dtype: message.dtype,
-      progress_callback: (entry: { status: string; progress?: number; file?: string }) => {
+      progress_callback: (entry: {
+        status: string
+        progress?: number
+        file?: string
+      }) => {
         if (entry.status === 'initiate') initiated += 1
         if (entry.status === 'done') {
           completed += 1
@@ -134,14 +163,16 @@ async function handleLoad(message: Extract<Inbound, { type: 'load' }>): Promise<
         self.postMessage({
           id: message.id,
           type: 'progress',
-          fraction: typeof entry.progress === 'number' ? entry.progress / 100 : 0,
+          fraction:
+            typeof entry.progress === 'number' ? entry.progress / 100 : 0,
           file: entry.file ?? '',
         })
       },
     })
 
     generator = pipe as unknown as TextGenerator
-    generatorTokenizer = (pipe as unknown as { tokenizer: PreTrainedTokenizer }).tokenizer
+    generatorTokenizer = (pipe as unknown as { tokenizer: PreTrainedTokenizer })
+      .tokenizer
     generatorKey = key
     const readyAt = performance.now()
     clearTimeout(cacheProbe)
@@ -161,15 +192,22 @@ async function handleLoad(message: Extract<Inbound, { type: 'load' }>): Promise<
 
 const EMBEDDER_MODEL_ID = 'Xenova/all-MiniLM-L6-v2'
 
-async function handleEmbed(message: Extract<Inbound, { type: 'embed' }>): Promise<void> {
+async function handleEmbed(
+  message: Extract<Inbound, { type: 'embed' }>,
+): Promise<void> {
   if (!embedder) {
     const extractor = await pipeline('feature-extraction', EMBEDDER_MODEL_ID, {
       device: 'wasm',
-      progress_callback: (entry: { status: string; progress?: number; file?: string }) => {
+      progress_callback: (entry: {
+        status: string
+        progress?: number
+        file?: string
+      }) => {
         self.postMessage({
           id: message.id,
           type: 'progress',
-          fraction: typeof entry.progress === 'number' ? entry.progress / 100 : 0,
+          fraction:
+            typeof entry.progress === 'number' ? entry.progress / 100 : 0,
           file: entry.file ?? '',
         })
       },
@@ -177,11 +215,20 @@ async function handleEmbed(message: Extract<Inbound, { type: 'embed' }>): Promis
     embedder = extractor as unknown as EmbeddingExtractor
   }
 
-  const output = await embedder(message.texts, { pooling: 'mean', normalize: true })
-  self.postMessage({ id: message.id, type: 'done', text: JSON.stringify(output.tolist()) })
+  const output = await embedder(message.texts, {
+    pooling: 'mean',
+    normalize: true,
+  })
+  self.postMessage({
+    id: message.id,
+    type: 'done',
+    text: JSON.stringify(output.tolist()),
+  })
 }
 
-async function handleGenerate(message: Extract<Inbound, { type: 'generate' }>): Promise<void> {
+async function handleGenerate(
+  message: Extract<Inbound, { type: 'generate' }>,
+): Promise<void> {
   if (!generator) {
     throw new Error('Generator is not loaded. Send load first.')
   }
@@ -235,13 +282,17 @@ async function handleGenerate(message: Extract<Inbound, { type: 'generate' }>): 
     // Measurement-only.
   }
 
-  const prefillMs = firstTokenAt !== null ? Math.round(firstTokenAt - generateStart) : null
+  const prefillMs =
+    firstTokenAt !== null ? Math.round(firstTokenAt - generateStart) : null
   const firstAt: number | null = firstTokenAt
   const timings: WorkerGenerateTimings = {
     tokenizeMs,
     promptTokens,
     prefillMs,
-    decodeMs: firstAt !== null ? Math.round(generateEnd - firstAt) : Math.round(generateEnd - generateStart),
+    decodeMs:
+      firstAt !== null
+        ? Math.round(generateEnd - firstAt)
+        : Math.round(generateEnd - generateStart),
     outputTokens,
   }
 

@@ -120,7 +120,10 @@ export type TutorRespondOptions = {
 export interface TutorProvider {
   readonly id: TutorProviderId
   isAvailable: () => boolean | Promise<boolean>
-  respond: (request: TutorRequest, options?: TutorRespondOptions) => Promise<TutorResponse>
+  respond: (
+    request: TutorRequest,
+    options?: TutorRespondOptions,
+  ) => Promise<TutorResponse>
 }
 
 export const MAX_CONTEXT_CHARS = 4000
