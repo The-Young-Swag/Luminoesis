@@ -7,9 +7,7 @@ export function AdaptiveOptInBanner({ onEnable, onDismiss }: AdaptiveOptInBanner
   return (
     <section className="card-flat flex flex-col gap-4 border-(--veridian)/20 p-5 md:flex-row md:items-center">
       <div className="min-w-0 flex-1">
-        <div className="eyebrow">Adaptive learning</div>
-
-        <h3 className="mt-1 text-[15px] font-medium">Adapt reviews to your rhythm?</h3>
+        <h3 className="text-[15px] font-semibold">Adapt reviews to your rhythm?</h3>
 
         <p className="mt-1 text-sm leading-relaxed text-(--ink-soft)">
           You stay in control. Suggestions are optional, timing-only, on-device, and never based on key content.

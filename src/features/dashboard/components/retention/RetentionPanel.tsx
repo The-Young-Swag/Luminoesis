@@ -7,10 +7,8 @@ export function RetentionPanel({ data }: { data: Array<{ topic: string; rate: nu
   return (
     <section className="card-flat p-5 md:p-6">
       <PanelHeader
-        eyebrow="Performance"
         title="Retention by topic"
-        description="Where your recent review history is strongest"
-        action={<span className="chip hidden sm:inline-flex">Actual review history</span>}
+        description="Strongest first, from your review history"
       />
 
       <div className="mt-5">{data.length > 0 ? <RetentionBars data={data} /> : <EmptyTopicState />}</div>

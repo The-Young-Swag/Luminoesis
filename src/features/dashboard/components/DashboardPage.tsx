@@ -15,12 +15,10 @@ import { AdaptiveOptInBanner } from '#/features/dashboard/components/hero/Adapti
 import { DashboardHero } from '#/features/dashboard/components/hero/DashboardHero'
 import { InsightBanner } from '#/features/dashboard/components/layout/InsightBanner'
 import { DashboardSkeleton } from '#/features/dashboard/components/loading/DashboardSkeleton'
-import { ActivityHeatmap } from '#/features/dashboard/components/activity/ActivityHeatmap'
+import { ActivityCard } from '#/features/dashboard/components/activity/ActivityCard'
 import { RetentionPanel } from '#/features/dashboard/components/retention/RetentionPanel'
-import { RhythmPanel } from '#/features/dashboard/components/rhythm/RhythmPanel'
-import { StatePanel } from '#/features/dashboard/components/state/StatePanel'
+import { RhythmCard } from '#/features/dashboard/components/rhythm/RhythmCard'
 
-import { RecentActivity } from '#/features/dashboard/components/activity/RecentActivity'
 import { UpcomingDue } from '#/features/dashboard/components/activity/UpcomingDue'
 
 function todayKey(): string {
@@ -40,7 +38,6 @@ export function DashboardPage() {
   const { baseline, hasBaseline } = useBaseline()
 
   const {
-    recentSignals,
     rhythmChartData,
     peakLearningHour,
     pattern,
@@ -98,8 +95,7 @@ export function DashboardPage() {
         />
 
         <section aria-labelledby="onboarding-heading" className="card-flat p-6 md:p-8">
-          <p className="eyebrow">Getting started</p>
-          <h2 id="onboarding-heading" className="display mt-2 text-2xl tracking-tight">
+          <h2 id="onboarding-heading" className="display text-2xl tracking-tight">
             Complete 5 sessions to unlock your rhythm
           </h2>
           <p className="mt-2 max-w-xl text-sm leading-6 text-(--ink-soft)">
@@ -186,29 +182,21 @@ export function DashboardPage() {
         </Reveal>
 
         <Reveal className="col-span-12 sm:col-span-6 lg:col-span-5" delay={180}>
-          <RhythmPanel
+          <RhythmCard
             hasBaseline={hasBaseline}
             rhythmChartData={rhythmChartData}
-            signalCount={signals.length}
-            recentSignalCount={recentSignals.length}
+            sessionCount={sessionCount}
+            peakLearningHour={peakLearningHour}
+            recentSignalCount={signals.length}
           />
         </Reveal>
 
         <Reveal className="col-span-12 sm:col-span-6 lg:col-span-5" delay={240}>
-          {heatmap.total > 0 ? (
-            <ActivityHeatmap data={heatmap} />
-          ) : (
-            <StatePanel learningState={learningState} peakLearningHour={peakLearningHour} />
-          )}
+          <ActivityCard items={recentActivity} heatmap={heatmap} />
         </Reveal>
       </section>
 
       {pattern && <InsightBanner text={pattern.text} stat={pattern.stat} />}
-
-      <section aria-label="More detail" className="grid items-start gap-4 lg:grid-cols-2">
-        <RecentActivity items={recentActivity} />
-        <StatePanel learningState={learningState} peakLearningHour={peakLearningHour} />
-      </section>
 
       <RetentionPanel data={retentionChartData} />
     </div>
