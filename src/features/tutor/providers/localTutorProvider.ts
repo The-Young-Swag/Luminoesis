@@ -45,8 +45,29 @@ export const LOCAL_MODEL_IDS = {
 
 export type LocalModelTier = keyof typeof LOCAL_MODEL_IDS
 
+function isNodeRuntime(): boolean {
+  try {
+    return (
+      typeof process !== 'undefined' &&
+      !!process.versions &&
+      typeof process.versions.node === 'string'
+    )
+  } catch {
+    return false
+  }
+}
+
 function hasWebGpu(): boolean {
   return typeof navigator !== 'undefined' && 'gpu' in navigator
+}
+
+/*
+ * The Node build of Transformers.js has no 'wasm' device (only cuda/cpu)
+ * — the manual eval (tsx) runs here. Browsers keep 'wasm'. The dtype
+ * suffix (which weight file to fetch) is unaffected.
+ */
+function cpuOrWasm(): 'cpu' | 'wasm' {
+  return isNodeRuntime() ? 'cpu' : 'wasm'
 }
 
 let adapterProbe: Promise<boolean> | null = null
@@ -76,6 +97,16 @@ function probeWebGpuAdapter(): Promise<boolean> {
 
 async function resolveTier(tier: LocalModelTier): Promise<LocalModelTier> {
   if (tier !== 'capable') return tier
+  // Escape hatch for the manual eval only: product code never sets this.
+  // Lets `npm run eval:tutor -- --capable` attempt the 1.7B WASM load in
+  // Node to prove (or disprove) the weights work.
+  try {
+    if (typeof process !== 'undefined' && process.env?.TUTOR_ALLOW_CAPABLE_WASM === '1') {
+      return tier
+    }
+  } catch {
+    // Non-Node runtimes: fall through to the adapter probe.
+  }
   const adapter = await probeWebGpuAdapter()
   if (!adapter) {
     console.warn('[tutor] no WebGPU adapter — capable tier unavailable, using standard')
@@ -84,7 +115,7 @@ async function resolveTier(tier: LocalModelTier): Promise<LocalModelTier> {
   return tier
 }
 
-async function createTextPipeline(modelId: string): Promise<{ pipe: unknown; device: 'webgpu' | 'wasm' }> {
+async function createTextPipeline(modelId: string): Promise<{ pipe: unknown; device: 'webgpu' | 'wasm' | 'cpu' }> {
   const { pipeline, env } = await import('@huggingface/transformers')
 
   try {
@@ -108,11 +139,12 @@ async function createTextPipeline(modelId: string): Promise<{ pipe: unknown; dev
     }
   }
 
+  const device = cpuOrWasm()
   const pipe = await pipeline('text-generation', modelId, {
     dtype: 'q8',
-    device: 'wasm',
+    device,
   })
-  return { pipe, device: 'wasm' }
+  return { pipe, device }
 }
 
 export function describeWasmRuntime(): { isolated: boolean; threads: number } {
@@ -127,10 +159,10 @@ function timeoutPromise<T>(ms: number, label: string): Promise<T> {
   })
 }
 
-async function getLocalPipeline(tier: LocalModelTier = 'standard'): Promise<{ pipe: unknown; device: 'webgpu' | 'wasm' } | null> {
+async function getLocalPipeline(tier: LocalModelTier = 'standard'): Promise<{ pipe: unknown; device: 'webgpu' | 'wasm' | 'cpu' } | null> {
   const cached = cachedPipelines.get(tier)
   if (cached) {
-    return cached as { pipe: unknown; device: 'webgpu' | 'wasm' }
+    return cached as { pipe: unknown; device: 'webgpu' | 'wasm' | 'cpu' }
   }
 
   if (failedPipelines.has(tier) || typeof WebAssembly === 'undefined') {
@@ -142,7 +174,7 @@ async function getLocalPipeline(tier: LocalModelTier = 'standard'): Promise<{ pi
 
     const entry = await Promise.race([
       pipelinePromise,
-      timeoutPromise<{ pipe: unknown; device: 'webgpu' | 'wasm' }>(MODEL_LOAD_TIMEOUT_MS, 'Model load'),
+      timeoutPromise<{ pipe: unknown; device: 'webgpu' | 'wasm' | 'cpu' }>(MODEL_LOAD_TIMEOUT_MS, 'Model load'),
     ])
 
     cachedPipelines.set(tier, entry)
