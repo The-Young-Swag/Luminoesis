@@ -192,14 +192,14 @@ export function CommandPalette({
                   type="button"
                   onClick={() => runCommand(command)}
                   onMouseMove={() => setActive(index)}
-                  className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors ${
-                    selected ? 'bg-(--racing) text-white' : 'text-(--ink)'
+                  className={`flex min-h-11 w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors ${
+                    selected ? 'bg-(--accent) text-(--accent-ink)' : 'text-(--ink)'
                   }`}
                 >
                   <span
                     className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg ${
                       selected
-                        ? 'bg-white/15 text-white'
+                        ? 'bg-(--accent-ink)/15 text-(--accent-ink)'
                         : 'border border-(--line) bg-(--surface-muted) text-(--ink-soft)'
                     }`}
                   >
@@ -209,7 +209,7 @@ export function CommandPalette({
                     {command.label}
                   </span>
                   <span
-                    className={`text-[10px] font-semibold ${selected ? 'text-white/70' : 'text-(--ink-soft)'}`}
+                    className={`text-[10px] font-semibold ${selected ? 'text-(--accent-ink)/70' : 'text-(--ink-soft)'}`}
                   >
                     {command.hint}
                   </span>

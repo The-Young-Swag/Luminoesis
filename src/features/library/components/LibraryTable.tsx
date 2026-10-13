@@ -3,7 +3,8 @@ import { useEffect, useRef, useState } from 'react'
 import type { Card } from '#/features/library/domain/card'
 import { Pencil, SearchX, Trash2 } from 'lucide-react'
 
-import { formatDueDate } from '#/shared/lib/dates'
+import { Badge } from '#/shared/components/ui/Badge'
+import { formatRelativeDue } from '#/shared/lib/dates'
 
 type LibraryTableProps = {
   cards: Card[]
@@ -159,13 +160,8 @@ export function LibraryTable({
                 </span>
               </td>
 
-              <td className="hidden px-4 py-3.5 text-(--ink-soft) md:table-cell">
-                <time
-                  dateTime={card.dueDate}
-                  className="font-mono whitespace-nowrap text-xs tabular-nums"
-                >
-                  {formatDueDate(card.dueDate)}
-                </time>
+              <td className="hidden px-4 py-3.5 md:table-cell">
+                <DueCell dueDate={card.dueDate} />
               </td>
 
               <td className="px-4 py-3.5">
@@ -215,5 +211,16 @@ export function LibraryTable({
         </tbody>
       </table>
     </div>
+  )
+}
+
+function DueCell({ dueDate }: { dueDate: string }) {
+  const relative = formatRelativeDue(dueDate)
+  return (
+    <time dateTime={dueDate} className="whitespace-nowrap">
+      <Badge tone={relative.tone === 'warn' ? 'warn' : 'neutral'}>
+        {relative.label}
+      </Badge>
+    </time>
   )
 }

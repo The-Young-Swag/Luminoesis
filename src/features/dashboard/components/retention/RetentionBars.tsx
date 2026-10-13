@@ -30,8 +30,8 @@ function RetentionRow({ rank, topic }: { rank: number; topic: RetentionItem }) {
 
       <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-(--surface-muted)">
         <div
-          className="h-full rounded-full bg-(--veridian) transition-[width] duration-500"
-          style={{ width: `${topic.rate}%` }}
+          className="h-full w-full origin-left rounded-full bg-(--veridian) transition-transform duration-500"
+          style={{ transform: `scaleX(${topic.rate / 100})` }}
         />
       </div>
 

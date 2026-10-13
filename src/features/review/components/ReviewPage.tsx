@@ -15,9 +15,8 @@ import type { Card } from '#/features/library/domain/card'
 import type { Grade } from '#/features/review/domain/sm2'
 import type { AggregatedFeatures } from '#/features/learning-state/domain/signals'
 
-import { formatDueDate } from '#/shared/lib/dates'
+import { formatRelativeDue } from '#/shared/lib/dates'
 
-import { daysOverdue } from '#/features/review/domain/sm2'
 import {
   adaptQueue,
   buildQueue,
@@ -606,8 +605,8 @@ function ReviewHeader({
   isBreak,
   onToggleBreak,
 }: ReviewHeaderProps) {
-  const overdueDays = daysOverdue(dueDate)
   const percent = total > 0 ? Math.round((done / total) * 100) : 0
+  const relative = formatRelativeDue(dueDate)
 
   return (
     <div>
@@ -622,13 +621,9 @@ function ReviewHeader({
           {done} / {total}
         </span>{' '}
         · {topic} ·{' '}
-        <time dateTime={dueDate}>due {formatDueDate(dueDate)}</time>{' '}
-
-        {overdueDays > 0 ? (
-          <span className="text-(--warning-strong)">
-            · {overdueDays}d overdue
-          </span>
-        ) : null}
+        <time dateTime={dueDate} className={relative.tone === 'warn' ? 'text-(--warning-strong)' : undefined}>
+          {relative.label}
+        </time>
       </div>
 
       <div className="flex items-center gap-2">

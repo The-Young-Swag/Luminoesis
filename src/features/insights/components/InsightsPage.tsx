@@ -40,17 +40,13 @@ export function InsightsPage() {
       />
 
       {pattern && (
-        <div className="card-flat mt-6 flex items-start gap-3 border-(--warning)/30 bg-(--warning-muted) p-5">
-          <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-(--warning) text-white">
+        <div className="card-flat mt-6 flex items-start gap-3 border-(--accent-line) bg-(--accent-soft) p-5">
+          <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-(--accent) text-(--accent-ink)">
             <Lightbulb size={16} aria-hidden="true" />
           </span>
 
           <div>
-            <div className="text-xs font-bold uppercase tracking-wide text-(--warning-strong)">
-              Most actionable pattern
-            </div>
-
-            <div className="mt-1 text-[15px] font-semibold text-(--ink)">
+            <div className="text-[15px] font-semibold text-(--ink)">
               {pattern.text}
             </div>
 

@@ -107,7 +107,7 @@ export function LibraryPage() {
           <div className="skeleton h-10 w-full rounded-lg" />
         </div>
 
-        <div className="overflow-hidden rounded-xl border border-(--line) bg-(--surface)">
+        <div className="card-flat overflow-hidden">
           <div className="border-b border-(--line) px-4 py-3.5 sm:px-5">
             <div className="skeleton h-4 w-32" />
           </div>
@@ -234,7 +234,7 @@ export function LibraryPage() {
       </div>
 
       <div
-        className="rise overflow-hidden rounded-xl border border-(--line) bg-(--surface)"
+        className="rise card-flat overflow-hidden"
         style={{ animationDelay: '110ms' }}
       >
         <div className="border-b border-(--line) px-4 py-3.5 sm:px-5">
