@@ -233,6 +233,10 @@ async function handleGenerate(
     throw new Error('Generator is not loaded. Send load first.')
   }
 
+  // Prefill is silent like session creation (no tokens flow until the
+  // first one), so it gets its own stall allowance on the client.
+  self.postMessage({ id: message.id, type: 'phase', phase: 'prefill' })
+
   const generateStart = performance.now()
 
   let tokenizeMs: number | null = null

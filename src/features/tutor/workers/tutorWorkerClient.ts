@@ -37,7 +37,14 @@ type Budget = {
 
 const LOAD_DOWNLOAD_BUDGET: Budget = { stallMs: 90000, totalMs: 600000 }
 const LOAD_SESSION_BUDGET: Budget = { stallMs: 180000, totalMs: 300000 }
-const GENERATE_BUDGET: Budget = { stallMs: 60000, totalMs: 300000 }
+const GENERATE_BUDGET: Budget = { stallMs: 60000, totalMs: 600000 }
+/*
+ * Prefill runs silent (no tokens until the first one completes), so a
+ * healthy prefill on a slow device would trip the token stall timer.
+ * First-token allowance is generous; afterwards each token re-arms the
+ * normal 60 s clock.
+ */
+const GENERATE_PREFILL_STALL_MS = 300000
 const EMBED_BUDGET: Budget = { stallMs: 60000, totalMs: 120000 }
 
 let nextId = 1
@@ -142,12 +149,17 @@ export function createTutorWorker(): TutorWorkerClient | null {
 
     if (message.type === 'phase') {
       if (typeof message.phase === 'string') call.onPhase?.(message.phase)
-      switchLoadToSessionBudget(message.id)
+      if (message.phase === 'prefill') {
+        switchGenerateToPrefillBudget(message.id)
+      } else {
+        switchLoadToSessionBudget(message.id)
+      }
       return
     }
 
     if (message.type === 'token') {
       if (typeof message.text === 'string') call.onToken?.(message.text)
+      endPrefillBudget(message.id)
       armStallTimer(message.id)
       return
     }
@@ -233,6 +245,23 @@ export function createTutorWorker(): TutorWorkerClient | null {
     call.stallTimer = window.setTimeout(() => {
       failCall(id, new Error('Tutor worker stalled (no progress)'))
     }, LOAD_SESSION_BUDGET.stallMs)
+  }
+
+  function switchGenerateToPrefillBudget(id: number): void {
+    const call = pending.get(id)
+    if (!call) return
+    window.clearTimeout(call.stallTimer)
+    call.stallMs = GENERATE_PREFILL_STALL_MS
+    call.stallTimer = window.setTimeout(() => {
+      failCall(id, new Error('Tutor worker stalled during prefill'))
+    }, GENERATE_PREFILL_STALL_MS)
+  }
+
+  function endPrefillBudget(id: number): void {
+    const call = pending.get(id)
+    if (!call) return
+    // First token arrived: back to the per-token stall clock.
+    call.stallMs = GENERATE_BUDGET.stallMs
   }
 
   return {
