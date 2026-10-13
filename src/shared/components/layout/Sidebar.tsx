@@ -388,7 +388,7 @@ function DesktopSidebar({
     <aside
       style={{ width: collapsed ? '76px' : '248px' }}
       className={cx(
-        'sidebar-shell fixed bottom-5 left-5 top-5 z-50 hidden lg:flex flex-col overflow-hidden rounded-[28px] transition-[width] duration-300 ease-out',
+        'sidebar-shell fixed bottom-5 left-5 top-5 z-50 hidden lg:flex flex-col overflow-hidden rounded-[28px]',
         focusMode && 'focus-sidebar',
       )}
     >
@@ -397,7 +397,7 @@ function DesktopSidebar({
           <Link to="/" className={cx('flex items-center no-underline', collapsed ? 'justify-center' : 'min-w-0 flex-1 gap-2.5')} aria-label="Luminoesis home">
             <BrandMark size={34} />
             {!collapsed && (
-              <span className="display truncate text-[19px] font-semibold tracking-tight">Luminoesis</span>
+              <span translate="no" className="display truncate text-[19px] font-semibold tracking-tight">Luminoesis</span>
             )}
           </Link>
         </div>
@@ -409,35 +409,21 @@ function DesktopSidebar({
           <SidebarNav collapsed={collapsed} dueCount={due} />
         </nav>
 
-        <div className={cx('shrink-0 space-y-1 border-t border-sidebar-border p-3', collapsed && 'flex flex-col items-center')}>
+        <div className={cx('shrink-0 border-t border-sidebar-border p-3', collapsed ? 'flex flex-col items-center gap-1.5' : 'space-y-2')}>
           {!collapsed && (
             <p className="flex items-center gap-2 rounded-[14px] bg-(--surface-muted)/60 px-3 py-2.5 text-[13px] text-(--ink-soft)">
               <span className="pulse-dot" aria-hidden="true" />
               On-device only
             </p>
           )}
+          {collapsed && (
+            <span className="grid h-11 w-11 place-items-center" aria-hidden="true">
+              <span className="pulse-dot" />
+            </span>
+          )}
 
-          <div className={cx('flex items-center gap-1.5', collapsed ? 'flex-col' : 'flex-row')}>
-            <Link
-              to="/settings"
-              aria-label="Settings"
-              title="Settings"
-              className={cx(
-                'grid h-11 place-items-center rounded-[14px] text-(--ink-soft) transition-colors hover:bg-(--surface-muted) hover:text-(--ink)',
-                collapsed ? 'w-11' : 'flex-1',
-              )}
-              activeProps={{
-                className: cx(
-                  'grid h-11 place-items-center rounded-[14px] bg-(--accent-soft) text-(--ink)',
-                  collapsed ? 'w-11' : 'flex-1',
-                ),
-                'aria-current': 'page',
-              }}
-            >
-              <Settings2 size={18} aria-hidden="true" />
-            </Link>
-
-            <ThemeToggle />
+          <div className={cx('flex items-center gap-1.5', collapsed && 'flex-col')}>
+            <ThemeSwitch collapsed={collapsed} />
 
             <button
               type="button"
@@ -445,7 +431,7 @@ function DesktopSidebar({
               aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
               aria-expanded={!collapsed}
               title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-              className="grid h-11 w-11 place-items-center rounded-[14px] text-(--ink-soft) transition-colors hover:bg-(--surface-muted) hover:text-(--ink)"
+              className="grid h-11 w-11 shrink-0 place-items-center rounded-[14px] text-(--ink-soft) transition-colors hover:bg-(--surface-muted) hover:text-(--ink)"
             >
               {collapsed ? (
                 <PanelLeftOpen size={17} aria-hidden="true" />
@@ -476,18 +462,12 @@ function SidebarNav({
   dueCount = null,
 }: SidebarNavProps) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-1">
       <NavSection
-        items={PRIMARY_NAV_ITEMS}
+        items={[...PRIMARY_NAV_ITEMS, ...SYSTEM_NAV_ITEMS]}
         onNavigate={onNavigate}
         collapsed={collapsed}
         dueCount={dueCount}
-      />
-
-      <NavSection
-        items={SYSTEM_NAV_ITEMS}
-        onNavigate={onNavigate}
-        collapsed={collapsed}
       />
     </div>
   )
@@ -580,8 +560,48 @@ function SidebarNavLink({
 }
 
 /* -------------------------------------------------------------------------- */
-/* Theme */
+/* Theme — balanced utility switch (mockup v5 footer) */
 /* -------------------------------------------------------------------------- */
+
+function ThemeSwitch({ collapsed = false }: { collapsed?: boolean }) {
+  const { theme, toggleTheme } = useTheme()
+  const isDark = theme === 'dark'
+
+  if (collapsed) {
+    const Icon = isDark ? Sun : Moon
+    return (
+      <button
+        type="button"
+        aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+        title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+        onClick={toggleTheme}
+        className="grid h-11 w-11 shrink-0 place-items-center rounded-[14px] text-(--ink-soft) transition-colors hover:bg-(--surface-muted) hover:text-(--ink)"
+      >
+        <Icon size={17} aria-hidden="true" />
+      </button>
+    )
+  }
+
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={isDark}
+      aria-label={isDark ? 'Dark mode on. Switch to light mode' : 'Dark mode off. Switch to dark mode'}
+      title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+      onClick={toggleTheme}
+      className="relative grid h-11 min-h-11 flex-1 grid-cols-2 place-items-center rounded-[14px] border border-(--line) bg-(--surface-muted)/60 px-1"
+    >
+      <span
+        aria-hidden="true"
+        data-dark={isDark}
+        className="pointer-events-none absolute left-1 top-1 h-[calc(100%-8px)] w-[calc(50%-4px)] rounded-[10px] bg-(--surface) shadow-sm transition-transform duration-200 data-[dark=true]:translate-x-full"
+      />
+      <Moon size={16} aria-hidden="true" className="relative z-10 text-(--ink-soft)" />
+      <Sun size={16} aria-hidden="true" className="relative z-10 text-(--ink-soft)" />
+    </button>
+  )
+}
 
 function ThemeToggle() {
   const { theme, toggleTheme } = useTheme()
@@ -608,13 +628,20 @@ function ThemeToggle() {
 
 function BrandMark({ size = 34 }: { size?: number }) {
   return (
-    <img
-      src="/assets/luminoesis-mark-64.png"
-      alt=""
-      width={size}
-      height={size}
+    <span
+      aria-hidden="true"
       style={{ width: size, height: size }}
-      className="shrink-0 rounded-[10px]"
-    />
+      className="grid shrink-0 place-items-center overflow-hidden rounded-[10px] bg-[#0b0724] shadow-sm"
+    >
+      <img
+        src="/assets/LumiNoesis.png"
+        alt=""
+        width={size}
+        height={size}
+        style={{ width: size, height: size, objectFit: 'contain' }}
+        className="block"
+        fetchPriority="high"
+      />
+    </span>
   )
 }
