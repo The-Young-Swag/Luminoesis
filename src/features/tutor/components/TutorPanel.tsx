@@ -12,6 +12,7 @@ import { CornerDownLeft, Info, Sparkles } from 'lucide-react'
 
 import { tutorService } from '#/features/tutor/application/tutorService'
 import { localTutorProvider } from '#/features/tutor/providers/localTutorProvider'
+import { TutorTimingReadout } from '#/features/tutor/components/TutorTimingReadout'
 import { settingsRepository } from '#/shared/repositories/settingsRepository'
 import type { TutorMessage } from '#/features/tutor/domain/tutor'
 
@@ -340,6 +341,8 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
         </div>
 
         <div className="shrink-0 border-t border-(--glass-border) p-5">
+          <TutorTimingReadout />
+
           {escalationOn && (
             <p className="mb-3 rounded-xl border border-(--warning)/30 bg-(--warning-muted) px-3 py-2 text-xs leading-5 text-(--warning-strong)">
               Escalation is on — questions the on-device model answers poorly

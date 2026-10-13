@@ -1,5 +1,7 @@
 import { TextStreamer, env, pipeline, type PreTrainedTokenizer } from '@huggingface/transformers'
 
+import { resolveWasmThreads } from './wasmThreads'
+
 /*
  * Tutor inference runs here, off the main thread, so token generation
  * never blocks typing, scrolling, or grading. The client side lives in
@@ -10,13 +12,27 @@ import { TextStreamer, env, pipeline, type PreTrainedTokenizer } from '@huggingf
  *   { id, type: 'generate', messages, maxNewTokens }
  * Worker → main:
  *   { id, type: 'progress', fraction, file }
- *   { id, type: 'ready' }
+ *   { id, type: 'phase', phase: 'download' | 'session' }
+ *   { id, type: 'ready', timings }
  *   { id, type: 'token', text }      (streaming deltas)
- *   { id, type: 'done', text }       (final text)
+ *   { id, type: 'done', text, timings } (final text)
  *   { id, type: 'error', message }
+ *
+ * The phase messages split load budgets: 'download' covers weight
+ * fetching (long total, stall on silence), 'session' covers ONNX session
+ * creation, which is silent by nature and gets its own budget.
  */
 
 env.allowLocalModels = false
+
+try {
+  const backends = (env as unknown as { backends?: { onnx?: { wasm?: Record<string, unknown> } } }).backends
+  if (backends?.onnx?.wasm) {
+    backends.onnx.wasm.numThreads = resolveWasmThreads()
+  }
+} catch {
+  // Thread config is an optimization, never a blocker.
+}
 
 type ChatMessage = {
   role: 'system' | 'user' | 'assistant'
@@ -40,31 +56,85 @@ let generatorKey = ''
 let generatorTokenizer: PreTrainedTokenizer | null = null
 let embedder: EmbeddingExtractor | null = null
 
+export type WorkerGenerateTimings = {
+  tokenizeMs: number | null
+  promptTokens: number | null
+  prefillMs: number | null
+  decodeMs: number | null
+  outputTokens: number | null
+}
+
+export type WorkerLoadTimings = {
+  downloadMs: number | null
+  sessionMs: number | null
+}
+
 async function handleLoad(message: Extract<Inbound, { type: 'load' }>): Promise<void> {
   const key = `${message.modelId}|${message.device}|${message.dtype}`
 
   if (generator && generatorKey === key) {
-    self.postMessage({ id: message.id, type: 'ready' })
+    self.postMessage({ id: message.id, type: 'ready', timings: null })
     return
   }
 
-  const pipe = await pipeline('text-generation', message.modelId, {
-    device: message.device,
-    dtype: message.dtype,
-    progress_callback: (entry: { status: string; progress?: number; file?: string }) => {
-      self.postMessage({
-        id: message.id,
-        type: 'progress',
-        fraction: typeof entry.progress === 'number' ? entry.progress / 100 : 0,
-        file: entry.file ?? '',
-      })
-    },
-  })
+  const loadStart = performance.now()
+  let initiated = 0
+  let completed = 0
+  let phase: 'download' | 'session' = 'download'
+  let downloadEnd: number | null = null
 
-  generator = pipe as unknown as TextGenerator
-  generatorTokenizer = (pipe as unknown as { tokenizer: PreTrainedTokenizer }).tokenizer
-  generatorKey = key
-  self.postMessage({ id: message.id, type: 'ready' })
+  const enterSessionPhase = () => {
+    if (phase === 'session') return
+    phase = 'session'
+    if (downloadEnd === null) downloadEnd = performance.now()
+    self.postMessage({ id: message.id, type: 'phase', phase: 'session' })
+  }
+
+  // Fully-cached models may emit no progress events at all. If nothing
+  // starts downloading within a few seconds, the only remaining work is
+  // session creation — say so, so the client applies the session budget
+  // instead of the download stall timer.
+  const cacheProbe = setTimeout(() => {
+    if (initiated === 0) enterSessionPhase()
+  }, 5000)
+
+  const downloadStart = performance.now()
+  try {
+    const pipe = await pipeline('text-generation', message.modelId, {
+      device: message.device,
+      dtype: message.dtype,
+      progress_callback: (entry: { status: string; progress?: number; file?: string }) => {
+        if (entry.status === 'initiate') initiated += 1
+        if (entry.status === 'done') {
+          completed += 1
+          if (initiated > 0 && completed >= initiated) enterSessionPhase()
+        }
+        self.postMessage({
+          id: message.id,
+          type: 'progress',
+          fraction: typeof entry.progress === 'number' ? entry.progress / 100 : 0,
+          file: entry.file ?? '',
+        })
+      },
+    })
+
+    generator = pipe as unknown as TextGenerator
+    generatorTokenizer = (pipe as unknown as { tokenizer: PreTrainedTokenizer }).tokenizer
+    generatorKey = key
+    const readyAt = performance.now()
+    clearTimeout(cacheProbe)
+    self.postMessage({
+      id: message.id,
+      type: 'ready',
+      timings: {
+        downloadMs: Math.round((downloadEnd ?? readyAt) - downloadStart),
+        sessionMs: Math.round(readyAt - (downloadEnd ?? loadStart)),
+      } satisfies WorkerLoadTimings,
+    })
+  } catch (error) {
+    clearTimeout(cacheProbe)
+    throw error
+  }
 }
 
 const EMBEDDER_MODEL_ID = 'Xenova/all-MiniLM-L6-v2'
@@ -94,11 +164,29 @@ async function handleGenerate(message: Extract<Inbound, { type: 'generate' }>): 
     throw new Error('Generator is not loaded. Send load first.')
   }
 
+  const generateStart = performance.now()
+
+  let tokenizeMs: number | null = null
+  let promptTokens: number | null = null
+  try {
+    const tokenizeStart = performance.now()
+    const ids = generatorTokenizer?.apply_chat_template(message.messages, {
+      tokenize: true,
+      add_generation_prompt: true,
+    }) as unknown
+    tokenizeMs = Math.round(performance.now() - tokenizeStart)
+    promptTokens = Array.isArray(ids) ? ids.length : null
+  } catch {
+    // Token counting is measurement-only; generation continues regardless.
+  }
+
+  let firstTokenAt: number | null = null
   const streamer = generatorTokenizer
     ? new TextStreamer(generatorTokenizer, {
         skip_prompt: true,
         skip_special_tokens: true,
         callback_function: (text: string) => {
+          if (firstTokenAt === null) firstTokenAt = performance.now()
           self.postMessage({ id: message.id, type: 'token', text })
         },
       })
@@ -110,12 +198,35 @@ async function handleGenerate(message: Extract<Inbound, { type: 'generate' }>): 
     ...(streamer ? { streamer } : {}),
   })
 
+  const generateEnd = performance.now()
   const raw = output[0]?.generated_text
   const finalText = (
     Array.isArray(raw) ? (raw.at(-1)?.content ?? '') : String(raw ?? '')
   ).trim()
 
-  self.postMessage({ id: message.id, type: 'done', text: finalText })
+  let outputTokens: number | null = null
+  try {
+    const encoded = generatorTokenizer?.encode(finalText) as unknown
+    outputTokens = Array.isArray(encoded)
+      ? encoded.length
+      : typeof (encoded as { length?: unknown })?.length === 'number'
+        ? ((encoded as { length: number }).length as number)
+        : null
+  } catch {
+    // Measurement-only.
+  }
+
+  const prefillMs = firstTokenAt !== null ? Math.round(firstTokenAt - generateStart) : null
+  const firstAt: number | null = firstTokenAt
+  const timings: WorkerGenerateTimings = {
+    tokenizeMs,
+    promptTokens,
+    prefillMs,
+    decodeMs: firstAt !== null ? Math.round(generateEnd - firstAt) : Math.round(generateEnd - generateStart),
+    outputTokens,
+  }
+
+  self.postMessage({ id: message.id, type: 'done', text: finalText, timings })
 }
 
 self.onmessage = async (event: MessageEvent<Inbound>) => {

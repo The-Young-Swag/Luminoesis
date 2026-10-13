@@ -17,12 +17,19 @@ import {
   type TutorWorkerClient,
 } from '../workers/tutorWorkerClient'
 import { settingsRepository } from '#/shared/repositories/settingsRepository'
+import {
+  isCrossOriginIsolatedContext,
+  resolveWasmThreads,
+} from '../workers/wasmThreads'
+import {
+  recordInferenceTiming,
+  type InferenceTiming,
+} from '../domain/inferenceTiming'
 
 let cachedPipelines = new Map<string, unknown>()
 let failedPipelines = new Set<string>()
 
 const MODEL_LOAD_TIMEOUT_MS = 600000
-const WORKER_LOAD_BUDGET_MS = 120000
 const INFERENCE_TIMEOUT_MS = 30000
 const MAX_NEW_TOKENS = 120
 
@@ -42,24 +49,39 @@ function hasWebGpu(): boolean {
   return typeof navigator !== 'undefined' && 'gpu' in navigator
 }
 
-async function createTextPipeline(modelId: string): Promise<unknown> {
-  const { pipeline } = await import('@huggingface/transformers')
+async function createTextPipeline(modelId: string): Promise<{ pipe: unknown; device: 'webgpu' | 'wasm' }> {
+  const { pipeline, env } = await import('@huggingface/transformers')
+
+  try {
+    const backends = (env as unknown as { backends?: { onnx?: { wasm?: Record<string, unknown> } } }).backends
+    if (backends?.onnx?.wasm) {
+      backends.onnx.wasm.numThreads = resolveWasmThreads()
+    }
+  } catch {
+    // Thread config is an optimization, never a blocker.
+  }
 
   if (hasWebGpu()) {
     try {
-      return await pipeline('text-generation', modelId, {
+      const pipe = await pipeline('text-generation', modelId, {
         dtype: 'q4',
         device: 'webgpu',
       })
+      return { pipe, device: 'webgpu' }
     } catch (error) {
       console.warn('[tutor] webgpu load failed, falling back to wasm', error)
     }
   }
 
-  return pipeline('text-generation', modelId, {
+  const pipe = await pipeline('text-generation', modelId, {
     dtype: 'q8',
     device: 'wasm',
   })
+  return { pipe, device: 'wasm' }
+}
+
+export function describeWasmRuntime(): { isolated: boolean; threads: number } {
+  return { isolated: isCrossOriginIsolatedContext(), threads: resolveWasmThreads() }
 }
 
 function timeoutPromise<T>(ms: number, label: string): Promise<T> {
@@ -70,10 +92,10 @@ function timeoutPromise<T>(ms: number, label: string): Promise<T> {
   })
 }
 
-async function getLocalPipeline(tier: LocalModelTier = 'standard'): Promise<unknown | null> {
+async function getLocalPipeline(tier: LocalModelTier = 'standard'): Promise<{ pipe: unknown; device: 'webgpu' | 'wasm' } | null> {
   const cached = cachedPipelines.get(tier)
   if (cached) {
-    return cached
+    return cached as { pipe: unknown; device: 'webgpu' | 'wasm' }
   }
 
   if (failedPipelines.has(tier) || typeof WebAssembly === 'undefined') {
@@ -83,13 +105,13 @@ async function getLocalPipeline(tier: LocalModelTier = 'standard'): Promise<unkn
   try {
     const pipelinePromise = createTextPipeline(LOCAL_MODEL_IDS[tier])
 
-    const pipe = await Promise.race([
+    const entry = await Promise.race([
       pipelinePromise,
-      timeoutPromise<unknown>(MODEL_LOAD_TIMEOUT_MS, 'Model load'),
+      timeoutPromise<{ pipe: unknown; device: 'webgpu' | 'wasm' }>(MODEL_LOAD_TIMEOUT_MS, 'Model load'),
     ])
 
-    cachedPipelines.set(tier, pipe)
-    return pipe
+    cachedPipelines.set(tier, entry)
+    return entry
   } catch (error) {
     console.warn(
       '[tutor] local model load failed/timed out, falling back',
@@ -573,23 +595,42 @@ async function ensureWorkerLoaded(
   worker: TutorWorkerClient,
   tier: LocalModelTier,
   onProgress?: (fraction: number, file: string) => void,
-): Promise<void> {
-  if (workerLoadedTier === tier) return
+): Promise<{
+  loadMs: number
+  device: 'webgpu' | 'wasm'
+  downloadMs: number | null
+  sessionMs: number | null
+}> {
+  if (workerLoadedTier === tier) {
+    return { loadMs: 0, device: hasWebGpu() ? 'webgpu' : 'wasm', downloadMs: null, sessionMs: null }
+  }
 
   const modelId = LOCAL_MODEL_IDS[tier]
+  const startedAt = performance.now()
 
   if (hasWebGpu()) {
     try {
-      await worker.load(modelId, 'webgpu', 'q4', onProgress)
+      const timings = await worker.load(modelId, 'webgpu', 'q4', onProgress)
       workerLoadedTier = tier
-      return
+      return {
+        loadMs: Math.round(performance.now() - startedAt),
+        device: 'webgpu',
+        downloadMs: timings?.downloadMs ?? null,
+        sessionMs: timings?.sessionMs ?? null,
+      }
     } catch (error) {
       console.warn('[tutor] worker webgpu load failed, falling back to wasm', error)
     }
   }
 
-  await worker.load(modelId, 'wasm', 'q8', onProgress)
+  const timings = await worker.load(modelId, 'wasm', 'q8', onProgress)
   workerLoadedTier = tier
+  return {
+    loadMs: Math.round(performance.now() - startedAt),
+    device: 'wasm',
+    downloadMs: timings?.downloadMs ?? null,
+    sessionMs: timings?.sessionMs ?? null,
+  }
 }
 
 function finishResponse(request: TutorRequest, generated: string): TutorResponse {
@@ -667,7 +708,7 @@ export class LocalTutorProvider implements TutorProvider {
       return finishResponse(request, workerText)
     }
 
-    return this.respondOnMainThread(request, messages, tier)
+    return this.respondOnMainThread(request, messages, tier, options?.onToken)
   }
 
   private async respondViaWorker(
@@ -678,15 +719,38 @@ export class LocalTutorProvider implements TutorProvider {
     const worker = getSharedWorker()
     if (!worker) return null
 
+    const answerStart = performance.now()
     try {
-      // A wedged load must not hold the answer hostage: budget the
-      // worker path, then fall back to the main thread, which is
-      // slower per token but never silently stalls.
-      await Promise.race([
-        ensureWorkerLoaded(worker, tier),
-        timeoutPromise<void>(WORKER_LOAD_BUDGET_MS, 'Worker model load'),
-      ])
-      return await worker.generate(messages, MAX_NEW_TOKENS, onToken)
+      // No total timer on load: the worker client enforces STALL budgets
+      // (re-armed by every progress event) with separate download and
+      // session-creation allowances. A slow download must never trigger a
+      // fallback that restarts the same download.
+      const load = await ensureWorkerLoaded(worker, tier)
+      const { text, timings } = await worker.generate(messages, MAX_NEW_TOKENS, onToken)
+
+      const totalMs = Math.round(performance.now() - answerStart)
+      const outputTokens = timings?.outputTokens ?? null
+      const decodeMs = timings?.decodeMs ?? null
+      const timing: InferenceTiming = {
+        tier,
+        device: load.device,
+        path: 'worker',
+        loadMs: load.loadMs,
+        downloadMs: load.downloadMs,
+        sessionMs: load.sessionMs,
+        tokenizeMs: timings?.tokenizeMs ?? null,
+        promptTokens: timings?.promptTokens ?? null,
+        prefillMs: timings?.prefillMs ?? null,
+        decodeMs,
+        outputTokens,
+        tokensPerSec:
+          outputTokens !== null && decodeMs !== null && decodeMs > 0
+            ? Math.round((outputTokens / (decodeMs / 1000)) * 10) / 10
+            : null,
+        totalMs,
+      }
+      recordInferenceTiming(timing)
+      return text
     } catch (error) {
       console.warn('[tutor] worker inference failed, trying main thread', error)
       resetSharedTutorWorker()
@@ -699,14 +763,55 @@ export class LocalTutorProvider implements TutorProvider {
     request: TutorRequest,
     messages: ChatMessage[],
     tier: LocalModelTier,
+    onToken?: (text: string) => void,
   ): Promise<TutorResponse> {
-    const pipe = await getLocalPipeline(tier)
+    const answerStart = performance.now()
+    const loadStart = performance.now()
+    const entry = await getLocalPipeline(tier)
+    const loadMs = Math.round(performance.now() - loadStart)
 
-    if (!pipe) {
+    if (!entry) {
       return buildFallbackResponse(request)
     }
+    const { pipe, device } = entry
 
     try {
+      const { TextStreamer } = await import('@huggingface/transformers')
+      const tokenizer = (
+        pipe as unknown as {
+          tokenizer?: {
+            apply_chat_template?: (messages: unknown, options?: unknown) => unknown
+            encode?: (text: string) => unknown
+          }
+        }
+      ).tokenizer
+
+      let tokenizeMs: number | null = null
+      let promptTokens: number | null = null
+      try {
+        const tokenizeStart = performance.now()
+        const ids = tokenizer?.apply_chat_template?.(messages, {
+          tokenize: true,
+          add_generation_prompt: true,
+        }) as unknown
+        tokenizeMs = Math.round(performance.now() - tokenizeStart)
+        promptTokens = Array.isArray(ids) ? ids.length : null
+      } catch {
+        // Measurement-only.
+      }
+
+      let firstTokenAt: number | null = null
+      const streamer = tokenizer
+        ? new TextStreamer(tokenizer as never, {
+            skip_prompt: true,
+            skip_special_tokens: true,
+            callback_function: (text: string) => {
+              if (firstTokenAt === null) firstTokenAt = performance.now()
+              onToken?.(text)
+            },
+          })
+        : undefined
+
       const generator = pipe as unknown as (
         input: ChatMessage[],
         options?: unknown,
@@ -714,9 +819,11 @@ export class LocalTutorProvider implements TutorProvider {
         Array<{ generated_text: ChatMessage[] | string }>
       >
 
+      const generateStart = performance.now()
       const inferencePromise = generator(messages, {
         max_new_tokens: MAX_NEW_TOKENS,
         do_sample: false,
+        ...(streamer ? { streamer } : {}),
         /*
          * Plain greedy decoding. `repetition_penalty` and
          * `no_repeat_ngram_size` were tried here and reverted — see the
@@ -736,12 +843,51 @@ export class LocalTutorProvider implements TutorProvider {
           Array<{ generated_text: ChatMessage[] | string }>
         >(INFERENCE_TIMEOUT_MS, 'Inference'),
       ])
+      const generateEnd = performance.now()
 
       const rawOutput = output[0]?.generated_text
 
       const generated = Array.isArray(rawOutput)
       ? (rawOutput.at(-1)?.content ?? '').trim()
       : rawOutput.trim()
+
+      let outputTokens: number | null = null
+      try {
+        const encoded = tokenizer?.encode?.(generated) as unknown
+        outputTokens = Array.isArray(encoded)
+          ? encoded.length
+          : typeof (encoded as { length?: unknown })?.length === 'number'
+            ? (encoded as { length: number }).length
+            : null
+      } catch {
+        // Measurement-only.
+      }
+
+      const prefillMs =
+        firstTokenAt !== null ? Math.round(firstTokenAt - generateStart) : null
+      const firstAt: number | null = firstTokenAt
+      const decodeMs =
+        firstAt !== null
+          ? Math.round(generateEnd - firstAt)
+          : Math.round(generateEnd - generateStart)
+      recordInferenceTiming({
+        tier,
+        device,
+        path: 'main',
+        loadMs,
+        downloadMs: null,
+        sessionMs: null,
+        tokenizeMs,
+        promptTokens,
+        prefillMs,
+        decodeMs,
+        outputTokens,
+        tokensPerSec:
+          outputTokens !== null && decodeMs > 0
+            ? Math.round((outputTokens / (decodeMs / 1000)) * 10) / 10
+            : null,
+        totalMs: Math.round(performance.now() - answerStart),
+      })
 
       return finishResponse(request, generated)
     } catch (error) {
