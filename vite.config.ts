@@ -10,9 +10,22 @@ import { VitePWA } from 'vite-plugin-pwa'
 const config = defineConfig({
   resolve: { tsconfigPaths: true },
   plugins: [
+    // Cross-origin isolation headers as middleware: server.headers alone
+    // is dropped by the Start dev handler, so set them explicitly on
+    // every response. credentialless (not require-corp) keeps HF,
+    // jsDelivr, and Google Fonts loading.
+    {
+      name: 'coi-headers',
+      configureServer(server) {
+        server.middlewares.use((_req, res, next) => {
+          res.setHeader('Cross-Origin-Opener-Policy', 'same-origin')
+          res.setHeader('Cross-Origin-Embedder-Policy', 'credentialless')
+          next()
+        })
+      },
+    },
     devtools(),
-    tailwindcss(),
-    tanstackStart({
+    tailwindcss(),    tanstackStart({
       srcDirectory: 'src',
       router: { generatedRouteTree: 'routeTree.gen.ts' },
     }),
