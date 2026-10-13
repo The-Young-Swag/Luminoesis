@@ -106,7 +106,22 @@ chart + peak line at baseline). Activity is ONE card (3 newest + heatmap + legen
 Empty: single onboarding card. Zero eyebrows on dashboard cards — one `PanelHeader`
 (title + sub) everywhere. Dates relative, never raw ISO.
 
-## 9. Skill conflicts (mockup loses)
+## 9. Sophia (assistant naming + voice)
+
+Sophia is the user-facing name for the study companion. Every user-facing
+string that would say "Tutor" or "AI tutor" says Sophia instead — panel
+header ("Ask Sophia"), thinking/escalation states ("Sophia is thinking…",
+"Checking with Sophia online…"), input labels and placeholders, tooltips,
+aria-labels, Settings and Privacy copy, server error/notice text, and
+onboarding copy. Internal identifiers (routes, files, functions, config
+keys, eval names) stay as they are.
+Voice: warm, concise, first person ("I couldn't find that in your
+material"). She never claims to be human. Fallbacks and system prompt use
+neutral content words ("ideas", "material") — never "passage". Escalation
+copy always names Sophia where data leaves the device ("Sophia can ask the
+online model for hard questions…").
+
+## 10. Skill conflicts (mockup loses)
 
 - Theme-driven hero (v3): pearl + gold rays on light, navy-violet spotlight on dark —
   the old fixed-dark hero device is retired; hero ink follows the theme for 4.5:1.
