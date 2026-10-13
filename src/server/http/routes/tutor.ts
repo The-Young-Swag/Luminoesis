@@ -2,6 +2,7 @@ import { Router } from 'express'
 import { z } from 'zod'
 
 import { getFingerprint, getRemaining, consumeUpload, MAX_ONLINE_UPLOADS } from '../../services/tutorQuotaService.js'
+import { isModelNotFound, modelUnavailableMessage } from '../../domain/geminiErrors.js'
 
 export const tutorRouter = Router()
 
@@ -107,13 +108,8 @@ async function callGemini(
       // A retired or unknown model ID is a config problem, not a user
       // problem: say so plainly, and never burn quota on it (callers only
       // consume quota after a successful answer).
-      if (
-        gemResponse.status === 404 ||
-        /not_?found|is not found|does not exist|retired|removed|not supported/i.test(errText)
-      ) {
-        throw new Error(
-          'The online Tutor model is unavailable right now — your on-device answer below still stands.',
-        )
+      if (isModelNotFound(gemResponse.status, errText)) {
+        throw new Error(modelUnavailableMessage())
       }
       throw new Error('Online Tutor is temporarily unavailable.')
     }
