@@ -543,7 +543,7 @@ export function MaterialViewerPage({ materialId }: { materialId: string }) {
           </div>
         </main>
 
-        {/* Right: Ask Tutor */}
+        {/* Right: Ask Sophia */}
         <div
           id="rightPanel"
           style={{ width: rightCollapsed ? 60 : 360 }}
@@ -554,7 +554,7 @@ export function MaterialViewerPage({ materialId }: { materialId: string }) {
               <button
                 type="button"
                 onClick={() => setRightCollapsed(false)}
-                aria-label="Expand tutor"
+                aria-label="Expand Sophia"
                 className="mb-2 grid h-8 w-8 place-items-center rounded-md text-(--ink-faint) hover:bg-(--surface-muted) hover:text-(--ink)"
               >
                 <PanelRightOpen size={16} aria-hidden="true" />
@@ -565,8 +565,8 @@ export function MaterialViewerPage({ materialId }: { materialId: string }) {
                   setRightCollapsed(false)
                   window.setTimeout(() => tutorRef.current?.focusInput(), 50)
                 }}
-                aria-label="Ask tutor"
-                title="Ask tutor"
+                aria-label="Ask Sophia"
+                title="Ask Sophia"
                 className="grid h-8 w-8 place-items-center rounded-md bg-(--blue)/10 text-(--blue) hover:bg-(--blue)/15"
               >
                 <MessageCircle size={18} aria-hidden="true" />
@@ -578,12 +578,12 @@ export function MaterialViewerPage({ materialId }: { materialId: string }) {
                 <button
                   type="button"
                   onClick={() => setRightCollapsed(true)}
-                  aria-label="Collapse tutor"
+                  aria-label="Collapse Sophia"
                   className="grid h-6 w-6 place-items-center rounded-md text-(--ink-faint) hover:bg-(--surface-muted) hover:text-(--ink)"
                 >
                   <PanelRightClose size={14} aria-hidden="true" />
                 </button>
-                <span className="text-[13px] font-semibold text-(--ink)">Ask tutor</span>
+                <span className="text-[13px] font-semibold text-(--ink)">Ask Sophia</span>
                 <span className="w-6" aria-hidden="true" />
               </div>
               <div className="flex min-h-0 flex-1 flex-col">

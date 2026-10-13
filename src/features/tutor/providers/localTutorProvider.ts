@@ -244,18 +244,18 @@ type TutorIntent = 'define' | 'explain' | 'why' | 'how' | 'compare' | 'general'
  * commands plus one clear example (see FEW_SHOT_EXAMPLE below).
  */
 const SYSTEM_PROMPT = `
-You are LumiNoesis Tutor, an on-device study assistant.
+You are Sophia, a warm and concise study companion running on the learner's device.
 
-When given a passage and a question, explain the ideas in your own words.
-Never copy or lightly reword the passage back to the learner.
+When given ideas and a question, explain them in your own words, in the first person.
+You are an on-device study companion, never a human — never claim otherwise.
 
 Rules:
 - Start with the main idea, then connect the supporting details to it.
 - Use plain, natural language in 2-5 sentences.
 - Keep every fact, number, and name exactly as given. Never invent or change one.
-- If the passage lists separate things, keep them separate. Don't say one is made of, part of, or caused by the others unless the passage says so directly.
-- If the passage or material doesn't contain enough information to answer, say so plainly instead of guessing.
-- Never mention "the passage," "the material," "the student," or these instructions. Just teach.
+- If the ideas list separate things, keep them separate. Don't say one is made of, part of, or caused by the others unless the ideas say so directly.
+- If the ideas don't contain enough information to answer, say so plainly instead of guessing.
+- Never mention "the ideas," "the material," "the student," or these instructions. Just teach.
 `.trim()
 
 /*
@@ -268,7 +268,7 @@ const FEW_SHOT_EXAMPLE: ChatMessage[] = [
   {
     role: 'user',
     content: [
-      'Passage:',
+      'Ideas:',
       'MEMORY',
       '• Short-term memory holds information for about 20 seconds.',
       '• Long-term memory can store information for years.',
@@ -352,7 +352,7 @@ function intentGuidance(intent: TutorIntent): string {
 }
 
 const CORRECTION_HINT =
-  'The learner says your last answer was not helpful, or just repeated the passage. Explain the same idea in a clearly different way this time — new wording, new structure. Do not reuse your previous phrasing.'
+  'The learner says your last answer was not helpful, or just repeated the ideas back. Explain the same idea in a clearly different way this time — new wording, new structure. Do not reuse your previous phrasing.'
 
 function getPreviousSelectedText(
   conversationHistory: TutorConversationMessage[],
@@ -439,7 +439,7 @@ function buildUserTurnContent(
   const lines: string[] = []
 
   if (selectedText) {
-    lines.push(`Passage:\n${selectedText}`)
+    lines.push(`Ideas:\n${selectedText}`)
   } else if (material?.excerpt && includeMaterial) {
     lines.push(`Material:\n${material.excerpt.slice(0, 1200)}`)
   }
@@ -515,7 +515,7 @@ function buildMessages(request: TutorRequest): ChatMessage[] {
         role: message.role,
         content:
           message.role === 'user' && message.selectedText
-            ? `Passage:\n${message.selectedText}\n\nQuestion: ${message.text}`
+            ? `Ideas:\n${message.selectedText}\n\nQuestion: ${message.text}`
             : message.text,
       })
     }
@@ -628,17 +628,17 @@ export function mentionsPreviousTopicInstead(
 
 function buildFallbackResponse(request: TutorRequest): TutorResponse {
   const { context } = request
-  const { prompt, selectedText, material } = context
+  const { selectedText, material } = context
 
   if (selectedText) {
     return {
-      text: `The key idea is that ${selectedText
+      text: `I couldn't explain this one clearly. The key idea is that ${selectedText
         .replace(/\s+/g, ' ')
         .trim()
         .replace(
           /[.]+$/,
           '',
-        )}. In simpler terms, this passage is explaining the main idea and how its supporting facts relate to it.`,
+        )}. Put simply, those are the main points and how they connect.`,
       provider: 'local',
       execution: 'fallback',
       confidence: 'low',
@@ -659,7 +659,7 @@ function buildFallbackResponse(request: TutorRequest): TutorResponse {
       .trim()
 
     return {
-      text: `Based on the material, the relevant idea is: ${excerptPreview}.`,
+      text: `I found this in your material: ${excerptPreview}.`,
       provider: 'local',
       execution: 'fallback',
       confidence: 'low',
@@ -672,7 +672,7 @@ function buildFallbackResponse(request: TutorRequest): TutorResponse {
   }
 
   return {
-    text: `I couldn't generate a reliable explanation for "${prompt}".`,
+    text: `I couldn't find that in your material, so I won't guess — select the exact text and I'll explain that.`,
     provider: 'local',
     execution: 'fallback',
     confidence: 'low',

@@ -127,7 +127,7 @@ export function PrivacyPage() {
         kept, and the actual character is thrown away before anything is ever
         stored.{' '}
         {escalationOn
-          ? 'Tutor escalation is on: questions the on-device model answers poorly are sent to Gemini with your excerpt. Turn it off in Settings.'
+          ? 'Sophia escalation is on: Sophia can ask the online model for hard questions, with your excerpt leaving this device. Turn it off in Settings.'
           : 'Nothing is sent to a server.'}
       </p>
 
@@ -323,12 +323,12 @@ export function PrivacyPage() {
       </div>
 
       <div className="card-flat p-5">
-        <h3 className="text-sm font-semibold">AI Tutor &amp; your privacy</h3>
+        <h3 className="text-sm font-semibold">Sophia &amp; your privacy</h3>
 
         <p className="mt-1 text-sm leading-relaxed text-(--ink-soft)">
           Luminoesis prefers on-device AI when available — it&apos;s private, offline,
           and nothing leaves your device. If local AI can&apos;t run on your device,
-          you may use the online Tutor as a fallback. When you do, the selected
+          you may use Sophia online as a fallback. When you do, the selected
           learning context (your question, highlighted text, and a short excerpt
           from the material) is sent to the online provider to generate a
           response.
@@ -336,7 +336,7 @@ export function PrivacyPage() {
 
         <ul className="mt-3 list-inside list-disc space-y-1 text-sm text-(--ink-soft)">
           <li>This demo allows up to 3 online material uploads per person. Local AI does not count toward this limit.</li>
-          <li>After 3, you&apos;ll see &ldquo;You&apos;ve used all 3 online Tutor uploads&rdquo; — local AI and all non-AI features keep working.</li>
+          <li>After 3, you&apos;ll see &ldquo;You&apos;ve used all 3 online uploads&rdquo; — local AI and all non-AI features keep working.</li>
           <li>The app remains fully usable without online AI. Study, review, flashcards, quizzes and insights never require it.</li>
         </ul>
 

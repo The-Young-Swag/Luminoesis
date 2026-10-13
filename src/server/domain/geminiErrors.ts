@@ -13,5 +13,5 @@ export function isModelNotFound(status: number, bodyText: string): boolean {
 }
 
 export function modelUnavailableMessage(): string {
-  return 'The online Tutor model is unavailable right now — your on-device answer below still stands.'
+  return "Sophia's online model is unavailable right now — your on-device answer below still stands."
 }

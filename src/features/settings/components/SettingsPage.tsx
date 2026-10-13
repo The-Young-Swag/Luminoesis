@@ -225,16 +225,16 @@ export function SettingsPage() {
         )}
         <p className="mt-2 text-xs text-(--ink-soft)">
           If the capable build fails to load, answers fall back to Standard.
-          Downloads show progress with cancel in the tutor panel.
+          Downloads show progress with cancel in Sophia’s panel.
         </p>
       </div>
 
       <div className="card-flat p-5">
-        <h2 className="text-sm font-semibold">Online tutor escalation</h2>
+        <h2 className="text-sm font-semibold">Ask Sophia online</h2>
         <p className="mt-1 text-sm text-(--ink-soft)">
-          Off by default. When on, only questions the on-device model answers
-          poorly are sent to Gemini — with your excerpt and question leaving
-          this device. Everything else stays local.
+          Off by default. When on, Sophia can ask the online model for hard
+          questions — with your excerpt and question leaving this device.
+          Everything else stays local.
         </p>
         <div className="mt-3 flex items-center gap-2">
           <span

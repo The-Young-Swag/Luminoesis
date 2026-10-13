@@ -52,7 +52,7 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
       {
         id: 'intro',
         role: 'assistant',
-        text: `This is the AI Tutor for “${materialTitle}”. Ask about the material — answers stay grounded in your concepts and review history. Local AI works offline.`,
+        text: `I’m Sophia. Ask me about “${materialTitle}” — I’ll stay grounded in your concepts and review history. I run on-device, so I work offline.`,
       },
     ])
 
@@ -122,7 +122,7 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
           {
             id: 'intro',
             role: 'assistant',
-            text: `This is the AI Tutor for “${materialTitle}”. Ask about the material — answers stay grounded in your concepts and review history. Local AI works offline.`,
+            text: `I’m Sophia. Ask me about “${materialTitle}” — I’ll stay grounded in your concepts and review history. I run on-device, so I work offline.`,
           },
         ]
       })
@@ -287,7 +287,7 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
               </span>
 
               <p className="font-mono text-[11px] font-semibold tracking-[0.08em] text-(--ink-soft) uppercase">
-                Ask Tutor
+                Ask Sophia
               </p>
             </div>
 
@@ -312,7 +312,7 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
           role="log"
           aria-live="polite"
           aria-relevant="additions"
-          aria-label="Tutor conversation"
+          aria-label="Conversation with Sophia"
         >
           {messages.map((message) => {
             if (message.role === 'assistant' && message.text === '') {
@@ -328,8 +328,8 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
               aria-live="polite"
               aria-label={
                 showEscalationStatus
-                  ? 'Checking with the cloud tutor'
-                  : 'Tutor is thinking'
+                  ? 'Checking with Sophia online'
+                  : 'Sophia is thinking'
               }
             >
               <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-(--surface-muted) text-(--blue)">
@@ -338,8 +338,8 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
 
               <p className="pt-0.5 text-[14px] leading-relaxed text-(--ink-faint)">
                 {showEscalationStatus
-                  ? 'Checking with the cloud tutor…'
-                  : 'Thinking…'}
+                  ? 'Checking with Sophia online…'
+                  : 'Sophia is thinking…'}
               </p>
             </div>
           )}
@@ -352,8 +352,9 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
 
           {escalationOn && (
             <p className="mb-3 rounded-xl border border-(--warning)/30 bg-(--warning-muted) px-3 py-2 text-xs leading-5 text-(--warning-strong)">
-              Escalation is on — questions the on-device model answers poorly
-              are sent to Gemini with your excerpt. Turn it off in Settings.
+              Escalation is on — Sophia can ask the online model for hard
+              questions, with your excerpt leaving this device. Turn it off
+              in Settings.
             </p>
           )}
 
@@ -424,7 +425,7 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
               onKeyDown={handleKeyDown}
               rows={1}
               placeholder="Ask about this material…"
-              aria-label="Ask Tutor about this material"
+              aria-label="Ask Sophia about this material"
               className="max-h-32 min-h-10 flex-1 resize-none bg-transparent py-2 text-[14px] leading-relaxed text-(--ink) outline-none placeholder:text-(--ink-soft)"
             />
 
@@ -454,7 +455,7 @@ function TutorMessageBubble({ message }: { message: TutorMessage }) {
           {message.selectedText && (
             <div className="rounded-xl bg-(--glass-bg-strong)/60 px-3.5 py-2.5 text-xs leading-relaxed text-(--ink-soft)">
               <p className="mb-1 font-medium text-(--ink-soft)">
-                Selected passage
+                Selected text
               </p>
 
               <p className="line-clamp-3">{message.selectedText}</p>

@@ -80,7 +80,7 @@ export function SelectionBubble({
       }}
     >
       <SelectionAction
-        label="Ask Tutor"
+        label="Ask Sophia"
         icon={MessageCircle}
         onClick={() => onAskTutor(selection.text)}
       />

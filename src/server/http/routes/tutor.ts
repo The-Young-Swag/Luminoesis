@@ -122,7 +122,7 @@ async function callGemini(
 ): Promise<string> {
   const geminiKey = getGeminiKey()
   if (!geminiKey) {
-    throw new Error('Online Tutor is not configured on this server.')
+    throw new Error('Sophia online is not configured on this server.')
   }
 
   const model = getGeminiModel()
@@ -153,7 +153,7 @@ async function callGemini(
       if (isModelNotFound(gemResponse.status, errText)) {
         throw new Error(modelUnavailableMessage())
       }
-      throw new Error('Online Tutor is temporarily unavailable.')
+      throw new Error('Sophia online is temporarily unavailable.')
     }
 
     if (!stream) {
@@ -161,7 +161,7 @@ async function callGemini(
         candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>
       }
       const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ?? ''
-      if (!text) throw new Error('Online Tutor returned an empty response.')
+      if (!text) throw new Error('Sophia online returned an empty response.')
       return text
     }
 
@@ -206,11 +206,11 @@ async function callGemini(
     }
 
     const text = fullText.trim()
-    if (!text) throw new Error('Online Tutor returned an empty response.')
+    if (!text) throw new Error('Sophia online returned an empty response.')
     return text
   } catch (error) {
     if (error instanceof Error && error.name === 'AbortError') {
-      throw new Error('Online Tutor timed out. Try again or use local preview.')
+      throw new Error('Sophia online timed out. Try again or ask me on-device.')
     }
     throw error
   } finally {
@@ -236,7 +236,7 @@ tutorRouter.post('/chat', async (req, res) => {
   const remaining = getRemaining(fingerprint)
   if (remaining <= 0) {
     res.status(429).json({
-      error: `You've used all ${MAX_ONLINE_UPLOADS} online Tutor uploads available for this demo. Local AI may still work, and all non-AI learning features continue working.`,
+      error: `You've used all ${MAX_ONLINE_UPLOADS} online uploads available for this demo. I can still answer on-device, and all non-AI learning features continue working.`,
       remaining: 0,
       limit: MAX_ONLINE_UPLOADS,
     })
@@ -247,7 +247,7 @@ tutorRouter.post('/chat', async (req, res) => {
   if (!getGeminiKey()) {
     res.status(503).json({
       error:
-        'Online Tutor is not configured on this server. Local preview is still available, and all non-AI features continue working.',
+        'Sophia online is not configured on this server. I can still answer on-device, and all non-AI features continue working.',
       remaining,
       limit: MAX_ONLINE_UPLOADS,
     })
@@ -278,7 +278,7 @@ tutorRouter.post('/chat', async (req, res) => {
       error:
         error instanceof Error
           ? error.message
-          : 'Online Tutor failed. Local preview and all non-AI features remain available.',
+          : 'Sophia online failed. I can still answer on-device and all non-AI features remain available.',
     })
   }
 })
@@ -291,7 +291,7 @@ tutorRouter.post('/chat/stream', async (req, res) => {
   const remaining = getRemaining(fingerprint)
   if (remaining <= 0) {
     res.status(429).json({
-      error: `You've used all ${MAX_ONLINE_UPLOADS} online Tutor uploads available for this demo.`,
+      error: `You've used all ${MAX_ONLINE_UPLOADS} online uploads available for this demo.`,
       remaining: 0,
       limit: MAX_ONLINE_UPLOADS,
     })
@@ -300,7 +300,7 @@ tutorRouter.post('/chat/stream', async (req, res) => {
 
   if (!getGeminiKey()) {
     res.status(503).json({
-      error: 'Online Tutor is not configured on this server.',
+      error: 'Sophia online is not configured on this server.',
       remaining,
       limit: MAX_ONLINE_UPLOADS,
     })
@@ -338,7 +338,7 @@ tutorRouter.post('/chat/stream', async (req, res) => {
     res.end()
   } catch (error) {
     send({
-      error: error instanceof Error ? error.message : 'Online Tutor failed.',
+      error: error instanceof Error ? error.message : 'Sophia online failed.',
     })
     res.end()
   }
