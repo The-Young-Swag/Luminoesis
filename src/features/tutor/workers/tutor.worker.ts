@@ -51,6 +51,28 @@ type TextGenerator = (
 
 type EmbeddingExtractor = (texts: string[], options?: unknown) => Promise<{ tolist: () => number[][] }>
 
+/** Token count from whatever shape a tokenizer call returns. */
+function countTokenIds(ids: unknown): number | null {
+  if (Array.isArray(ids)) return ids.length
+  if (ids !== null && typeof ids === 'object') {
+    const record = ids as { dims?: unknown; data?: unknown; length?: unknown }
+    if (Array.isArray(record.dims) && record.dims.length > 0) {
+      const last = record.dims[record.dims.length - 1]
+      if (typeof last === 'number') return last
+      if (typeof last === 'bigint') return Number(last)
+    }
+    if (
+      record.data !== null &&
+      typeof record.data === 'object' &&
+      typeof (record.data as { length?: unknown }).length === 'number'
+    ) {
+      return (record.data as { length: number }).length
+    }
+    if (typeof record.length === 'number') return record.length
+  }
+  return null
+}
+
 let generator: TextGenerator | null = null
 let generatorKey = ''
 let generatorTokenizer: PreTrainedTokenizer | null = null
@@ -175,7 +197,8 @@ async function handleGenerate(message: Extract<Inbound, { type: 'generate' }>): 
       add_generation_prompt: true,
     }) as unknown
     tokenizeMs = Math.round(performance.now() - tokenizeStart)
-    promptTokens = Array.isArray(ids) ? ids.length : null
+    // tokenize:true returns a Tensor ({ dims, data }), not a number[].
+    promptTokens = countTokenIds(ids)
   } catch {
     // Token counting is measurement-only; generation continues regardless.
   }
@@ -207,11 +230,7 @@ async function handleGenerate(message: Extract<Inbound, { type: 'generate' }>): 
   let outputTokens: number | null = null
   try {
     const encoded = generatorTokenizer?.encode(finalText) as unknown
-    outputTokens = Array.isArray(encoded)
-      ? encoded.length
-      : typeof (encoded as { length?: unknown })?.length === 'number'
-        ? ((encoded as { length: number }).length as number)
-        : null
+    outputTokens = countTokenIds(encoded)
   } catch {
     // Measurement-only.
   }

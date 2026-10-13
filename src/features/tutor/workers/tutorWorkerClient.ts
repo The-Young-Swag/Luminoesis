@@ -171,13 +171,13 @@ export function createTutorWorker(): TutorWorkerClient | null {
     if (message.type === 'ready') {
       pending.delete(message.id)
       clearCallTimers(call)
-      call.resolve({ text: '' })
-      // Load timings travel on the phase side channel (see load()).
-      call.onPhase?.(
-        message.timings !== undefined && message.timings !== null
-          ? `ready:${JSON.stringify(message.timings)}`
-          : 'ready',
-      )
+      call.resolve({
+        text: '',
+        timings:
+          message.timings !== undefined && message.timings !== null
+            ? (message.timings as WorkerLoadTimings)
+            : null,
+      })
       return
     }
 
@@ -239,21 +239,14 @@ export function createTutorWorker(): TutorWorkerClient | null {
   return {
     load(modelId, device, dtype, onProgress) {
       return new Promise<WorkerLoadTimings | null>((resolve, reject) => {
-        let loadTimings: WorkerLoadTimings | null = null
         send(
           { type: 'load', modelId, device, dtype },
           {
             onProgress,
-            onPhase: (phase) => {
-              if (phase.startsWith('ready:')) {
-                try {
-                  loadTimings = JSON.parse(phase.slice(6)) as WorkerLoadTimings
-                } catch {
-                  loadTimings = null
-                }
-              }
+            resolve: (value: { text: string; timings?: unknown }) => {
+              const timings = value.timings as WorkerLoadTimings | null | undefined
+              resolve(timings ?? null)
             },
-            resolve: () => resolve(loadTimings),
             reject,
           },
           LOAD_DOWNLOAD_BUDGET,

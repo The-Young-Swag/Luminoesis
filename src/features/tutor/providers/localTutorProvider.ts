@@ -127,7 +127,7 @@ async function createTextPipeline(modelId: string): Promise<{ pipe: unknown; dev
     // Thread config is an optimization, never a blocker.
   }
 
-  if (hasWebGpu()) {
+  if (await probeWebGpuAdapter()) {
     try {
       const pipe = await pipeline('text-generation', modelId, {
         dtype: 'q4',
@@ -149,6 +149,28 @@ async function createTextPipeline(modelId: string): Promise<{ pipe: unknown; dev
 
 export function describeWasmRuntime(): { isolated: boolean; threads: number } {
   return { isolated: isCrossOriginIsolatedContext(), threads: resolveWasmThreads() }
+}
+
+/** Token count from whatever shape a tokenizer call returns. */
+function countTokenIds(ids: unknown): number | null {
+  if (Array.isArray(ids)) return ids.length
+  if (ids !== null && typeof ids === 'object') {
+    const record = ids as { dims?: unknown; data?: unknown; length?: unknown }
+    if (Array.isArray(record.dims) && record.dims.length > 0) {
+      const last = record.dims[record.dims.length - 1]
+      if (typeof last === 'number') return last
+      if (typeof last === 'bigint') return Number(last)
+    }
+    if (
+      record.data !== null &&
+      typeof record.data === 'object' &&
+      typeof (record.data as { length?: unknown }).length === 'number'
+    ) {
+      return (record.data as { length: number }).length
+    }
+    if (typeof record.length === 'number') return record.length
+  }
+  return null
 }
 
 function timeoutPromise<T>(ms: number, label: string): Promise<T> {
@@ -680,8 +702,12 @@ async function ensureWorkerLoaded(
 
   const modelId = LOCAL_MODEL_IDS[tier]
   const startedAt = performance.now()
+  // Probe for a real adapter: 'gpu' in navigator is true on headless
+  // Chromium with no GPU, and a blind q4 attempt would download ~390MB
+  // before failing. The probe costs ~ms (cached after the first call).
+  const webGpuUsable = await probeWebGpuAdapter()
 
-  if (hasWebGpu()) {
+  if (webGpuUsable) {
     try {
       const timings = await worker.load(modelId, 'webgpu', 'q4', onProgress)
       workerLoadedTier = tier
@@ -869,7 +895,8 @@ export class LocalTutorProvider implements TutorProvider {
           add_generation_prompt: true,
         }) as unknown
         tokenizeMs = Math.round(performance.now() - tokenizeStart)
-        promptTokens = Array.isArray(ids) ? ids.length : null
+        // tokenize:true returns a Tensor ({ dims, data }), not a number[].
+        promptTokens = countTokenIds(ids)
       } catch {
         // Measurement-only.
       }
@@ -928,11 +955,7 @@ export class LocalTutorProvider implements TutorProvider {
       let outputTokens: number | null = null
       try {
         const encoded = tokenizer?.encode?.(generated) as unknown
-        outputTokens = Array.isArray(encoded)
-          ? encoded.length
-          : typeof (encoded as { length?: unknown })?.length === 'number'
-            ? (encoded as { length: number }).length
-            : null
+        outputTokens = countTokenIds(encoded)
       } catch {
         // Measurement-only.
       }
