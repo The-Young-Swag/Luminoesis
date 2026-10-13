@@ -18,6 +18,7 @@ import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ReviewRouteImport } from './routes/review'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ConceptsConceptIdRouteImport } from './routes/concepts.$conceptId'
+import { Route as DebugEmbeddingRouteImport } from './routes/debug.embedding'
 import { Route as LearningSpacesIndexRouteImport } from './routes/learning-spaces/index'
 import { Route as LearningSpacesLearningSpaceIdRouteImport } from './routes/learning-spaces.$learningSpaceId'
 import { Route as MaterialMaterialIdRouteImport } from './routes/material.$materialId'
@@ -67,6 +68,11 @@ const ConceptsConceptIdRoute = ConceptsConceptIdRouteImport.update({
   path: '/concepts/$conceptId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DebugEmbeddingRoute = DebugEmbeddingRouteImport.update({
+  id: '/debug/embedding',
+  path: '/debug/embedding',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LearningSpacesIndexRoute = LearningSpacesIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -94,6 +100,7 @@ export interface FileRoutesByFullPath {
   '/review': typeof ReviewRoute
   '/settings': typeof SettingsRoute
   '/concepts/$conceptId': typeof ConceptsConceptIdRoute
+  '/debug/embedding': typeof DebugEmbeddingRoute
   '/learning-spaces/$learningSpaceId': typeof LearningSpacesLearningSpaceIdRoute
   '/material/$materialId': typeof MaterialMaterialIdRoute
   '/learning-spaces/': typeof LearningSpacesIndexRoute
@@ -107,6 +114,7 @@ export interface FileRoutesByTo {
   '/review': typeof ReviewRoute
   '/settings': typeof SettingsRoute
   '/concepts/$conceptId': typeof ConceptsConceptIdRoute
+  '/debug/embedding': typeof DebugEmbeddingRoute
   '/learning-spaces/$learningSpaceId': typeof LearningSpacesLearningSpaceIdRoute
   '/material/$materialId': typeof MaterialMaterialIdRoute
   '/learning-spaces': typeof LearningSpacesIndexRoute
@@ -122,6 +130,7 @@ export interface FileRoutesById {
   '/review': typeof ReviewRoute
   '/settings': typeof SettingsRoute
   '/concepts/$conceptId': typeof ConceptsConceptIdRoute
+  '/debug/embedding': typeof DebugEmbeddingRoute
   '/learning-spaces/$learningSpaceId': typeof LearningSpacesLearningSpaceIdRoute
   '/material/$materialId': typeof MaterialMaterialIdRoute
   '/learning-spaces/': typeof LearningSpacesIndexRoute
@@ -138,6 +147,7 @@ export interface FileRouteTypes {
     | '/review'
     | '/settings'
     | '/concepts/$conceptId'
+    | '/debug/embedding'
     | '/learning-spaces/$learningSpaceId'
     | '/material/$materialId'
     | '/learning-spaces/'
@@ -151,6 +161,7 @@ export interface FileRouteTypes {
     | '/review'
     | '/settings'
     | '/concepts/$conceptId'
+    | '/debug/embedding'
     | '/learning-spaces/$learningSpaceId'
     | '/material/$materialId'
     | '/learning-spaces'
@@ -165,6 +176,7 @@ export interface FileRouteTypes {
     | '/review'
     | '/settings'
     | '/concepts/$conceptId'
+    | '/debug/embedding'
     | '/learning-spaces/$learningSpaceId'
     | '/material/$materialId'
     | '/learning-spaces/'
@@ -180,6 +192,7 @@ export interface RootRouteChildren {
   ReviewRoute: typeof ReviewRoute
   SettingsRoute: typeof SettingsRoute
   ConceptsConceptIdRoute: typeof ConceptsConceptIdRoute
+  DebugEmbeddingRoute: typeof DebugEmbeddingRoute
   MaterialMaterialIdRoute: typeof MaterialMaterialIdRoute
 }
 
@@ -248,6 +261,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ConceptsConceptIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/debug/embedding': {
+      id: '/debug/embedding'
+      path: '/debug/embedding'
+      fullPath: '/debug/embedding'
+      preLoaderRoute: typeof DebugEmbeddingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/learning-spaces/': {
       id: '/learning-spaces/'
       path: '/'
@@ -296,17 +316,9 @@ const rootRouteChildren: RootRouteChildren = {
   ReviewRoute: ReviewRoute,
   SettingsRoute: SettingsRoute,
   ConceptsConceptIdRoute: ConceptsConceptIdRoute,
+  DebugEmbeddingRoute: DebugEmbeddingRoute,
   MaterialMaterialIdRoute: MaterialMaterialIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}
