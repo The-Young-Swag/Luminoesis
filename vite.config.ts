@@ -94,7 +94,17 @@ const config = defineConfig({
       },
     }),
   ],
-  server: { host: '0.0.0.0', port: 3000 },
+  server: {
+    host: '0.0.0.0',
+    port: 3000,
+    headers: {
+      // Cross-origin isolation for multi-threaded WASM (SharedArrayBuffer).
+      // credentialless (not require-corp) so Hugging Face, jsDelivr, and
+      // Google Fonts keep loading without CORP headers on their side.
+      'Cross-Origin-Opener-Policy': 'same-origin',
+      'Cross-Origin-Embedder-Policy': 'credentialless',
+    },
+  },
   preview: { host: '0.0.0.0', port: 3000 },
   test: {
     environment: 'jsdom',

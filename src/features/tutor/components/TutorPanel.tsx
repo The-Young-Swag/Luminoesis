@@ -11,7 +11,10 @@ import {
 import { CornerDownLeft, Info, Sparkles } from 'lucide-react'
 
 import { tutorService } from '#/features/tutor/application/tutorService'
-import { localTutorProvider } from '#/features/tutor/providers/localTutorProvider'
+import {
+  cancelTutorLoad,
+  localTutorProvider,
+} from '#/features/tutor/providers/localTutorProvider'
 import { TutorTimingReadout } from '#/features/tutor/components/TutorTimingReadout'
 import { settingsRepository } from '#/shared/repositories/settingsRepository'
 import type { TutorMessage } from '#/features/tutor/domain/tutor'
@@ -217,6 +220,7 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
                   provider: response.provider,
                   execution: response.execution,
                   citation: response.citation,
+                  notice: response.notice,
                 }
               : message,
           ),
@@ -292,9 +296,15 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
             <div className="flex shrink-0 items-center gap-2">
               <span className="chip">Local AI</span>
 
-              <span className="chip text-[10px] text-(--blue)">
-                Gemini — Coming soon
-              </span>
+              {escalationOn ? (
+                <span className="chip text-[10px] text-(--warning-strong)">
+                  Escalation on
+                </span>
+              ) : (
+                <span className="chip text-[10px]">
+                  Escalation off
+                </span>
+              )}
 
               {headerAction}
             </div>
@@ -356,8 +366,20 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
                 <span className="truncate">
                   Downloading on-device model{modelFile ? ` · ${modelFile}` : ''}…
                 </span>
-                <span className="shrink-0 tabular-nums">
-                  {Math.round(modelProgress * 100)}%
+                <span className="flex shrink-0 items-center gap-2">
+                  <span className="tabular-nums">
+                    {Math.round(modelProgress * 100)}%
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      cancelTutorLoad()
+                      setModelStatus('unavailable')
+                    }}
+                    className="rounded-md border border-(--line) px-1.5 py-0.5 font-sans text-[10px] font-semibold text-(--ink-soft) transition-colors hover:text-(--ink)"
+                  >
+                    Cancel
+                  </button>
                 </span>
               </div>
               <div
@@ -477,6 +499,12 @@ function TutorMessageBubble({
         {message.provider === 'gemini' && (
           <p className="mt-1.5 px-1 text-[10.5px] leading-relaxed text-(--ink-soft)">
             Gemini · Online AI
+          </p>
+        )}
+
+        {message.notice && (
+          <p className="mt-1.5 px-1 text-[10.5px] leading-relaxed text-(--ink-soft)">
+            {message.notice}
           </p>
         )}
       </div>

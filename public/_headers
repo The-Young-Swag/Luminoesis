@@ -1,0 +1,6 @@
+# Cross-origin isolation for multi-threaded WASM (SharedArrayBuffer).
+# credentialless (not require-corp) so Hugging Face, jsDelivr, and Google
+# Fonts keep loading without CORP headers on their side.
+/*
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Embedder-Policy: credentialless

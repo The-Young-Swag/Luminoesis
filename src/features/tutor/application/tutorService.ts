@@ -80,7 +80,13 @@ async function maybeEscalate(
     return await fetchGeminiTutor(request, { onToken })
   } catch (error) {
     console.warn('[tutor] escalation failed, keeping local answer', error)
-    return null
+    // Fall back to the local answer with a clear, non-technical message.
+    // Failures never burn quota (the server consumes it only on success).
+    const message =
+      error instanceof Error && error.message
+        ? error.message
+        : 'Online Tutor is temporarily unavailable.'
+    return { ...localResponse, notice: message }
   }
 }
 

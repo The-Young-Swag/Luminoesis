@@ -22,6 +22,7 @@ export type TutorMessage = {
   execution?: TutorExecution
   citation?: TutorCitation
   selectedText?: string
+  notice?: string
 }
 
 export type TutorConversationMessage = {
@@ -101,6 +102,12 @@ export type TutorResponse = {
    * rather than a separate provenance system.
    */
   webSources?: WebSource[]
+  /*
+   * Set when cloud escalation was attempted but failed: the local answer
+   * still stands, and this plain-language note explains why. Rendered as
+   * a caption under the answer — never technical, never a stack trace.
+   */
+  notice?: string
 }
 
 export type TutorProviderId = 'local' | 'gemini'

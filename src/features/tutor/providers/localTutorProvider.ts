@@ -49,6 +49,41 @@ function hasWebGpu(): boolean {
   return typeof navigator !== 'undefined' && 'gpu' in navigator
 }
 
+let adapterProbe: Promise<boolean> | null = null
+
+/*
+ * 'gpu' in navigator is not enough — requestAdapter() can still return
+ * null (headless containers, blocklisted GPUs). Capable 1.7B is WebGPU
+ * only: without an adapter it would fall to a ≈1.7 GB WASM download that
+ * no phone should ever start. Probe once, cache, fall back to Standard.
+ */
+function probeWebGpuAdapter(): Promise<boolean> {
+  if (!adapterProbe) {
+    adapterProbe = (async () => {
+      try {
+        const gpu = (
+          navigator as Navigator & { gpu?: { requestAdapter: () => Promise<unknown> } }
+        ).gpu
+        if (!gpu) return false
+        return (await gpu.requestAdapter()) !== null
+      } catch {
+        return false
+      }
+    })()
+  }
+  return adapterProbe
+}
+
+async function resolveTier(tier: LocalModelTier): Promise<LocalModelTier> {
+  if (tier !== 'capable') return tier
+  const adapter = await probeWebGpuAdapter()
+  if (!adapter) {
+    console.warn('[tutor] no WebGPU adapter — capable tier unavailable, using standard')
+    return 'standard'
+  }
+  return tier
+}
+
 async function createTextPipeline(modelId: string): Promise<{ pipe: unknown; device: 'webgpu' | 'wasm' }> {
   const { pipeline, env } = await import('@huggingface/transformers')
 
@@ -580,15 +615,21 @@ function buildFallbackResponse(
 
 export type { TutorRespondOptions } from '../domain/tutor'
 
-/*
- * One shared worker per page. The model loads once per tier; every
- * question after that reuses it. Null where Workers are unavailable —
- * the provider then runs on the main thread instead.
- */
+/* Which tier the shared worker currently holds, if any. */
 let workerLoadedTier: LocalModelTier | null = null
 
 function getSharedWorker(): TutorWorkerClient | null {
   return getSharedTutorWorker()
+}
+
+/*
+ * Cancel an in-flight model load (download or session creation).
+ * Terminates the worker; the next ask or preload starts fresh from the
+ * HTTP/Cache layer (completed files are cached, never re-downloaded).
+ */
+export function cancelTutorLoad(): void {
+  resetSharedTutorWorker()
+  workerLoadedTier = null
 }
 
 async function ensureWorkerLoaded(
@@ -685,11 +726,12 @@ export class LocalTutorProvider implements TutorProvider {
     const resolved =
       tier ??
       (await settingsRepository.getLocalModelTier().catch(() => 'standard' as const))
+    const effective = await resolveTier(resolved)
     const worker = getSharedWorker()
     if (!worker) return false
 
     try {
-      await ensureWorkerLoaded(worker, resolved, onProgress)
+      await ensureWorkerLoaded(worker, effective, onProgress)
       return true
     } catch {
       return false
@@ -700,7 +742,7 @@ export class LocalTutorProvider implements TutorProvider {
     request: TutorRequest,
     options?: TutorRespondOptions,
   ): Promise<TutorResponse> {
-    const tier = options?.tier ?? 'standard'
+    const tier = await resolveTier(options?.tier ?? 'standard')
     const messages = buildMessages(request)
 
     const workerText = await this.respondViaWorker(tier, messages, options?.onToken)

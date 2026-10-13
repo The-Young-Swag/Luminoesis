@@ -104,6 +104,17 @@ async function callGemini(
     if (!gemResponse.ok || !gemResponse.body) {
       const errText = await gemResponse.text().catch(() => '')
       console.error('[tutor] gemini error', gemResponse.status, errText.slice(0, 500))
+      // A retired or unknown model ID is a config problem, not a user
+      // problem: say so plainly, and never burn quota on it (callers only
+      // consume quota after a successful answer).
+      if (
+        gemResponse.status === 404 ||
+        /not_?found|is not found|does not exist|retired|removed|not supported/i.test(errText)
+      ) {
+        throw new Error(
+          'The online Tutor model is unavailable right now — your on-device answer below still stands.',
+        )
+      }
       throw new Error('Online Tutor is temporarily unavailable.')
     }
 

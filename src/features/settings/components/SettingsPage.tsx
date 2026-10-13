@@ -13,11 +13,34 @@ export function SettingsPage() {
   const [optIn, setOptIn] = useState<boolean | null>(null)
   const [modelTier, setModelTier] = useState<'standard' | 'capable'>('standard')
   const [escalation, setEscalation] = useState(false)
+  // Capable 1.7B needs WebGPU (q4 ≈ 1.4 GB; the WASM q8 fallback is even
+  // larger at ≈ 1.7 GB). Probe for a real adapter — never offer it on
+  // WASM-only devices.
+  const [webGpuAvailable, setWebGpuAvailable] = useState<boolean | null>(null)
 
   useEffect(() => {
     loadPrivacyData().then((data) => setOptIn(data.optIn)).catch(() => {})
     settingsRepository.getLocalModelTier().then(setModelTier).catch(() => {})
     settingsRepository.getTutorEscalation().then(setEscalation).catch(() => {})
+
+    let cancelled = false
+    async function probeGpu() {
+      try {
+        const gpu = (navigator as Navigator & { gpu?: { requestAdapter: () => Promise<unknown> } }).gpu
+        if (!gpu) {
+          if (!cancelled) setWebGpuAvailable(false)
+          return
+        }
+        const adapter = await gpu.requestAdapter()
+        if (!cancelled) setWebGpuAvailable(adapter !== null)
+      } catch {
+        if (!cancelled) setWebGpuAvailable(false)
+      }
+    }
+    void probeGpu()
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   const handleOptIn = async (value: boolean) => {
@@ -110,38 +133,55 @@ export function SettingsPage() {
         <h2 className="text-sm font-semibold">On-device AI model</h2>
         <p className="mt-1 text-sm text-(--ink-soft)">
           Standard is fast and always available offline. Capable answers harder
-          questions but downloads about 1 GB on first use.
+          questions but downloads about 1.4 GB on first use, and only runs on
+          WebGPU.
         </p>
         <div
           className="mt-3 flex gap-2"
           role="radiogroup"
           aria-label="On-device AI model"
         >
-          {(
-            [
-              { value: 'standard', label: 'Standard · 360M' },
-              { value: 'capable', label: 'Capable · 1.7B' },
-            ] as const
-          ).map((option) => (
+          <button
+            type="button"
+            role="radio"
+            aria-checked={modelTier === 'standard'}
+            onClick={() => {
+              setModelTier('standard')
+              void settingsRepository.setLocalModelTier('standard')
+            }}
+            className={`card-flat px-4 py-2 text-sm transition ${
+              modelTier === 'standard' ? 'ring-2 ring-(--veridian)' : ''
+            }`}
+          >
+            Standard · 360M
+          </button>
+
+          {webGpuAvailable === true && (
             <button
-              key={option.value}
               type="button"
               role="radio"
-              aria-checked={modelTier === option.value}
+              aria-checked={modelTier === 'capable'}
               onClick={() => {
-                setModelTier(option.value)
-                void settingsRepository.setLocalModelTier(option.value)
+                setModelTier('capable')
+                void settingsRepository.setLocalModelTier('capable')
               }}
               className={`card-flat px-4 py-2 text-sm transition ${
-                modelTier === option.value ? 'ring-2 ring-(--veridian)' : ''
+                modelTier === 'capable' ? 'ring-2 ring-(--veridian)' : ''
               }`}
             >
-              {option.label}
+              Capable · 1.7B · ≈1.4 GB
             </button>
-          ))}
+          )}
         </div>
+        {webGpuAvailable === false && (
+          <p className="mt-2 text-xs text-(--ink-soft)">
+            Capable needs WebGPU, which this device or browser doesn’t offer —
+            Standard stays selected.
+          </p>
+        )}
         <p className="mt-2 text-xs text-(--ink-soft)">
-          If the capable build fails to load, answers silently fall back to Standard.
+          If the capable build fails to load, answers fall back to Standard.
+          Downloads show progress with cancel in the tutor panel.
         </p>
       </div>
 
