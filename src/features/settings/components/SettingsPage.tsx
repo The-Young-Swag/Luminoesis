@@ -105,7 +105,7 @@ export function SettingsPage() {
       <div className="card-flat p-5">
         <h2 className="text-sm font-semibold">Adaptive learning</h2>
         <p className="mt-1 text-sm text-(--ink-soft)">
-          When enabled, Luminoesis measures timing only (how you type, not what
+          When enabled, LumiNoesis measures timing only (how you type, not what
           you type) to build a private baseline.
         </p>
         <div className="mt-3 flex items-center gap-2">

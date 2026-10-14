@@ -100,7 +100,7 @@ function buildGeminiPrompt(parsed: TutorPromptInput): string {
   }
 
   return [
-    'You are Luminoesis Tutor — a helpful, private learning companion.',
+    'You are Sophia — a helpful, private learning companion.',
     'Ground answers in the provided material and concepts. Do not fabricate citations.',
     'Keep answers concise and focused on understanding.',
     contextParts.join('\n\n'),

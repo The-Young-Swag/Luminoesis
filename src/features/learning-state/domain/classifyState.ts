@@ -40,7 +40,7 @@ export function classifyLearningState({
     return {
       state: 'Insufficient Signal',
       reason:
-        'Not enough personal signal yet. Standard scheduling is being used while Luminoesis learns your rhythm.',
+        'Not enough personal signal yet. Standard scheduling is being used while LumiNoesis learns your rhythm.',
     }
   }
 

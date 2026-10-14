@@ -35,8 +35,8 @@ const config = defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico'],
       manifest: {
-        name: 'luminoesis — Adaptive Study',
-        short_name: 'luminoesis',
+        name: 'LumiNoesis — Adaptive Study',
+        short_name: 'LumiNoesis',
         description:
           'Offline-first adaptive spaced-repetition that senses rhythm, adapts review, surfaces insight.',
         theme_color: '#0A2018',

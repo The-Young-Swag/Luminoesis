@@ -46,7 +46,7 @@ export function DashboardHero({
               )}
             </h1>
             <p className="mt-3.5 max-w-[46ch] text-base leading-6 opacity-80">
-              Add study cards to your library and Luminoesis will schedule
+              Add study cards to your library and LumiNoesis will schedule
               focused reviews around your rhythm.
             </p>
           </>

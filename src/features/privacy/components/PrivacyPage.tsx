@@ -121,7 +121,7 @@ export function PrivacyPage() {
       />
 
       <p className="mt-1 text-sm text-(--ink-soft)">
-        Luminoesis does not record the words you type. It only measures{' '}
+        LumiNoesis does not record the words you type. It only measures{' '}
         <em>timing</em> — how you type, not what you write. That protection is
         built in: the instant a key is pressed, only a number (the timing) is
         kept, and the actual character is thrown away before anything is ever
@@ -210,7 +210,7 @@ export function PrivacyPage() {
         </div>
 
         <p className="mt-2 text-xs text-(--ink-soft)">
-          If you opt out, or on non-keyboard input, Luminoesis still works
+          If you opt out, or on non-keyboard input, LumiNoesis still works
           fully — it simply falls back to a standard study scheduler with no
           personalization.
         </p>
@@ -221,7 +221,7 @@ export function PrivacyPage() {
           <h3 className="text-sm font-semibold">Your personal baseline</h3>
 
           <p className="mt-1 text-xs text-(--ink-soft)">
-            A reference built from your own typing, so Luminoesis can notice
+            A reference built from your own typing, so LumiNoesis can notice
             when your rhythm changes. “Typical” is your normal value; “spread”
             is how much it usually varies.
           </p>
@@ -326,7 +326,7 @@ export function PrivacyPage() {
         <h3 className="text-sm font-semibold">Sophia &amp; your privacy</h3>
 
         <p className="mt-1 text-sm leading-relaxed text-(--ink-soft)">
-          Luminoesis prefers on-device AI when available — it&apos;s private, offline,
+          LumiNoesis prefers on-device AI when available — it&apos;s private, offline,
           and nothing leaves your device. If local AI can&apos;t run on your device,
           you may use Sophia online as a fallback. When you do, the selected
           learning context (your question, highlighted text, and a short excerpt

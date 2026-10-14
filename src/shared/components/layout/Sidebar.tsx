@@ -197,7 +197,7 @@ function MobileHeader({
         <BrandMark size={32} />
 
         <span className="display text-lg tracking-tight text-(--ink)">
-          Luminoesis
+          LumiNoesis
         </span>
       </Link>
 
@@ -399,10 +399,10 @@ function DesktopSidebar({
     >
       <div className="flex min-h-0 w-full flex-col">
         <div className={cx('flex h-14 shrink-0 items-center border-b border-sidebar-border', collapsed ? 'justify-center px-2' : 'gap-2.5 px-4')}>
-          <Link to="/" className={cx('flex items-center no-underline', collapsed ? 'justify-center' : 'min-w-0 flex-1 gap-2.5')} aria-label="Luminoesis home">
+          <Link to="/" className={cx('flex items-center no-underline', collapsed ? 'justify-center' : 'min-w-0 flex-1 gap-2.5')} aria-label="LumiNoesis home">
             <BrandMark size={34} />
             {!collapsed && (
-              <span translate="no" className="display truncate text-[19px] font-semibold tracking-tight">Luminoesis</span>
+              <span translate="no" className="display truncate text-[19px] font-semibold tracking-tight">LumiNoesis</span>
             )}
           </Link>
         </div>

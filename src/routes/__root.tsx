@@ -44,7 +44,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
         content: 'width=device-width, initial-scale=1',
       },
       {
-        title: 'Luminoesis — Adaptive Study',
+        title: 'LumiNoesis — Adaptive Study',
       },
       {
         name: 'description',
@@ -77,6 +77,15 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       {
         rel: 'stylesheet',
         href: appCss,
+      },
+      {
+        rel: 'icon',
+        type: 'image/png',
+        href: '/assets/luminoesis-mark-64.png',
+      },
+      {
+        rel: 'apple-touch-icon',
+        href: '/assets/luminoesis-mark-192.png',
       },
       {
         rel: 'manifest',

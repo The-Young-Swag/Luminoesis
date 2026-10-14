@@ -79,7 +79,7 @@ function RhythmCalibratingNotice() {
         <p className="text-sm font-medium">Your rhythm is still calibrating</p>
 
         <p className="mt-1.5 text-xs leading-5 text-(--ink-soft)">
-          Complete a few more sensed review observations and Luminoesis will begin showing your personal
+          Complete a few more sensed review observations and LumiNoesis will begin showing your personal
           learning rhythm.
         </p>
       </div>

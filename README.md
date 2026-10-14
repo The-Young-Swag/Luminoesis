@@ -1,4 +1,4 @@
-# Luminoesis — Adaptive Study
+# LumiNoesis — Adaptive Study
 
 **Offline-first. On-device. Timing-only.**  
 *The first study tool that knows when you’re actually able to learn — not by asking you, but by noticing how you type.*

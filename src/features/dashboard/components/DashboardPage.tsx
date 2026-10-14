@@ -99,7 +99,7 @@ export function DashboardPage() {
             Complete 5 sessions to unlock your rhythm
           </h2>
           <p className="mt-2 max-w-xl text-sm leading-6 text-(--ink-soft)">
-            Luminoesis learns when you are sharpest by watching typing timing —
+            LumiNoesis learns when you are sharpest by watching typing timing —
             never what you type. Everything stays on this device.
           </p>
 

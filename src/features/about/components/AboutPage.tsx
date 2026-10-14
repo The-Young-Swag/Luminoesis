@@ -31,11 +31,11 @@ const CONTACTS = [
 export function AboutPage() {
   return (
     <div className="page-wrap max-w-220 space-y-4 py-6 md:py-8">
-      <PageHeader title="About" context="The maker behind Luminoesis" />
+      <PageHeader title="About" context="The maker behind LumiNoesis" />
 
       <section aria-labelledby="about-heading" className="card-flat p-6 md:p-8">
-        <div className="grid gap-6 sm:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] sm:gap-8">
-          <figure className="mx-auto w-full max-w-55 sm:mx-0">
+        <div className="grid gap-5 sm:grid-cols-[auto_minmax(0,1fr)] sm:gap-5">
+          <figure className="mx-auto w-44 sm:mx-0 sm:w-52">
             <span className="block rounded-2xl border border-(--line) bg-(--surface-muted)/50 p-2">
               <img
                 src="/assets/IVAN_HARVEY_RIVERA.jpg"
@@ -50,23 +50,25 @@ export function AboutPage() {
           </figure>
 
           <div className="min-w-0">
-            <p
+            <div
               id="about-heading"
-              className="display text-balance text-2xl leading-tight tracking-tight"
+              className="text-balance leading-tight tracking-tight"
             >
-              Developed by{' '}
+              <span className="block text-[13px] font-semibold text-(--ink-soft)">
+                Developed By
+              </span>
               <a
                 href={PORTFOLIO_URL}
                 target="_blank"
                 rel="noreferrer"
-                className="underline decoration-(--accent-line) decoration-2 underline-offset-4 transition-colors hover:text-(--accent) hover:decoration-(--accent)"
+                className="display mt-1 block text-2xl underline decoration-(--accent-line) decoration-2 underline-offset-4 transition-colors hover:text-(--accent) hover:decoration-(--accent)"
               >
                 Ivan Harvey Rivera
               </a>
-            </p>
+            </div>
 
             <p className="mt-3 max-w-xl text-sm leading-6 text-(--ink-soft)">
-              Luminoesis is an offline-first study companion that senses rhythm,
+              LumiNoesis is an offline-first study companion that senses rhythm,
               adapts review, and surfaces insight — built and designed by one
               developer.
             </p>

@@ -59,7 +59,7 @@ export function RhythmCard({
         </div>
 
         <p className="mt-4 text-[13.5px] leading-6 text-(--ink-soft)">
-          Your sharpest study window shows up here once Luminoesis has seen a
+          Your sharpest study window shows up here once LumiNoesis has seen a
           few sessions. It reads typing timing only, never what you type.
         </p>
       </div>
