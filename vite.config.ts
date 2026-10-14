@@ -122,7 +122,13 @@ const config = defineConfig({
       'Cross-Origin-Embedder-Policy': 'credentialless',
     },
   },
-  preview: { host: '0.0.0.0', port: 3000 },
+  preview: {
+    host: '0.0.0.0',
+    port: 3000,
+    // Render serves the app on *.onrender.com — allow the production host
+    // (Vite blocks unknown Host headers by default).
+    allowedHosts: ['luminoesis.onrender.com'],
+  },
   test: {
     environment: 'jsdom',
     globals: true,
