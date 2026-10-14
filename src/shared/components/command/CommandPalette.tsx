@@ -3,6 +3,7 @@ import { useNavigate, useRouterState } from '@tanstack/react-router'
 import {
   Brain,
   GraduationCap,
+  Landmark,
   Layers3,
   LayoutDashboard,
   Library,
@@ -40,6 +41,7 @@ function buildCommands(toggleTheme: () => void, isDark: boolean): Command[] {
     { id: 'go-flashcards', label: 'Go to Flashcards', hint: 'Decks', icon: Brain, keywords: 'flashcards decks', to: '/flashcards' },
     { id: 'go-privacy', label: 'Go to Privacy', hint: 'Control', icon: ShieldCheck, keywords: 'privacy data export delete control', to: '/privacy' },
     { id: 'go-settings', label: 'Go to Settings', hint: 'Preferences', icon: Settings2, keywords: 'settings preferences options', to: '/settings' },
+    { id: 'go-about', label: 'Go to About', hint: 'Maker', icon: Landmark, keywords: 'about developer contact portfolio', to: '/about' },
     { id: 'act-review', label: 'Start focused review', hint: 'Action', icon: GraduationCap, keywords: 'start review session now', to: '/review' },
     { id: 'act-add', label: 'Add study card', hint: 'Action', icon: Plus, keywords: 'add new card create', to: '/library' },
     {

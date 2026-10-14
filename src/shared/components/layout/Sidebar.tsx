@@ -1,6 +1,7 @@
 import { Link, useRouterState } from '@tanstack/react-router'
 import {
   GraduationCap,
+  Landmark,
   Layers3,
   LayoutDashboard,
   Library,
@@ -336,6 +337,10 @@ function MobileDrawer({
           className="sidebar-scroll min-h-0 flex-1 overflow-y-auto p-4"
         >
           <SidebarNav onNavigate={onClose} />
+
+          <div className="mt-1">
+            <AboutNavEntry onNavigate={onClose} />
+          </div>
         </nav>
 
         <div className="flex shrink-0 items-center justify-between border-t border-sidebar-border p-4">
@@ -410,6 +415,8 @@ function DesktopSidebar({
         </nav>
 
         <div className={cx('shrink-0 border-t border-sidebar-border p-3', collapsed ? 'flex flex-col items-center gap-1.5' : 'space-y-2')}>
+          <AboutNavEntry collapsed={collapsed} />
+
           {!collapsed && (
             <p className="flex items-center gap-2 rounded-[14px] bg-(--surface-muted)/60 px-3 py-2.5 text-[13px] text-(--ink-soft)">
               <span className="pulse-dot" aria-hidden="true" />
@@ -555,6 +562,54 @@ function SidebarNavLink({
           {badge > 99 ? '99+' : badge}
         </span>
       )}
+    </Link>
+  )
+}
+
+/* -------------------------------------------------------------------------- */
+/* About — footer entry navigating to the dedicated About page */
+/* -------------------------------------------------------------------------- */
+
+function AboutNavEntry({
+  onNavigate,
+  collapsed = false,
+}: {
+  onNavigate?: () => void
+  collapsed?: boolean
+}) {
+  if (collapsed) {
+    return (
+      <Link
+        to="/about"
+        onClick={onNavigate}
+        aria-label="About"
+        title="About"
+        className="sidebar-link grid h-11 w-11 place-items-center"
+        activeProps={{
+          className: 'sidebar-link is-active grid h-11 w-11 place-items-center',
+          'aria-current': 'page',
+        } as unknown as Record<string, unknown>}
+      >
+        <Landmark size={19} aria-hidden="true" />
+      </Link>
+    )
+  }
+
+  return (
+    <Link
+      to="/about"
+      onClick={onNavigate}
+      className="sidebar-link"
+      activeProps={{
+        className: 'sidebar-link is-active',
+        'aria-current': 'page',
+      }}
+    >
+      <Landmark size={19} aria-hidden="true" />
+
+      <span className="min-w-0 flex-1 truncate text-[15px] font-medium">
+        About
+      </span>
     </Link>
   )
 }
