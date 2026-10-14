@@ -41,6 +41,21 @@ export type Material = {
   extractionStatus: MaterialExtractionStatus
   createdAt: number
   updatedAt: number
+  /*
+   * Facts about the document itself (cover identity, not content):
+   * PDF metadata plus the first page's text. Stored at ingestion so
+   * document-info questions ("who wrote this?") are answered from these
+   * facts without retrieval or a model call. Optional and unindexed, so
+   * no Dexie version bump was needed — old rows simply lack the field.
+   */
+  documentInfo?: MaterialDocumentInfo
+}
+
+export type MaterialDocumentInfo = {
+  title?: string
+  author?: string
+  pageCount?: number
+  firstPageText?: string
 }
 
 export type Concept = {

@@ -1,4 +1,5 @@
 import type { Material } from '#/features/learning-space/domain/learningSpace'
+import type { MaterialDocumentInfo } from '#/features/learning-space/domain/learningSpace'
 import type { MaterialContentBlock } from '#/features/learning-space/domain/materialContent'
 import { materialRepository } from '#/features/learning-space/repositories/materialRepository'
 import { loadPdfjs } from './pdfWorker'
@@ -41,7 +42,20 @@ async function extractTextFile(file: File): Promise<string> {
   return file.text()
 }
 
-async function extractPdfFile(file: File): Promise<string> {
+/*
+ * Same parse as the old extractPdfFile, plus the document facts pdfjs gives us
+ * for free: metadata (Title/Author) and the true page count. Metadata is
+ * read here — and only here — because this is the one place that holds
+ * the open document; reopening the file elsewhere just for facts would
+ * parse the whole PDF twice.
+ */
+async function extractPdfDocument(file: File): Promise<{
+  text: string
+  title?: string
+  author?: string
+  pageCount?: number
+  firstPageText?: string
+}> {
   // Apache 2.0, portfolio-safe. If pdfjs is not installed or fails, we throw
   // and the caller marks extraction failed honestly.
   const pdfjs = await loadPdfjs()
@@ -64,7 +78,36 @@ async function extractPdfFile(file: File): Promise<string> {
       .trim()
     if (pageText) texts.push(pageText)
   }
-  return texts.join('\n\n')
+
+  const facts: {
+    title?: string
+    author?: string
+    pageCount?: number
+    firstPageText?: string
+  } = {}
+  const pageCount = typeof pdf.numPages === 'number' ? pdf.numPages : undefined
+  if (pageCount !== undefined) facts.pageCount = pageCount
+  const firstPage = texts[0]?.trim()
+  if (firstPage) facts.firstPageText = firstPage
+  try {
+    const meta = (await pdf.getMetadata()) as unknown as {
+      info?: Record<string, unknown>
+    }
+    const title = cleanMetadataText(meta.info?.Title)
+    const author = cleanMetadataText(meta.info?.Author)
+    if (title) facts.title = title
+    if (author) facts.author = author
+  } catch {
+    // Metadata is a nicety — text extraction already succeeded.
+  }
+
+  return { text: texts.join('\n\n'), ...facts }
+}
+
+function cleanMetadataText(value: unknown): string | undefined {
+  if (typeof value !== 'string') return undefined
+  const trimmed = value.trim()
+  return trimmed.length > 0 ? trimmed : undefined
 }
 
 async function extractDocxFile(file: File): Promise<string> {
@@ -182,6 +225,7 @@ export async function processMaterialExtraction(file: File, material: Material):
   try {
     let raw = ''
     let blocks: MaterialContentBlock[] = []
+    let documentInfo: MaterialDocumentInfo | undefined
 
     switch (material.type) {
       case 'text':
@@ -192,7 +236,14 @@ export async function processMaterialExtraction(file: File, material: Material):
       }
       case 'pdf': {
         try {
-          raw = await extractPdfFile(file)
+          const doc = await extractPdfDocument(file)
+          raw = doc.text
+          const info: MaterialDocumentInfo = {}
+          if (doc.title) info.title = doc.title
+          if (doc.author) info.author = doc.author
+          if (doc.pageCount !== undefined) info.pageCount = doc.pageCount
+          if (doc.firstPageText) info.firstPageText = doc.firstPageText
+          if (Object.keys(info).length > 0) documentInfo = info
         } catch (error) {
           console.warn('[extraction] pdf failed', error)
           throw new Error('PDF extraction failed — try a text/Markdown file or add content manually.')
@@ -243,8 +294,13 @@ export async function processMaterialExtraction(file: File, material: Material):
     }
 
     // Empty content is honest — not fabricated. Mark ready but with no blocks.
+    // Document facts (e.g. PDF metadata) are still worth keeping.
     if (blocks.length === 0 && raw.trim().length === 0) {
-      await materialRepository.update(material.id, { extractionStatus: 'ready', updatedAt: Date.now() })
+      await materialRepository.update(material.id, {
+        extractionStatus: 'ready',
+        updatedAt: Date.now(),
+        ...(documentInfo ? { documentInfo } : {}),
+      })
       await saveMaterialContent({ materialId: material.id, source: 'extracted', blocks: [] })
       return
     }
@@ -252,8 +308,19 @@ export async function processMaterialExtraction(file: File, material: Material):
     // Truncate very large docs for IndexedDB sanity (keep first ~200 blocks, ~8000 chars each)
     const truncated = blocks.slice(0, 200)
 
+    // Non-PDF types have no metadata; their first block doubles as the
+    // first-page text so document-info answers still have a source.
+    if (!documentInfo) {
+      const firstBlock = truncated[0]?.text.trim()
+      if (firstBlock) documentInfo = { firstPageText: firstBlock }
+    }
+
     await saveMaterialContent({ materialId: material.id, source: 'extracted', blocks: truncated })
-    await materialRepository.update(material.id, { extractionStatus: 'ready', updatedAt: Date.now() })
+    await materialRepository.update(material.id, {
+      extractionStatus: 'ready',
+      updatedAt: Date.now(),
+      ...(documentInfo ? { documentInfo } : {}),
+    })
 
     // Warm the tutor's retrieval index in the background so the first
     // question never pays tokenization.
