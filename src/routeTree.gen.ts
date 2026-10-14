@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AboutRouteImport } from './routes/about'
 import { Route as FlashcardsRouteImport } from './routes/flashcards'
 import { Route as InsightsRouteImport } from './routes/insights'
 import { Route as LearningSpacesRouteImport } from './routes/learning-spaces'
@@ -26,6 +27,11 @@ import { Route as MaterialMaterialIdRouteImport } from './routes/material.$mater
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FlashcardsRoute = FlashcardsRouteImport.update({
@@ -92,6 +98,7 @@ const MaterialMaterialIdRoute = MaterialMaterialIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/flashcards': typeof FlashcardsRoute
   '/insights': typeof InsightsRoute
   '/learning-spaces': typeof LearningSpacesRouteWithChildren
@@ -107,6 +114,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/flashcards': typeof FlashcardsRoute
   '/insights': typeof InsightsRoute
   '/library': typeof LibraryRoute
@@ -122,6 +130,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/flashcards': typeof FlashcardsRoute
   '/insights': typeof InsightsRoute
   '/learning-spaces': typeof LearningSpacesRouteWithChildren
@@ -139,6 +148,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/about'
     | '/flashcards'
     | '/insights'
     | '/learning-spaces'
@@ -154,6 +164,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/about'
     | '/flashcards'
     | '/insights'
     | '/library'
@@ -168,6 +179,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/about'
     | '/flashcards'
     | '/insights'
     | '/learning-spaces'
@@ -184,6 +196,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AboutRoute: typeof AboutRoute
   FlashcardsRoute: typeof FlashcardsRoute
   InsightsRoute: typeof InsightsRoute
   LearningSpacesRoute: typeof LearningSpacesRouteWithChildren
@@ -203,6 +216,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/flashcards': {
@@ -308,6 +328,7 @@ const LearningSpacesRouteWithChildren = LearningSpacesRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AboutRoute: AboutRoute,
   FlashcardsRoute: FlashcardsRoute,
   InsightsRoute: InsightsRoute,
   LearningSpacesRoute: LearningSpacesRouteWithChildren,
@@ -322,12 +343,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}
