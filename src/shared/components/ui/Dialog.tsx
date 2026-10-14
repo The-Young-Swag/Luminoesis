@@ -69,7 +69,7 @@ export function Dialog({
       onClick={(event) => {
         if (event.target === ref.current) onClose()
       }}
-      className={`app-dialog ${wide ? 'w-full max-w-3xl' : ''} ${alignTop ? 'mb-auto mt-[12vh]' : ''} ${className}`}
+      className={`app-dialog ${wide ? 'w-full max-w-3xl' : ''} ${alignTop ? 'app-dialog--top' : ''} ${className}`}
     >
       {children}
     </dialog>

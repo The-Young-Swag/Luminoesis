@@ -1417,6 +1417,13 @@ h2[id], h3[id], section[id] {
    ========================================================================== */
 
 dialog.app-dialog {
+  /*
+   * Tailwind preflight zeroes margin on * — including the UA stylesheet's
+   * margin:auto that centers native dialogs. Restore it explicitly (own
+   * rule, not utilities, so layer order can't break it again).
+   */
+  margin: auto;
+
   border: 1px solid var(--glass-border);
   border-radius: 24px;
 
@@ -1432,6 +1439,11 @@ dialog.app-dialog {
 
   max-width: min(560px, calc(100vw - 2rem));
   max-height: calc(100dvh - 4rem);
+}
+
+/* Top sheet variant (palette): top-centered, never top-left. */
+dialog.app-dialog--top {
+  margin: 12vh auto auto;
 }
 
 dialog.app-dialog::backdrop {
