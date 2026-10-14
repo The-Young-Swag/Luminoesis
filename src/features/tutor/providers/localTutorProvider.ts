@@ -851,24 +851,51 @@ function finishResponse(
 
   const previousSelectedText = getPreviousSelectedText(conversationHistory)
 
+  const citation = material
+    ? {
+        materialId: material.id,
+        materialTitle: material.title,
+        excerpt: selectedText ?? material.excerpt.slice(0, 120),
+      }
+    : undefined
+
   const isValid =
     !isStructurallyInvalid(generated, prompt) &&
     !looksLikeSourceRepetition(generated, selectedText) &&
     !mentionsPreviousTopicInstead(generated, selectedText, previousSelectedText)
 
   if (isValid) {
+    // Groundedness gate: a fluent answer that invents numbers or names is
+    // worse than a quote. When any hard fact in the answer is absent from
+    // the source it claims to teach, discard the generation and quote the
+    // most relevant source sentences instead.
+    const source = selectedText ?? material?.excerpt
+    if (source) {
+      const ungrounded = findUngroundedFacts(generated, source)
+      if (ungrounded.length > 0) {
+        const quoted = buildExtractiveAnswer(prompt, source)
+        if (quoted) {
+          console.warn(
+            '[tutor] answer contained ungrounded facts, quoting source instead:',
+            ungrounded.join(', '),
+          )
+          return {
+            text: quoted,
+            provider: 'local',
+            execution: 'on-device',
+            confidence: 'high',
+            citation,
+          }
+        }
+      }
+    }
+
     return {
       text: generated,
       provider: 'local',
       execution: 'on-device',
       confidence: 'high',
-      citation: material
-        ? {
-            materialId: material.id,
-            materialTitle: material.title,
-            excerpt: selectedText ?? material.excerpt.slice(0, 120),
-          }
-        : undefined,
+      citation,
     }
   }
 
@@ -876,6 +903,79 @@ function finishResponse(
     '[tutor] local model produced an invalid, repetitive, or off-topic response',
   )
   return buildFallbackResponse(request)
+}
+
+/*
+ * Hard-fact check: every number and every multi-word capitalized phrase in
+ * the answer must appear in the source text (compared case-insensitively,
+ * hyphens and commas ignored so "Long Term Memory" matches "Long-term
+ * memory" and "1,000" matches "1000"). Returns the offending snippets.
+ * Deliberately conservative — a vague rewording passes, an invented
+ * figure or name never does.
+ */
+export function findUngroundedFacts(answer: string, source: string): string[] {
+  const found: string[] = []
+
+  const sourceNumbers = new Set(
+    (source.match(/\d[\d,]*(?:\.\d+)?/g) ?? []).map((entry) => entry.replace(/,/g, '')),
+  )
+  for (const match of answer.match(/\d[\d,]*(?:\.\d+)?/g) ?? []) {
+    const key = match.replace(/,/g, '')
+    if (!sourceNumbers.has(key) && !found.includes(match)) {
+      found.push(match)
+    }
+  }
+
+  const normalizedSource = source
+    .toLowerCase()
+    .replace(/-/g, ' ')
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+  for (const match of answer.match(/[A-Z][a-z]+(?:\s+[A-Z][a-z]+)+/g) ?? []) {
+    const key = match.toLowerCase().replace(/-/g, ' ')
+    if (!normalizedSource.includes(key) && !found.includes(match)) {
+      found.push(match)
+    }
+  }
+
+  return found
+}
+
+/*
+ * Extractive answer: the source sentences overlapping the question most,
+ * quoted verbatim with first-person framing. Used when generation fails
+ * the groundedness gate — a correct quote beats a fluent hallucination.
+ * Returns null when no sentence overlaps the question (caller falls back
+ * to the standard fallback instead of quoting at random).
+ */
+export function buildExtractiveAnswer(question: string, sourceText: string): string | null {
+  const sentences = sourceText
+    .split(/(?<=[.!?])\s+/)
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 20)
+  if (sentences.length === 0) return null
+
+  const questionWords = extractKeywords(question)
+  if (questionWords.size === 0) return null
+
+  const ranked = sentences
+    .map((sentence, index) => ({
+      sentence,
+      index,
+      score: keywordOverlapScore(questionWords, sentence),
+    }))
+    .filter((entry) => entry.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 2)
+    .sort((a, b) => a.index - b.index)
+  if (ranked.length === 0) return null
+
+  const quoted = ranked
+    .map((entry) =>
+      entry.sentence.length > 240 ? `${entry.sentence.slice(0, 240).trimEnd()}…` : entry.sentence,
+    )
+    .join(' ')
+  return `Here's what your material actually says: "${quoted}" I couldn't reword it reliably, so I'm quoting directly rather than risking a wrong detail.`
 }
 
 export class LocalTutorProvider implements TutorProvider {
