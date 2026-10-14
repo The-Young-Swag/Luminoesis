@@ -1,5 +1,5 @@
 import type { MaterialContentBlock } from '#/features/learning-space/domain/materialContent'
-import { extractKeywords, keywordOverlapScore, keywordOverlapScoreSets } from './textRelevance'
+import { expandWithSynonyms, extractKeywords, idfWeights, weightedOverlapScore } from './textRelevance'
 import { embedTexts, rankByCosine, withTimeout } from './embeddings'
 
 const MAX_RELEVANT_BLOCKS = 3
@@ -75,28 +75,51 @@ function blockKeywords(
 export function scoreBlocksByKeyword(
   blocks: MaterialContentBlock[],
   topic: string,
+  options?: { boostFirstPage?: boolean },
 ): Array<{ index: number; score: number }> {
-  const topicKeywords = extractKeywords(topic)
+  const topicKeywords = expandWithSynonyms(extractKeywords(topic))
 
   if (topicKeywords.size === 0 || blocks.length === 0) {
     return []
   }
 
+  const blockSets = blocks.map((block) => extractKeywords(block.text))
+  const weights = idfWeights(blockSets)
+
   return blocks
-    .map((block, index) => ({
+    .map((_, index) => ({
       index,
-      score: keywordOverlapScore(topicKeywords, block.text),
+      score: weightedOverlapScore(
+        topicKeywords,
+        blockSets[index] as Set<string>,
+        weights,
+      ),
     }))
     .filter((entry) => entry.score > 0)
+    .map((entry) => ({
+      ...entry,
+      score:
+        entry.score +
+        (options?.boostFirstPage && entry.index === 0 ? FIRST_PAGE_BONUS : 0),
+    }))
 }
+
+/*
+ * First-page bonus, document-info questions only: covers and title pages
+ * live at index 0. Applied only when the first chunk already matched, so
+ * an irrelevant cover can never ride the bonus into the excerpt. The
+ * MiniLM re-rank below is deliberately untouched.
+ */
+const FIRST_PAGE_BONUS = 1.0
 
 export function selectRelevantMaterialExcerpt(
   blocks: MaterialContentBlock[],
   topic: string,
   maxChars: number,
   materialKey?: string,
+  options?: { boostFirstPage?: boolean },
 ): string {
-  const topicKeywords = extractKeywords(topic)
+  const topicKeywords = expandWithSynonyms(extractKeywords(topic))
 
   if (topicKeywords.size === 0 || blocks.length === 0) {
     return ''
@@ -105,17 +128,25 @@ export function selectRelevantMaterialExcerpt(
   const keywordSets =
     blockKeywords(materialKey, blocks) ??
     blocks.map((block) => extractKeywords(block.text))
+  const weights = idfWeights(keywordSets)
 
   const scoredBlocks = blocks
     .map((block, index) => ({
       block,
       index,
-      score: keywordOverlapScoreSets(
+      score: weightedOverlapScore(
         topicKeywords,
         keywordSets[index] as Set<string>,
+        weights,
       ),
     }))
     .filter((entry) => entry.score > 0)
+    .map((entry) => ({
+      ...entry,
+      score:
+        entry.score +
+        (options?.boostFirstPage && entry.index === 0 ? FIRST_PAGE_BONUS : 0),
+    }))
 
   if (scoredBlocks.length === 0) {
     return ''
@@ -146,10 +177,11 @@ export async function selectSemanticExcerpt(
   blocks: MaterialContentBlock[],
   topic: string,
   maxChars: number,
+  options?: { boostFirstPage?: boolean },
 ): Promise<string | null> {
   if (blocks.length === 0 || topic.trim().length === 0) return null
 
-  const candidates = [...scoreBlocksByKeyword(blocks, topic)]
+  const candidates = [...scoreBlocksByKeyword(blocks, topic, options)]
     .sort((a, b) => b.score - a.score)
     .slice(0, SEMANTIC_CANDIDATE_BLOCKS)
 

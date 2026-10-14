@@ -9,7 +9,7 @@ import {
   MAX_SELECTED_TEXT_CHARS,
   MAX_CONVERSATION_MESSAGES,
 } from './tutor'
-import { resolveEffectiveTopic } from './tutorTopic'
+import { classifyDocumentInfo, resolveEffectiveTopic } from './tutorTopic'
 import { precomputeChunkIndex, selectRelevantMaterialExcerpt, selectSemanticExcerpt } from './materialRetrieval'
 import { materialContentRepository } from '#/features/learning-space/repositories/materialContentRepository'
 import { materialRepository } from '#/features/learning-space/repositories/materialRepository'
@@ -72,17 +72,25 @@ export async function buildTutorContext(
     conversationHistory,
   )
 
+  // First-page boost applies ONLY to document-info questions (cover and
+  // title page live at index 0). Everything else ranks purely on content.
+  const retrievalOptions = {
+    boostFirstPage: classifyDocumentInfo(prompt) !== null,
+  }
+
   const excerpt = materialContent
     ? (await selectSemanticExcerpt(
         materialContent.blocks,
         effectiveTopic,
         MAX_CONTEXT_CHARS,
+        retrievalOptions,
       )) ??
       selectRelevantMaterialExcerpt(
         materialContent.blocks,
         effectiveTopic,
         MAX_CONTEXT_CHARS,
         materialId,
+        retrievalOptions,
       )
     : ''
 
