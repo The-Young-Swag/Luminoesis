@@ -440,9 +440,20 @@ export function MaterialViewerPage({ materialId }: { materialId: string }) {
         </div>
       </header>
 
-      {/* Mobile modes */}
-      <div className="flex h-12 shrink-0 items-center justify-center border-b border-(--glass-border) bg-(--glass-bg-strong)/70 px-3 backdrop-blur-xl lg:hidden">
+      {/* Mobile modes — with a back link, since the shell chrome hides on this route */}
+      <div className="flex h-12 shrink-0 items-center justify-between border-b border-(--glass-border) bg-(--glass-bg-strong)/70 px-1.5 backdrop-blur-xl lg:hidden">
+        <Link
+          to="/learning-spaces/$learningSpaceId"
+          params={{ learningSpaceId: material.learningSpaceId }}
+          aria-label="Back to space"
+          className="grid h-11 w-11 shrink-0 place-items-center rounded-xl text-(--ink-faint) transition-colors hover:bg-(--surface-muted) hover:text-(--ink)"
+        >
+          <ArrowLeft size={18} aria-hidden="true" />
+        </Link>
+
         <ModeTabs mode={mode} onChange={handleModeChange} />
+
+        <span className="w-11 shrink-0" aria-hidden="true" />
       </div>
 
       {/* ================= Workspace ================= */}

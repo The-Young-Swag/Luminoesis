@@ -115,12 +115,24 @@ export default function Sidebar() {
   })
 
   const isFocusMode = pathname.startsWith('/review')
+  // Material view is immersive: the shell chrome (desktop sidebar, mobile
+  // header + tab bar) is hidden entirely and the viewer owns the screen.
+  // The viewer always offers its own way back (Back-to-space link), and
+  // the command palette stays available, so this never traps anyone.
+  const hideChrome = pathname.startsWith('/material')
 
   useEffect(() => {
     setMobileOpen(false)
     setPaletteOpen(false)
     recordRouteVisit(pathname)
   }, [pathname])
+
+  useEffect(() => {
+    document.documentElement.setAttribute(
+      'data-chrome',
+      hideChrome ? 'hidden' : 'shown',
+    )
+  }, [hideChrome])
 
   useEffect(() => {
     const toggle = () => setPaletteOpen((open) => !open)
@@ -144,18 +156,20 @@ export default function Sidebar() {
   return (
     <>
       <MobileHeader
-        focusMode={isFocusMode}
+        focusMode={isFocusMode || hideChrome}
         onOpenNavigation={() => setMobileOpen(true)}
         onOpenPalette={openPalette}
       />
 
-      <MobileTabBar focusMode={isFocusMode} />
+      <MobileTabBar focusMode={isFocusMode || hideChrome} />
 
       {mobileOpen && (
         <MobileDrawer onClose={() => setMobileOpen(false)} />
       )}
 
-      <DesktopSidebar focusMode={isFocusMode} pathname={pathname} />
+      {!hideChrome && (
+        <DesktopSidebar focusMode={isFocusMode} pathname={pathname} />
+      )}
 
       <CommandPalette
         open={paletteOpen}

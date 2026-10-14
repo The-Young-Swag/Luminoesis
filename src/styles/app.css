@@ -470,6 +470,17 @@ dialog.app-dialog,
     margin-left: 116px;
   }
 
+  /*
+    Immersive routes (material view): the sidebar is unmounted, so the
+    application reclaims its column. Placed last — same specificity as
+    the collapsed rule above, later wins.
+  */
+  html[data-chrome='hidden'] .app-main {
+    width: 100%;
+    max-width: 100%;
+    margin-left: 0;
+  }
+
   .app-content {
     width: 100%;
     max-width: 100%;
