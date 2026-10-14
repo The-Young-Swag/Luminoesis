@@ -11,6 +11,8 @@ import {
   isModelNotFound,
   modelUnavailableMessage,
 } from '../../domain/geminiErrors.js'
+import { parseStudyPack } from '../../../features/tutor/domain/studyPack.js'
+import type { StudyPack } from '../../../features/tutor/domain/studyPack.js'
 
 export const tutorRouter = Router()
 
@@ -108,10 +110,14 @@ function buildGeminiPrompt(parsed: TutorPromptInput): string {
   ].join('\n\n')
 }
 
-function geminiBody(prompt: string): Record<string, unknown> {
+function geminiBody(prompt: string, jsonMode = false): Record<string, unknown> {
   return {
     contents: [{ parts: [{ text: prompt }] }],
-    generationConfig: { maxOutputTokens: 500, temperature: 0.7 },
+    generationConfig: {
+      maxOutputTokens: 500,
+      temperature: 0.7,
+      ...(jsonMode ? { responseMimeType: 'application/json' } : {}),
+    },
   }
 }
 
@@ -119,6 +125,7 @@ async function callGemini(
   systemPrompt: string,
   stream: boolean,
   onToken?: (text: string) => void,
+  jsonMode = false,
 ): Promise<string> {
   const geminiKey = getGeminiKey()
   if (!geminiKey) {
@@ -136,7 +143,7 @@ async function callGemini(
     const gemResponse = await fetch(geminiUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(geminiBody(systemPrompt)),
+      body: JSON.stringify(geminiBody(systemPrompt, jsonMode)),
       signal: controller.signal,
     })
 
@@ -341,5 +348,74 @@ tutorRouter.post('/chat/stream', async (req, res) => {
       error: error instanceof Error ? error.message : 'Sophia online failed.',
     })
     res.end()
+  }
+})
+
+const StudyPackSchema = z.object({
+  materialId: z.string().trim().min(1),
+  text: z.string().trim().min(1),
+})
+
+const STUDY_PACK_MAX_CHARS = 24000
+
+function buildStudyPackPrompt(text: string): string {
+  return [
+    'From the material below, produce JSON with keys: summary (3-5 sentences), concepts (3-12 items: term, explanation in 1-2 sentences, optional example), questions (5-12 items: question, answer, each answerable ONLY from the material), misconceptions (up to 6 common mistakes learners make about this material). Use only information in the material. Do not invent facts.',
+    "Never use the word 'passage'.",
+    `Material:\n${text}`,
+  ].join('\n\n')
+}
+
+// POST /tutor/study-pack — one reasoning pass per document, stored on device.
+// Same quota as chat (one pack = one unit), consumed only after a VALID pack.
+tutorRouter.post('/study-pack', async (req, res) => {
+  const parsed = StudyPackSchema.parse(req.body)
+  const fingerprint = getFingerprint(req, res)
+
+  const remaining = getRemaining(fingerprint)
+  if (remaining <= 0) {
+    res.status(429).json({
+      error: `You've used all ${MAX_ONLINE_UPLOADS} online uploads available for this demo. I can still answer on-device, and all non-AI learning features continue working.`,
+      remaining: 0,
+      limit: MAX_ONLINE_UPLOADS,
+    })
+    return
+  }
+
+  if (!getGeminiKey()) {
+    res.status(503).json({
+      error:
+        'Sophia online is not configured on this server. I can still answer on-device, and all non-AI features continue working.',
+      remaining,
+      limit: MAX_ONLINE_UPLOADS,
+    })
+    return
+  }
+
+  try {
+    const text = parsed.text.slice(0, STUDY_PACK_MAX_CHARS)
+    const raw = await callGemini(buildStudyPackPrompt(text), false, undefined, true)
+    const pack: StudyPack | null = parseStudyPack(raw, parsed.materialId, getGeminiModel())
+    if (!pack) {
+      res.status(502).json({
+        error:
+          'Sophia could not turn this material into a study pack. The material itself is saved and nothing was used up — try again later.',
+      })
+      return
+    }
+
+    // Quota counts only valid packs — failures stay free.
+    consumeUpload(fingerprint)
+
+    res.json({
+      pack,
+      remaining: getRemaining(fingerprint),
+      limit: MAX_ONLINE_UPLOADS,
+    })
+  } catch (error) {
+    console.error('[tutor] study-pack unexpected', error)
+    res.status(502).json({
+      error: error instanceof Error ? error.message : 'Sophia online failed.',
+    })
   }
 })
