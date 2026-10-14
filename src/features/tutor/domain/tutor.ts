@@ -1,4 +1,5 @@
 import type { WebSource } from './webRetrieval'
+import type { MaterialDocumentInfo } from '#/features/learning-space/domain/learningSpace'
 
 export type TutorRole = 'user' | 'assistant'
 
@@ -43,6 +44,7 @@ export type TutorContext = {
     title: string
     excerpt: string
     source: 'user' | 'extracted'
+    documentInfo?: MaterialDocumentInfo
   }
 
   selectedText?: string

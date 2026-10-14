@@ -77,3 +77,60 @@ export function resolveEffectiveTopic(
 
   return prompt
 }
+
+export type DocumentInfoKind = 'author' | 'title' | 'pages'
+
+/*
+ * Document-info questions ("who wrote this?", "what's the title?", "how
+ * many pages?") are lookups about the document itself — not reasoning.
+ * They are answered deterministically from ingestion facts, never by the
+ * model. Patterns are anchored to identity/title/count formulations so
+ * content questions that merely mention the author ("what is the
+ * author's main argument?") do NOT match.
+ */
+const DOCUMENT_AUTHOR_PATTERNS = [
+  /who\s+(authored|wrote|prepared|submitted|created)\b/i,
+  /who(?:'s| is) the author\b/i,
+  /\bauthor of (this|the|your)\b/i,
+  /\b(authored|written|prepared|submitted) by whom\b/i,
+  /^who (prepared|submitted) this\b/i,
+]
+
+const DOCUMENT_AUTHOR_EXCLUSIONS = [
+  /author'?s\s+(argument|findings?|main|claim|conclusion|theory|view|position|purpose|point)\b/i,
+  /what d(id|oes) the author (say|conclude|claim|argue|find|mean|suggest)\b/i,
+  /summariz/i,
+  /according to the author[, ]+(what|how|why|who|when)\b/i,
+]
+
+const DOCUMENT_TITLE_PATTERNS = [
+  /\btitle of (this|the|your) (document|report|paper|material|file|study)\b/i,
+  /^what(?:'s| is) the title\??$/i,
+  /\bwhat is (this|the) (document|report|paper) (titled|called)\b/i,
+]
+
+const DOCUMENT_PAGES_PATTERNS = [
+  /how many pages\b/i,
+  /\bpage count\b/i,
+  /\bnumber of pages\b/i,
+  /how long is (this|the) (document|report|paper)\b/i,
+]
+
+export function classifyDocumentInfo(question: string): DocumentInfoKind | null {
+  const normalized = question.trim().toLowerCase()
+  if (normalized.length === 0) return null
+
+  if (DOCUMENT_AUTHOR_EXCLUSIONS.some((pattern) => pattern.test(question))) {
+    return null
+  }
+  if (DOCUMENT_AUTHOR_PATTERNS.some((pattern) => pattern.test(question))) {
+    return 'author'
+  }
+  if (DOCUMENT_TITLE_PATTERNS.some((pattern) => pattern.test(question))) {
+    return 'title'
+  }
+  if (DOCUMENT_PAGES_PATTERNS.some((pattern) => pattern.test(question))) {
+    return 'pages'
+  }
+  return null
+}

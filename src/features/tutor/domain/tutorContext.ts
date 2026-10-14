@@ -12,6 +12,7 @@ import {
 import { resolveEffectiveTopic } from './tutorTopic'
 import { precomputeChunkIndex, selectRelevantMaterialExcerpt, selectSemanticExcerpt } from './materialRetrieval'
 import { materialContentRepository } from '#/features/learning-space/repositories/materialContentRepository'
+import { materialRepository } from '#/features/learning-space/repositories/materialRepository'
 import { conceptRepository } from '#/features/learning-space/repositories/conceptRepository'
 import { highlightRepository } from '#/features/learning-space/repositories/highlightRepository'
 import { reviewEventRepository } from '#/features/review/repositories/reviewEventRepository'
@@ -51,8 +52,9 @@ export async function buildTutorContext(
     conversationHistory = [],
   } = input
 
-  const [materialContent, concepts, highlights, reviewEvents] = await Promise.all([
+  const [materialContent, materialRow, concepts, highlights, reviewEvents] = await Promise.all([
     materialId ? materialContentRepository.findByMaterialId(materialId) : Promise.resolve(undefined),
+    materialId ? materialRepository.findById(materialId) : Promise.resolve(undefined),
     conceptRepository.findByLearningSpaceId(learningSpaceId),
     materialId ? highlightRepository.findByMaterialId(materialId) : Promise.resolve([]),
     reviewEventRepository.findAll(),
@@ -140,6 +142,7 @@ export async function buildTutorContext(
           title: materialTitle,
           excerpt: excerpt.length > 0 ? excerpt : truncatedSelected ?? '',
           source: materialContent?.source ?? 'user',
+          ...(materialRow?.documentInfo ? { documentInfo: materialRow.documentInfo } : {}),
         }
       : undefined,
   

@@ -6,6 +6,8 @@ import type {
   TutorResponse,
 } from '../domain/tutor'
 import { isReferentFollowUp, resolveEffectiveTopic } from '../domain/tutorTopic'
+import type { DocumentInfoKind } from '../domain/tutorTopic'
+import { classifyDocumentInfo } from '../domain/tutorTopic'
 import { extractKeywords, keywordOverlapScore } from '../domain/textRelevance'
 import {
   getSharedTutorWorker,
@@ -752,6 +754,94 @@ async function ensureWorkerLoaded(
   }
 }
 
+/*
+ * Document-info lookup: "who wrote this?", "what's the title?", "how many
+ * pages?" These are answered ONLY from ingestion facts — no retrieval, no
+ * model call, no guessing. Correct answers return high-confidence (so
+ * escalation never fires); missing facts return an honest low-confidence
+ * response instead of a guess.
+ */
+function answerDocumentInfo(request: TutorRequest): TutorResponse | null {
+  const { context } = request
+  // A selection reframes the turn as "about this passage" — content, not lookup.
+  if (context.selectedText) return null
+
+  const kind: DocumentInfoKind | null = classifyDocumentInfo(context.prompt)
+  if (kind === null) return null
+
+  const material = context.material
+  if (!material?.documentInfo) {
+    return {
+      text: 'I don’t have document details to check — open a material and ask me again.',
+      provider: 'local',
+      execution: 'fallback',
+      confidence: 'low',
+    }
+  }
+
+  const info = material.documentInfo
+  const citation = {
+    materialId: material.id,
+    materialTitle: material.title,
+    excerpt: (info.firstPageText ?? material.excerpt).slice(0, 120),
+  }
+
+  if (kind === 'author') {
+    if (info.author) {
+      return {
+        text: `The cover of your document lists ${info.author} as the author.`,
+        provider: 'local',
+        execution: 'on-device',
+        confidence: 'high',
+        citation,
+      }
+    }
+    return {
+      text: 'I couldn’t find an author listed in your document — neither the cover nor its details name one, so I won’t guess.',
+      provider: 'local',
+      execution: 'fallback',
+      confidence: 'low',
+      citation,
+    }
+  }
+
+  if (kind === 'title') {
+    if (info.title) {
+      return {
+        text: `Your document is titled "${info.title}".`,
+        provider: 'local',
+        execution: 'on-device',
+        confidence: 'high',
+        citation,
+      }
+    }
+    return {
+      text: 'I couldn’t find a title listed in your document, so I won’t guess.',
+      provider: 'local',
+      execution: 'fallback',
+      confidence: 'low',
+      citation,
+    }
+  }
+
+  if (typeof info.pageCount === 'number') {
+    return {
+      text: `Your document has ${info.pageCount} ${info.pageCount === 1 ? 'page' : 'pages'}.`,
+      provider: 'local',
+      execution: 'on-device',
+      confidence: 'high',
+      citation,
+    }
+  }
+  return {
+    text: 'I couldn’t find a page count for your document, so I won’t guess.',
+    provider: 'local',
+    execution: 'fallback',
+    confidence: 'low',
+    citation,
+  }
+}
+
 function finishResponse(
   request: TutorRequest,
   generated: string,
@@ -825,6 +915,11 @@ export class LocalTutorProvider implements TutorProvider {
     request: TutorRequest,
     options?: TutorRespondOptions,
   ): Promise<TutorResponse> {
+    // Document-info questions are lookups, not reasoning: answer from
+    // ingestion facts with no model call. Never guesses.
+    const lookup = answerDocumentInfo(request)
+    if (lookup) return lookup
+
     const tier = await resolveTier(options?.tier ?? 'standard')
     const messages = buildMessages(request)
 
