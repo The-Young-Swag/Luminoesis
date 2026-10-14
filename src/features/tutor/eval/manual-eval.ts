@@ -36,6 +36,7 @@ import type { MaterialContentBlock } from '#/features/learning-space/domain/mate
 type ManualCase = {
   name: string
   selectedText?: string
+  docInfo?: { author?: string; title?: string; pageCount?: number }
   prompt: string
   mustContain: string[]
   mustNotContain: string[]
@@ -51,6 +52,22 @@ const CELLS = [
   'The cell membrane controls what enters and leaves the cell.',
   'Mitochondria produce energy through cellular respiration.',
   'Ribosomes build proteins from messenger RNA instructions.',
+].join('\n')
+
+/*
+ * Synthetic stand-in for a narrative report (declared up here because
+ * CASES references it): cover naming a person (without the word
+ * "author"), one bio paragraph, long acknowledgements stamping one
+ * company name everywhere. All names invented — the real PDF is never
+ * committed or read here.
+ */
+const DOC_REPORT = [
+  'Narrative Report. Prepared by Maria Santos. Riverview High School.',
+  'Maria Santos was born in Santa Clara. She is taking a Bachelor of Science in Biology degree. She served as president of the student science organization.',
+  'Acknowledgements. The writer thanks the Acme Team for guidance during the field study report.',
+  'The writer thanks Acme Philippines and the Field Operations Team for their support.',
+  'The writer thanks the Supply Chain and Logistics Team at Acme for the supplies.',
+  'The study was conducted with the Acme Team. Acme provided the site.',
 ].join('\n')
 
 const CASES: ManualCase[] = [
@@ -123,9 +140,71 @@ const CASES: ManualCase[] = [
     mustContain: ['memory', 'cell'],
     mustNotContain: ['passage', 'as an AI'],
   },
+  {
+    name: 'doc author lookup (deterministic)',
+    docInfo: { author: 'Maria Santos', title: 'Narrative Report', pageCount: 24 },
+    prompt: 'Who authored this report?',
+    mustContain: ['Maria Santos'],
+    mustNotContain: ['passage', 'acme'],
+  },
+  {
+    name: 'doc title lookup (deterministic)',
+    docInfo: { author: 'Maria Santos', title: 'Narrative Report', pageCount: 24 },
+    prompt: 'What is the title of this report?',
+    mustContain: ['Narrative Report'],
+    mustNotContain: ['passage'],
+  },
+  {
+    name: 'birthplace from bio paragraph',
+    selectedText: DOC_REPORT,
+    prompt: 'Where was the author born?',
+    mustContain: ['Santa Clara'],
+    mustNotContain: ['passage'],
+  },
+  {
+    name: 'degree from bio paragraph',
+    selectedText: DOC_REPORT,
+    prompt: 'What degree is the author taking?',
+    mustContain: ['Biology'],
+    mustNotContain: ['passage'],
+  },
+  {
+    name: 'student-org role from bio paragraph',
+    selectedText: DOC_REPORT,
+    prompt: 'What role did she hold in the student org?',
+    mustContain: ['president'],
+    mustNotContain: ['passage'],
+  },
 ]
 
 function buildContext(testCase: ManualCase): TutorContext {
+  const docInfo = testCase.docInfo
+  // Document-info lookups run with material facts and NO selection: that
+  // is exactly the shape that takes the deterministic bypass in the
+  // provider, which is what these cases exercise.
+  if (docInfo) {
+    return {
+      material: {
+        id: 'eval-doc',
+        title: 'Eval doc',
+        excerpt: DOC_REPORT,
+        source: 'user',
+        documentInfo: {
+          ...(docInfo.author ? { author: docInfo.author } : {}),
+          ...(docInfo.title ? { title: docInfo.title } : {}),
+          ...(docInfo.pageCount !== undefined ? { pageCount: docInfo.pageCount } : {}),
+          firstPageText: DOC_REPORT.split('\n')[0] ?? '',
+        },
+      },
+      selectedText: undefined,
+      concepts: [],
+      highlights: [],
+      reviewHistory: [],
+      weakSpots: [],
+      conversationHistory: [],
+      prompt: testCase.prompt,
+    }
+  }
   return {
     material: testCase.selectedText
       ? {
