@@ -1,0 +1,13 @@
+# Render Blueprint — one free web service for the Luminoesis app.
+# The app is fully usable without any backend: study data lives in the
+# browser, and Sophia runs on-device. This service serves the SSR app.
+# (The optional Gemini-escalation sync server is a separate service;
+# see src/server — wire it only if you turn escalation on.)
+services:
+  - type: web
+    name: luminoesis
+    runtime: node
+    plan: free
+    buildCommand: npm ci && npm run build
+    startCommand: npm run start
+    healthCheckPath: /
