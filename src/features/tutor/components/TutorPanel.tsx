@@ -294,6 +294,10 @@ export const TutorPanel = forwardRef<TutorPanelHandle, TutorPanelProps>(
             <div className="flex shrink-0 items-center gap-2">
               <span className="chip">Local AI</span>
 
+              <span className="chip border-(--accent-line) bg-(--accent-soft) text-[10px] text-(--ink)">
+                Beta
+              </span>
+
               {escalationOn ? (
                 <span className="chip text-[10px] text-(--warning-strong)">
                   Escalation on

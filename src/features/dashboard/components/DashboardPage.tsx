@@ -13,6 +13,7 @@ import { Reveal } from '#/shared/components/ui/Reveal'
 import { StatCard } from '#/features/dashboard/components/snapshot/StatCard'
 import { AdaptiveOptInBanner } from '#/features/dashboard/components/hero/AdaptiveOptInBanner'
 import { DashboardHero } from '#/features/dashboard/components/hero/DashboardHero'
+import { SophiaBetaNotice } from '#/features/dashboard/components/hero/SophiaBetaNotice'
 import { InsightBanner } from '#/features/dashboard/components/layout/InsightBanner'
 import { DashboardSkeleton } from '#/features/dashboard/components/loading/DashboardSkeleton'
 import { ActivityCard } from '#/features/dashboard/components/activity/ActivityCard'
@@ -85,6 +86,8 @@ export function DashboardPage() {
       <div className="page-wrap space-y-5 py-6 md:py-8">
         <PageHeader title="Today" context={dashboardDate()} />
 
+        <SophiaBetaNotice />
+
         <DashboardHero
           learningState={learningState}
           sessionCount={sessionCount}
@@ -136,6 +139,8 @@ export function DashboardPage() {
   return (
     <div className="page-wrap space-y-4 py-6 md:py-8">
       <PageHeader title="Today" context={dashboardDate()} />
+
+      <SophiaBetaNotice />
 
       {optIn === null && (
         <AdaptiveOptInBanner onEnable={() => void setOptIn(true)} onDismiss={() => void setOptIn(false)} />
